@@ -2,7 +2,10 @@
 
 import { LayoutGroup, motion } from "motion/react";
 import { layoutSpring } from "@/components/motion/timing";
-import { classColor } from "@/lib/cards/class-colors";
+import { ClassPortrait } from "@/components/cards/ClassPortrait";
+import { ArtImage } from "@/components/cards/CardArt";
+import { CardPreview } from "@/components/cards/CardPreview";
+import { artSrc } from "@/lib/cards/art";
 import { formatNumber, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
@@ -57,7 +60,7 @@ export function Standings({ rows }: { rows: StandingView[] }) {
                 {i + 1}
               </span>
               <span role="cell" className="flex min-w-0 items-center gap-2">
-                <span className="h-3.5 w-1 shrink-0 rounded-full" style={{ background: classColor(r.cls) }} aria-hidden />
+                <ClassPortrait cls={r.cls} size={26} />
                 <span className="truncate">{r.label}</span>
               </span>
               <span role="cell" className="stat text-right text-base text-muted-foreground">
@@ -77,30 +80,68 @@ export function Standings({ rows }: { rows: StandingView[] }) {
   );
 }
 
-/** Decks ranked by how sure we are of the win rate (Wilson lower bound). */
+/** Darkened signature-card art behind the right side of a deck row; the text side stays solid. */
+function DeckBanner({ cardId, name }: { cardId: string; name: string }) {
+  return (
+    <span
+      aria-hidden
+      className="pointer-events-none absolute inset-y-0 right-16 w-1/2 overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_45%,black_70%,transparent)]"
+    >
+      <ArtImage
+        src={artSrc("art", cardId)}
+        alt=""
+        width={512}
+        height={512}
+        className="absolute inset-0 size-full bg-transparent"
+        imgClassName="scale-[1.45] object-[50%_35%] opacity-30 saturate-[0.85] transition-[transform,opacity] duration-300 ease-snap group-hover:scale-[1.52] group-hover:opacity-45 group-focus-visible:opacity-45"
+        fallback={null}
+      />
+      <span className="sr-only">{name}</span>
+    </span>
+  );
+}
+
+/** Decks ranked by how sure we are of the win rate (Wilson lower bound). Hover a row to see its signature card. */
 export function DeckStandings({ rows }: { rows: DeckView[] }) {
   return (
-    <ul className="grid gap-1">
-      {rows.map((d) => (
-        <motion.li
-          key={d.name}
-          layout="position"
-          transition={layoutSpring}
-          className={cn("glow-hover grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-1.5 rounded-xs px-1 py-2", d.lowSample && "opacity-55")}
-        >
-          <span className="flex min-w-0 items-center gap-2">
-            <span className="h-3.5 w-1 shrink-0 rounded-full" style={{ background: classColor(d.cls) }} aria-hidden />
-            <span className="truncate font-medium">{d.name}</span>
-            <span className="stat text-muted-foreground">{t.overview.n(formatNumber(d.n))}</span>
-          </span>
-          <span className={cn("stat text-2xl leading-none font-bold", d.rate >= 0.5 ? "text-win" : "text-loss")}>
-            {formatPercent(d.rate)}
-          </span>
-          <span className="col-span-2">
-            <FiftyBar rate={d.rate} />
-          </span>
-        </motion.li>
-      ))}
+    <ul className="grid gap-2">
+      {rows.map((d) => {
+        const row = (
+          <div
+            tabIndex={d.signature ? 0 : undefined}
+            aria-label={d.signature ? `${d.name}, ${d.signature.name}` : undefined}
+            className="group glow-hover relative grid grid-cols-[minmax(0,1fr)_auto] items-center gap-x-4 gap-y-2 overflow-hidden rounded-md border border-hairline px-3 py-2.5 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            {d.signature && <DeckBanner cardId={d.signature.id} name={d.signature.name} />}
+            <span className="relative flex min-w-0 items-center gap-2.5">
+              <ClassPortrait cls={d.cls} size={30} />
+              <span className="min-w-0">
+                <span className="block truncate font-medium">{d.name}</span>
+                <span className="stat block text-sm text-muted-foreground">
+                  {formatNumber(d.wins)}–{formatNumber(d.losses)} · {t.overview.n(formatNumber(d.n))}
+                </span>
+              </span>
+            </span>
+            <span className={cn("stat relative text-2xl leading-none font-bold", d.rate >= 0.5 ? "text-win" : "text-loss")}>
+              {formatPercent(d.rate)}
+            </span>
+            <span className="relative col-span-2">
+              <FiftyBar rate={d.rate} />
+            </span>
+          </div>
+        );
+        return (
+          <motion.li key={d.name} layout="position" transition={layoutSpring} className={cn(d.lowSample && "opacity-55")}>
+            {d.signature ? (
+              <CardPreview cardId={d.signature.id} name={d.signature.name}>
+                {row}
+              </CardPreview>
+            ) : (
+              row
+            )}
+          </motion.li>
+        );
+      })}
     </ul>
   );
 }

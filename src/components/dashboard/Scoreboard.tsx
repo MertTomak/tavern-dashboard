@@ -5,6 +5,8 @@ import { StatNumber } from "@/components/motion/StatNumber";
 import { useNewIds } from "@/components/motion/use-new-ids";
 import { DURATION, EASE_SNAP } from "@/components/motion/timing";
 import { cn } from "@/lib/utils";
+import { portraitSrc } from "@/lib/cards/art";
+import { ArtImage } from "@/components/cards/CardArt";
 import { t } from "@/i18n";
 import { RESULT_TEXT } from "./ResultMark";
 import type { RecentGameView, ScoreboardView } from "./overview-view";
@@ -62,8 +64,25 @@ export function Scoreboard({ view }: { view: ScoreboardView }) {
       className="@container overflow-hidden rounded-lg border border-border bg-card shadow-panel"
     >
       <div className="grid @xl:grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)] @5xl:grid-cols-[minmax(0,1.25fr)_minmax(0,0.9fr)_minmax(0,1.6fr)]">
-      <div className="bg-linear-115 from-primary/16 via-primary/5 to-transparent p-5">
-        <p className={label}>{t.overview.winRate}</p>
+      <div className="relative overflow-hidden bg-linear-115 from-primary/16 via-primary/5 to-transparent p-5">
+        {view.mainClass && (
+          <span
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 right-0 w-3/4 [mask-image:linear-gradient(to_right,transparent,black_55%,black_80%,transparent)]"
+          >
+            <ArtImage
+              src={portraitSrc(view.mainClass)}
+              alt=""
+              width={512}
+              height={512}
+              className="absolute inset-0 size-full bg-transparent"
+              imgClassName="object-[50%_25%] opacity-20 saturate-[0.8] dark:opacity-[0.22]"
+              fallback={null}
+              priority
+            />
+          </span>
+        )}
+        <p className={cn(label, "relative")}>{t.overview.winRate}</p>
         <p
           data-celebrate-anchor
           className="relative mt-1 w-fit font-display text-[clamp(3.75rem,7vw,6rem)] leading-[0.9] font-semibold text-brass-bright [font-variation-settings:'opsz'_144,'SOFT'_100]"
@@ -71,8 +90,10 @@ export function Scoreboard({ view }: { view: ScoreboardView }) {
           <span aria-hidden className="pointer-events-none absolute -inset-x-6 -inset-y-4 rounded-full bg-[radial-gradient(closest-side,var(--glow),transparent)]" />
           <StatNumber value={view.winRate} kind="percent" className="relative [font-variant-numeric:lining-nums_tabular-nums]" />
         </p>
-        <p className="mt-2 mb-4 text-sm text-muted-foreground">{view.games}</p>
-        <Tally form={view.form} />
+        <p className="relative mt-2 mb-4 text-sm text-muted-foreground">{view.games}</p>
+        <div className="relative">
+          <Tally form={view.form} />
+        </div>
       </div>
 
       <div className="flex items-center gap-4 border-t border-border p-5 @xl:border-t-0 @xl:border-l">

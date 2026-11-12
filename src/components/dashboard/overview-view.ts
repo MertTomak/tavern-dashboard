@@ -30,6 +30,7 @@ export type ScoreboardView = {
   streakResult: GameResult | null;
   avgDurationSec: number | null;
   form: RecentGameView[]; // oldest -> newest
+  mainClass: string | null; // the class you played most in this range
 };
 
 export type StandingView = {
@@ -42,7 +43,9 @@ export type StandingView = {
   lowSample: boolean;
 };
 
-export type DeckView = StandingView & { name: string };
+export type SignatureCard = { id: string; name: string };
+
+export type DeckView = StandingView & { name: string; signature: SignatureCard | null };
 
 export function recentView(s: OverviewSnapshot): RecentGameView[] {
   return s.recent.map((g) => ({
@@ -74,6 +77,7 @@ export function scoreboardView(s: OverviewSnapshot): ScoreboardView {
     streakResult: s.streak?.result ?? null,
     avgDurationSec: s.avgDurationSec,
     form: [...recentView(s)].reverse(),
+    mainClass: s.mainClass,
   };
 }
 
@@ -92,9 +96,10 @@ export function standingsView(s: OverviewSnapshot): StandingView[] {
     .sort((a, b) => b.rate - a.rate || b.n - a.n);
 }
 
-export function decksView(s: OverviewSnapshot): DeckView[] {
+export function decksView(s: OverviewSnapshot, signatures: ReadonlyMap<string, SignatureCard>): DeckView[] {
   return s.byDeck.map((d) => ({
     name: d.name,
+    signature: signatures.get(d.name) ?? null,
     cls: d.cls,
     label: classLabel(d.cls),
     rate: d.wr.rate,

@@ -6,6 +6,12 @@ import { ResultChip } from "@/components/dashboard/ResultMark";
 import { classColor, classLabel } from "@/lib/cards/class-colors";
 import { t } from "@/i18n";
 import { MotionPlayground } from "./MotionPlayground";
+import { ArtFallback, ArtImage } from "@/components/cards/CardArt";
+import { CardPreview } from "@/components/cards/CardPreview";
+import { ClassPortrait } from "@/components/cards/ClassPortrait";
+import { ART_KINDS, artSrc } from "@/lib/cards/art";
+
+const SAMPLE_CARD = { id: "EX1_001", name: "Lightwarden" };
 
 export const metadata: Metadata = { title: t.designLab.title };
 
@@ -50,6 +56,45 @@ export default function StyleGuidePage() {
           </ul>
         </Panel>
       </div>
+
+      <Panel title={copy.art} hint={copy.artHint}>
+        <div className="grid gap-6 md:grid-cols-[auto_1fr]">
+          <CardPreview cardId={SAMPLE_CARD.id} name={SAMPLE_CARD.name}>
+            <button type="button" className="glow-hover w-fit rounded-md focus-visible:outline-2 focus-visible:outline-ring">
+              <ArtImage
+                src={artSrc("art", SAMPLE_CARD.id)}
+                alt={SAMPLE_CARD.name}
+                width={160}
+                height={160}
+                className="w-40 rounded-md"
+                imgClassName="scale-[1.45]"
+                fallback={<ArtFallback />}
+              />
+            </button>
+          </CardPreview>
+          <div className="grid content-start gap-4">
+            <ArtImage
+              src={artSrc("tile", SAMPLE_CARD.id)}
+              alt={SAMPLE_CARD.name}
+              width={ART_KINDS.tile.width}
+              height={ART_KINDS.tile.height}
+              className="w-64 rounded-xs"
+              fallback={<ArtFallback />}
+            />
+            <ul className="flex flex-wrap gap-3">
+              {CLASSES.map((cls) => (
+                <li key={cls}>
+                  <ClassPortrait cls={cls} size={40} />
+                </li>
+              ))}
+            </ul>
+            <div className="flex items-center gap-3 text-sm text-muted-foreground">
+              <ArtImage src={artSrc("art", "NO_SUCH_CARD")} alt="" width={40} height={40} className="w-10 rounded-md" fallback={<ArtFallback />} />
+              {copy.artFallback}
+            </div>
+          </div>
+        </div>
+      </Panel>
 
       <Panel title={copy.type}>
         <div className="grid gap-4">

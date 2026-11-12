@@ -3,7 +3,7 @@
 import { AnimatePresence, motion } from "motion/react";
 import { useNewIds } from "@/components/motion/use-new-ids";
 import { DURATION, EASE_SNAP, layoutSpring } from "@/components/motion/timing";
-import { classColor } from "@/lib/cards/class-colors";
+import { ClassPortrait } from "@/components/cards/ClassPortrait";
 import { t } from "@/i18n";
 import { ResultChip } from "./ResultMark";
 import type { RecentGameView } from "./overview-view";
@@ -39,7 +39,7 @@ export function Ticker({ games }: { games: RecentGameView[] }) {
               )}
               <ResultChip result={g.result} />
               <span className="flex items-center gap-1.5">
-                <span className="size-2 rounded-full" style={{ background: classColor(g.opponentClass) }} aria-hidden />
+                <ClassPortrait cls={g.opponentClass} size={22} />
                 {t.overview.vs(g.opponent)}
               </span>
               <span className="stat text-muted-foreground">{g.when}</span>

@@ -26,6 +26,7 @@ export type OverviewSnapshot = {
   recent: OverviewGame[];
   rank: { playedAt: string; rank: number }[];
   avgDurationSec: number | null;
+  mainClass: string | null;
 };
 
 const DAY_MS = 24 * 3600 * 1000;
@@ -92,6 +93,10 @@ export function buildOverviewSnapshot(
     deckGroups.set(g.deckName, cur);
   }
 
+  const played = new Map<string, number>();
+  for (const g of sorted) played.set(g.playerClass, (played.get(g.playerClass) ?? 0) + 1);
+  const mainClass = [...played.entries()].sort((a, b) => b[1] - a[1])[0]?.[0] ?? null;
+
   const durations = sorted.flatMap((g) => (g.durationSec == null ? [] : [g.durationSec]));
 
   return {
@@ -117,5 +122,6 @@ export function buildOverviewSnapshot(
     avgDurationSec: durations.length
       ? Math.round(durations.reduce((s, d) => s + d, 0) / durations.length)
       : null,
+    mainClass,
   };
 }

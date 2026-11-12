@@ -20,6 +20,9 @@ import {
   standingsView,
 } from "@/components/dashboard/overview-view";
 import { getOverviewGames, hasAnyGames } from "@/lib/db/queries/overview";
+import { getLatestDeckCardIds } from "@/lib/db/queries/decks";
+import { cardsByDbf, pickSignatureCard } from "@/lib/cards/catalog";
+import type { SignatureCard } from "@/components/dashboard/overview-view";
 import { buildOverviewSnapshot } from "@/lib/stats/overview";
 import { parseFilters, rangeStart } from "@/lib/filters";
 import { TIME_ZONE, t } from "@/i18n";
@@ -48,6 +51,12 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/">["searc
 
   const s = buildOverviewSnapshot(games, { now, timeZone: TIME_ZONE, rollingWindow: ROLLING_WINDOW });
   const rank = rankPoints(s);
+  const deckCards = getLatestDeckCardIds();
+  const signatures = new Map<string, SignatureCard>();
+  for (const d of s.byDeck) {
+    const card = pickSignatureCard(cardsByDbf(deckCards.get(d.name) ?? []), d.cls);
+    if (card) signatures.set(d.name, { id: card.id, name: card.name });
+  }
 
   return (
     <Stagger className="grid grid-cols-1 gap-4">
@@ -72,7 +81,7 @@ async function Dashboard({ searchParams }: { searchParams: PageProps<"/">["searc
       <div className="grid gap-4 xl:grid-cols-2">
         <StaggerItem>
           <Panel title={t.overview.decks} hint={t.overview.decksHint} className="h-full">
-            <DeckStandings rows={decksView(s)} />
+            <DeckStandings rows={decksView(s, signatures)} />
           </Panel>
         </StaggerItem>
         {rank.length > 1 && (

@@ -50,6 +50,7 @@ function toView(games: RecentGameView[], wins: number, losses: number): Scoreboa
     streakResult: latest.result,
     avgDurationSec: 432,
     form: [...games].reverse(),
+    mainClass: "MAGE",
   };
 }
 

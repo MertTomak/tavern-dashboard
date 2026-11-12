@@ -131,6 +131,10 @@ export const en = {
       failed: "Could not delete the demo data. Please try again.",
     },
   },
+  legal: {
+    trademark:
+      "Hearthstone® is a registered trademark of Blizzard Entertainment, Inc. Unofficial fan tool, not affiliated with Blizzard. Card images via HearthstoneJSON.",
+  },
   errors: {
     generic: "Something went wrong. Please try again.",
   },
@@ -182,6 +186,9 @@ export const en = {
     typeDisplay: "Fraunces: page titles and the big win rate",
     typeStat: "Barlow Condensed: every number, table and the scoreboard",
     typeBody: "Instrument Sans: body text, labels and help",
+    art: "Card art",
+    artHint: "From HearthstoneJSON, cached in data/art. Hover the art to preview the card.",
+    artFallback: "Missing art shows a designed fallback, never an empty box. Monk has no hero yet, so it uses its colour and initial.",
     motion: "Motion",
     motionIntro: "Try the live behaviours with made-up games. Nothing is saved.",
     addWin: "Simulate a saved win",

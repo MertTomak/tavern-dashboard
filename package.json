@@ -19,7 +19,8 @@
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
     "db:unseed": "tsx scripts/unseed.ts",
-    "cards:sync": "tsx scripts/sync-cards.ts"
+    "cards:sync": "tsx scripts/sync-cards.ts",
+    "art:sync": "tsx scripts/sync-art.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
