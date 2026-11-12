@@ -60,7 +60,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [ ] **Kişisel kart istatistikleri** (`/decks/[id]`): her kart için mulligan'da tutulunca WR, çekilince WR, oynanınca WR, ortalama oynanma turu. Az veri uyarısıyla
 - [ ] **Deste sürümleri:** sürümler arası kart farkı (+/−) ve WR karşılaştırması ("v3 → v4: %48 → %56")
 - [ ] **Maç dökümü** (`/games/[id]`): tur tur kim ne oynadı. Basit, okunaklı bir zaman çizelgesi
-- [ ] **İçgörüler paneli:** Genel Bakış'ın üstünde 3-5 otomatik Türkçe içgörü
+- [ ] **İçgörüler paneli:** Genel Bakış'ın üstünde 3-5 otomatik İngilizce içgörü
 - [ ] **Seans ve tilt analizi:** seans içi maç sırasına göre WR, art arda kayıp uyarısı
 - [ ] **Legend tahmini:** mevcut WR ve rank'la tahmini kalan maç sayısı
 
@@ -78,7 +78,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [ ] Dışa aktarma: CSV, JSON, grafik PNG
 - [ ] Ayarlar'dan tek tıkla veritabanı yedeği ve geri yükleme
 - [ ] Erişilebilirlik ve performans geçişi (Lighthouse), E2E testleri ana akışları kapsar
-- [ ] `README.md`: kurulum, kullanım, sık sorunlar (Türkçe)
+- [ ] `README.md`: kurulum, kullanım, sık sorunlar (İngilizce)
 
 ## Kararlar
 
@@ -90,4 +90,5 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-12 — Seed, veritabanında maç varsa hiçbir şey eklemez (verileri korumak için).
 - 2026-11-12 — Demo veri "seed" adlı import batch + `decks.is_demo` ile işaretlenir; `npm run db:unseed` ve Ayarlar > "Demo verisini sil" yalnızca bunları siler.
 - 2026-11-12 — Next.js 16 `cacheComponents` açık: veritabanı okuyan sayfalar `await connection()` + `Suspense` kullanmalı, yoksa veri derleme anında donar.
+- 2026-11-12 — Arayüz dili İngilizce (en-GB), saat dilimi Europe/Istanbul. Metinler `src/i18n/en.ts` sözlüğünde (`Dictionary` tipi), başka dil aynı yapıda eklenir. Hızlı giriş kısayolları `W` (win) / `L` (loss) oldu.
 - 2026-11-12 — Rank/MMR Power.log'dan okunamadığı için elle girilir. Oyun belleği okunmayacak.

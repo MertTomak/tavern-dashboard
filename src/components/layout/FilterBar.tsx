@@ -11,24 +11,24 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { tr } from "@/i18n/tr";
+import { t } from "@/i18n";
 import { ThemeToggle } from "./ThemeToggle";
 
 const ALL = "all";
 
 type Option = { value: string; label: string };
 
-const RANGE_OPTIONS: Option[] = Object.entries(tr.filters.ranges).map(([value, label]) => ({
+const RANGE_OPTIONS: Option[] = Object.entries(t.filters.ranges).map(([value, label]) => ({
   value,
   label,
 }));
 const MODE_OPTIONS: Option[] = [
-  { value: ALL, label: tr.filters.all },
-  ...Object.entries(tr.filters.modes).map(([value, label]) => ({ value, label })),
+  { value: ALL, label: t.filters.all },
+  ...Object.entries(t.filters.modes).map(([value, label]) => ({ value, label })),
 ];
 const FORMAT_OPTIONS: Option[] = [
-  { value: ALL, label: tr.filters.all },
-  ...Object.entries(tr.filters.formats).map(([value, label]) => ({ value, label })),
+  { value: ALL, label: t.filters.all },
+  ...Object.entries(t.filters.formats).map(([value, label]) => ({ value, label })),
 ];
 
 type FilterSelectProps = {
@@ -82,30 +82,30 @@ export function FilterBar() {
   return (
     <div
       role="group"
-      aria-label="Filtreler"
+      aria-label={t.a11y.filters}
       className="flex flex-wrap items-end gap-3 border-b border-border bg-background/80 px-4 py-3 backdrop-blur md:px-8"
     >
       <FilterSelect
-        label={tr.filters.range}
+        label={t.filters.range}
         param="range"
         options={RANGE_OPTIONS}
-        fallback={tr.filters.ranges["30d"]}
+        fallback={t.filters.ranges["30d"]}
         value={params.get("range") ?? "30d"}
         onChange={update}
       />
       <FilterSelect
-        label={tr.filters.mode}
+        label={t.filters.mode}
         param="mode"
         options={MODE_OPTIONS}
-        fallback={tr.filters.all}
+        fallback={t.filters.all}
         value={params.get("mode") ?? ALL}
         onChange={update}
       />
       <FilterSelect
-        label={tr.filters.format}
+        label={t.filters.format}
         param="format"
         options={FORMAT_OPTIONS}
-        fallback={tr.filters.all}
+        fallback={t.filters.all}
         value={params.get("format") ?? ALL}
         onChange={update}
       />
@@ -116,7 +116,7 @@ export function FilterBar() {
           onClick={() => router.replace(pathname, { scroll: false })}
         >
           <FilterX className="size-4" aria-hidden />
-          {tr.filters.reset}
+          {t.filters.reset}
         </Button>
       )}
       <div className="ml-auto">

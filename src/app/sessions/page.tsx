@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
-import { tr } from "@/i18n/tr";
+import { t } from "@/i18n";
 
 export default function SessionsPage() {
   return (
     <>
-      <PageHeader title={tr.pages.sessions.title} description={tr.pages.sessions.description} />
+      <PageHeader title={t.pages.sessions.title} description={t.pages.sessions.description} />
       <EmptyState />
     </>
   );

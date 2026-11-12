@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
-import { tr } from "@/i18n/tr";
+import { t } from "@/i18n";
 
 export default function DecksPage() {
   return (
     <>
-      <PageHeader title={tr.pages.decks.title} description={tr.pages.decks.description} />
+      <PageHeader title={t.pages.decks.title} description={t.pages.decks.description} />
       <EmptyState />
     </>
   );

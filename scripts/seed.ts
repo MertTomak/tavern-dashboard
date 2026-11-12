@@ -31,7 +31,7 @@ function weighted<T>(items: readonly (readonly [T, number])[]): T {
 
 function buildDeck(cards: Card[], playerClass: string): { deckstring: string; cards: [number, number][] } {
   const hero = cards.find((c) => c.type === "HERO" && c.cardClass === playerClass);
-  if (!hero) throw new Error(`Kahraman bulunamadı: ${playerClass}`);
+  if (!hero) throw new Error(`Hero not found: ${playerClass}`);
   const pool = cards.filter(
     (c) => c.type !== "HERO" && (c.cardClass === playerClass || c.cardClass === "NEUTRAL"),
   );
@@ -47,16 +47,16 @@ function buildDeck(cards: Card[], playerClass: string): { deckstring: string; ca
 
 function main() {
   const cards = loadCards();
-  if (!cards) throw new Error("Kart verisi yok. Önce `npm run cards:sync` çalıştır.");
+  if (!cards) throw new Error("No card data. Run `npm run cards:sync` first.");
   const classes = deriveClasses(cards);
 
   const existing = db.select({ id: games.id }).from(games).limit(1).all();
   if (existing.length > 0) {
-    console.log("Veritabanında zaten maç var, sahte veri eklenmedi (verilerini korumak için).");
+    console.log("The database already has games, so no demo data was added (to protect your data).");
     return;
   }
   const backup = backupDb();
-  if (backup) console.log(`Yedek alındı: ${backup}`);
+  if (backup) console.log(`Backup created: ${backup}`);
 
   const deckDefs = [
     { name: "Aggro Paladin", cls: "PALADIN", strength: 0.57 },
@@ -139,7 +139,7 @@ function main() {
   });
 
   db.insert(games).values(rows).run();
-  console.log(`${created.length} deste ve ${rows.length} sahte maç eklendi.`);
+  console.log(`Added ${created.length} demo decks and ${rows.length} demo games.`);
 }
 
 main();

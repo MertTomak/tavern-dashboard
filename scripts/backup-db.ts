@@ -19,5 +19,5 @@ export function backupDb(): string | null {
 
 if (process.argv[1]?.endsWith("backup-db.ts")) {
   const out = backupDb();
-  console.log(out ? `Yedek alındı: ${out}` : "Henüz veritabanı yok, yedek gerekmedi.");
+  console.log(out ? `Backup created: ${out}` : "No database yet, no backup needed.");
 }

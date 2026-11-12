@@ -8,6 +8,6 @@ export function DELETE() {
     revalidatePath("/", "layout");
     return NextResponse.json(removed);
   } catch {
-    return NextResponse.json({ error: "Demo verisi silinemedi." }, { status: 500 });
+    return NextResponse.json({ error: "Could not delete the demo data." }, { status: 500 });
   }
 }

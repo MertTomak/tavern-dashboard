@@ -15,19 +15,18 @@ import {
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { tr } from "@/i18n/tr";
+import { t } from "@/i18n";
+import { formatNumber } from "@/lib/format";
 
 type Props = { games: number; decks: number };
-
-const nf = new Intl.NumberFormat("tr-TR");
 
 export function DemoDataCard({ games, decks }: Props) {
   const router = useRouter();
   const [open, setOpen] = useState(false);
   const [busy, setBusy] = useState(false);
-  const t = tr.settings.demo;
-  const g = nf.format(games);
-  const d = nf.format(decks);
+  const copy = t.settings.demo;
+  const g = formatNumber(games);
+  const d = formatNumber(decks);
   const hasDemo = games > 0 || decks > 0;
 
   async function clear() {
@@ -36,11 +35,11 @@ export function DemoDataCard({ games, decks }: Props) {
       const res = await fetch("/api/demo", { method: "DELETE" });
       if (!res.ok) throw new Error("request failed");
       const removed = (await res.json()) as { games: number; decks: number };
-      toast.success(t.done(nf.format(removed.games), nf.format(removed.decks)));
+      toast.success(copy.done(formatNumber(removed.games), formatNumber(removed.decks)));
       setOpen(false);
       router.refresh();
     } catch {
-      toast.error(t.failed);
+      toast.error(copy.failed);
     } finally {
       setBusy(false);
     }
@@ -51,27 +50,27 @@ export function DemoDataCard({ games, decks }: Props) {
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FlaskConical className="size-4 text-primary" aria-hidden />
-          {t.title}
+          {copy.title}
         </CardTitle>
-        <CardDescription>{t.description}</CardDescription>
+        <CardDescription>{copy.description}</CardDescription>
       </CardHeader>
       <CardContent className="flex flex-wrap items-center justify-between gap-3">
-        <p className="text-sm">{hasDemo ? t.summary(g, d) : t.none}</p>
+        <p className="text-sm">{hasDemo ? copy.summary(g, d) : copy.none}</p>
         <Button variant="destructive" disabled={!hasDemo} onClick={() => setOpen(true)}>
           <Trash2 className="size-4" aria-hidden />
-          {t.clear}
+          {copy.clear}
         </Button>
       </CardContent>
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
-            <AlertDialogTitle>{t.confirmTitle}</AlertDialogTitle>
-            <AlertDialogDescription>{t.confirmBody(g, d)}</AlertDialogDescription>
+            <AlertDialogTitle>{copy.confirmTitle}</AlertDialogTitle>
+            <AlertDialogDescription>{copy.confirmBody(g, d)}</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>
-            <AlertDialogCancel disabled={busy}>{t.cancel}</AlertDialogCancel>
+            <AlertDialogCancel disabled={busy}>{copy.cancel}</AlertDialogCancel>
             <Button variant="destructive" disabled={busy} onClick={clear}>
-              {busy ? t.deleting : t.confirm}
+              {busy ? copy.deleting : copy.confirm}
             </Button>
           </AlertDialogFooter>
         </AlertDialogContent>

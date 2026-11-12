@@ -1,11 +1,11 @@
 import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
-import { tr } from "@/i18n/tr";
+import { t } from "@/i18n";
 
 export default function ArenaPage() {
   return (
     <>
-      <PageHeader title={tr.pages.arena.title} description={tr.pages.arena.description} />
+      <PageHeader title={t.pages.arena.title} description={t.pages.arena.description} />
       <EmptyState />
     </>
   );

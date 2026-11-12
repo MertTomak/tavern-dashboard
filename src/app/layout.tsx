@@ -5,20 +5,20 @@ import "./globals.css";
 import { Providers } from "@/components/layout/Providers";
 import { MobileNav, Sidebar } from "@/components/layout/Sidebar";
 import { FilterBar } from "@/components/layout/FilterBar";
-import { tr } from "@/i18n/tr";
+import { t } from "@/i18n";
 
 const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin", "latin-ext"] });
 const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: tr.app.name,
-  description: tr.app.tagline,
+  title: t.app.name,
+  description: t.app.tagline,
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
   return (
     <html
-      lang="tr"
+      lang="en-GB"
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >

@@ -5,11 +5,11 @@ import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { backupDb } from "./backup-db";
 
 const backup = backupDb();
-if (backup) console.log(`Yedek alındı: ${backup}`);
+if (backup) console.log(`Backup created: ${backup}`);
 
 const sqlite = new Database(path.join(process.cwd(), "data", "hearthstone.db"));
 sqlite.pragma("journal_mode = WAL");
 sqlite.pragma("foreign_keys = ON");
 migrate(drizzle(sqlite), { migrationsFolder: path.join(process.cwd(), "drizzle") });
 sqlite.close();
-console.log("Migration tamam.");
+console.log("Migration complete.");

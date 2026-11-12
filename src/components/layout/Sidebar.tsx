@@ -4,7 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Flame } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { tr } from "@/i18n/tr";
+import { t } from "@/i18n";
 import { NAV_ITEMS } from "./nav-items";
 
 function isActive(pathname: string, href: string) {
@@ -19,9 +19,9 @@ export function Sidebar() {
         <span className="flex size-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
           <Flame className="size-4" aria-hidden />
         </span>
-        <span className="font-semibold tracking-tight">{tr.app.name}</span>
+        <span className="font-semibold tracking-tight">{t.app.name}</span>
       </div>
-      <nav aria-label="Ana menü" className="flex flex-1 flex-col gap-1 px-3 py-2">
+      <nav aria-label={t.a11y.mainNav} className="flex flex-1 flex-col gap-1 px-3 py-2">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
           const active = isActive(pathname, href);
           return (
@@ -40,7 +40,7 @@ export function Sidebar() {
           );
         })}
       </nav>
-      <p className="px-5 py-4 text-xs text-muted-foreground">{tr.app.tagline}</p>
+      <p className="px-5 py-4 text-xs text-muted-foreground">{t.app.tagline}</p>
     </aside>
   );
 }
@@ -49,7 +49,7 @@ export function MobileNav() {
   const pathname = usePathname();
   return (
     <nav
-      aria-label="Mobil menü"
+      aria-label={t.a11y.mobileNav}
       className="flex gap-1 overflow-x-auto border-b border-sidebar-border bg-sidebar px-2 py-2 md:hidden"
     >
       {NAV_ITEMS.map(({ href, label, icon: Icon }) => {

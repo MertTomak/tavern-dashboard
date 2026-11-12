@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Sparkles } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { tr } from "@/i18n/tr";
+import { t } from "@/i18n";
 
 export function EmptyState({ note }: { note?: string }) {
   return (
@@ -11,15 +11,15 @@ export function EmptyState({ note }: { note?: string }) {
         <Sparkles className="size-5" aria-hidden />
       </span>
       <div className="space-y-1">
-        <h2 className="text-lg font-semibold">{tr.empty.title}</h2>
-        <p className="max-w-md text-sm text-muted-foreground">{note ?? tr.empty.body}</p>
+        <h2 className="text-lg font-semibold">{t.empty.title}</h2>
+        <p className="max-w-md text-sm text-muted-foreground">{note ?? t.empty.body}</p>
       </div>
       <div className="flex flex-wrap justify-center gap-2">
         <Link href="/games" className={cn(buttonVariants())}>
-          {tr.empty.addGame}
+          {t.empty.addGame}
         </Link>
         <Link href="/import" className={cn(buttonVariants({ variant: "outline" }))}>
-          {tr.empty.importLog}
+          {t.empty.importLog}
         </Link>
       </div>
     </div>

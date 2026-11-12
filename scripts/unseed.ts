@@ -3,10 +3,10 @@ import { backupDb } from "./backup-db";
 
 const before = getDemoCounts();
 if (before.games === 0 && before.decks === 0) {
-  console.log("Silinecek demo verisi yok.");
+  console.log("No demo data to delete.");
 } else {
   const backup = backupDb();
-  if (backup) console.log(`Yedek alındı: ${backup}`);
+  if (backup) console.log(`Backup created: ${backup}`);
   const removed = clearDemoData();
-  console.log(`${removed.games} demo maç ve ${removed.decks} demo deste silindi. Gerçek verilerin korundu.`);
+  console.log(`Deleted ${removed.games} demo games and ${removed.decks} demo decks. Your real data was kept.`);
 }
