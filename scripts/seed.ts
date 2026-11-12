@@ -115,7 +115,7 @@ function main() {
     const result = roll < 0.015 ? "TIE" : roll < 0.015 + (1 - 0.015) * winProb ? "WIN" : "LOSS";
     const ranked = mode === "RANKED";
     const rankBefore = ranked ? rank : null;
-    if (ranked) rank = Math.max(0, rank + (result === "WIN" ? 1 : result === "LOSS" ? -0.6 : 0));
+    if (ranked) rank = Math.min(50, Math.max(0, rank + (result === "WIN" ? 1 : result === "LOSS" ? -0.6 : 0)));
     const turns = 5 + Math.floor(rand() * 11);
     return {
       id: randomUUID(),

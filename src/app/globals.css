@@ -4,12 +4,19 @@
 
 @custom-variant dark (&:is(.dark *));
 
+/*
+ * Design tokens: "Hearth" palette (oak, brass, parchment, candle glow) with a
+ * broadcast-style data layer. Colours are hex so tests/unit/design-tokens.test.ts
+ * can check WCAG AA contrast. Data comes first, decoration second.
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif;
-  --font-mono: var(--font-geist-mono);
-  --font-heading: var(--font-sans);
+  --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
+  --font-stat: var(--font-barlow-condensed), ui-sans-serif, system-ui, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-heading: var(--font-display);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
@@ -39,6 +46,16 @@
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+
+  /* Results. Win = verdigris, loss = ember: separable for red-green colour blindness. */
+  --color-win: var(--win);
+  --color-loss: var(--loss);
+  --color-tie: var(--tie);
+  --color-brass-bright: var(--brass-bright);
+  --color-sunken: var(--sunken);
+  --color-hairline: var(--hairline);
+
+  --radius-xs: 0.375rem; /* broadcast data pieces: scoreboard, ticker, chips */
   --radius-sm: calc(var(--radius) * 0.6);
   --radius-md: calc(var(--radius) * 0.8);
   --radius-lg: var(--radius);
@@ -46,75 +63,101 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
+
+  --shadow-panel: var(--panel-shadow);
+  --shadow-glow: var(--glow-shadow);
+
+  --ease-snap: cubic-bezier(0.2, 0, 0, 1);
 }
 
 :root {
-  --background: oklch(0.975 0.008 85);
-  --foreground: oklch(0.22 0.03 60);
-  --card: oklch(0.99 0.005 85);
-  --card-foreground: oklch(0.22 0.03 60);
-  --popover: oklch(0.99 0.005 85);
-  --popover-foreground: oklch(0.22 0.03 60);
-  --primary: oklch(0.68 0.14 80);
-  --primary-foreground: oklch(0.2 0.03 60);
-  --secondary: oklch(0.94 0.012 80);
-  --secondary-foreground: oklch(0.25 0.03 60);
-  --muted: oklch(0.94 0.012 80);
-  --muted-foreground: oklch(0.48 0.03 65);
-  --accent: oklch(0.92 0.03 85);
-  --accent-foreground: oklch(0.25 0.03 60);
-  --destructive: oklch(0.55 0.22 27);
-  --border: oklch(0.88 0.015 80);
-  --input: oklch(0.88 0.015 80);
-  --ring: oklch(0.68 0.14 80);
-  --chart-1: oklch(0.68 0.14 80);
-  --chart-2: oklch(0.6 0.12 200);
-  --chart-3: oklch(0.58 0.14 150);
-  --chart-4: oklch(0.6 0.16 30);
-  --chart-5: oklch(0.55 0.13 300);
-  --radius: 0.625rem;
-  --sidebar: oklch(0.96 0.012 82);
-  --sidebar-foreground: oklch(0.22 0.03 60);
-  --sidebar-primary: oklch(0.68 0.14 80);
-  --sidebar-primary-foreground: oklch(0.2 0.03 60);
-  --sidebar-accent: oklch(0.92 0.03 85);
-  --sidebar-accent-foreground: oklch(0.25 0.03 60);
-  --sidebar-border: oklch(0.88 0.015 80);
-  --sidebar-ring: oklch(0.68 0.14 80);
+  --radius: 0.75rem;
+
+  --background: #f4ecdc;
+  --foreground: #2b2017;
+  --card: #fffaf0;
+  --card-foreground: #2b2017;
+  --popover: #fffaf0;
+  --popover-foreground: #2b2017;
+  --primary: #855810;
+  --primary-foreground: #fffaf0;
+  --secondary: #eadfc8;
+  --secondary-foreground: #2b2017;
+  --muted: #eadfc8;
+  --muted-foreground: #6a5843;
+  --accent: #efe3cb;
+  --accent-foreground: #2b2017;
+  --destructive: #a83a1b;
+  --border: #8f5f1229;
+  --input: #8f5f1240;
+  --ring: #855810;
+  --chart-1: #855810;
+  --chart-2: #1b6e5d;
+  --chart-3: #a83a1b;
+  --chart-4: #3a6db5;
+  --chart-5: #7d4fa0;
+  --sidebar: #efe5d1;
+  --sidebar-foreground: #2b2017;
+  --sidebar-primary: #855810;
+  --sidebar-primary-foreground: #fffaf0;
+  --sidebar-accent: #e6d7b8;
+  --sidebar-accent-foreground: #2b2017;
+  --sidebar-border: #8f5f1224;
+  --sidebar-ring: #8f5f12;
+
+  --win: #1b6e5d;
+  --loss: #a83a1b;
+  --tie: #6a5843;
+  --brass-bright: #855810;
+  --sunken: #eadfc8;
+  --hairline: #2b201714;
+  --glow: #8f5f1233;
+  --panel-shadow: inset 0 1px 0 #ffffff99, 0 10px 24px -16px #5a3c1466;
+  --glow-shadow: 0 0 0 1px #8f5f1259, 0 0 22px #8f5f1238;
 }
 
 .dark {
-  --background: oklch(0.18 0.03 262);
-  --foreground: oklch(0.94 0.012 85);
-  --card: oklch(0.22 0.035 262);
-  --card-foreground: oklch(0.94 0.012 85);
-  --popover: oklch(0.22 0.035 262);
-  --popover-foreground: oklch(0.94 0.012 85);
-  --primary: oklch(0.8 0.15 85);
-  --primary-foreground: oklch(0.2 0.04 70);
-  --secondary: oklch(0.27 0.035 262);
-  --secondary-foreground: oklch(0.94 0.012 85);
-  --muted: oklch(0.27 0.035 262);
-  --muted-foreground: oklch(0.72 0.03 80);
-  --accent: oklch(0.3 0.04 262);
-  --accent-foreground: oklch(0.94 0.012 85);
-  --destructive: oklch(0.7 0.19 22);
-  --border: oklch(0.8 0.05 85 / 14%);
-  --input: oklch(0.8 0.05 85 / 18%);
-  --ring: oklch(0.8 0.15 85 / 70%);
-  --chart-1: oklch(0.8 0.15 85);
-  --chart-2: oklch(0.72 0.12 200);
-  --chart-3: oklch(0.72 0.15 150);
-  --chart-4: oklch(0.72 0.16 30);
-  --chart-5: oklch(0.7 0.14 300);
-  --sidebar: oklch(0.15 0.03 262);
-  --sidebar-foreground: oklch(0.94 0.012 85);
-  --sidebar-primary: oklch(0.8 0.15 85);
-  --sidebar-primary-foreground: oklch(0.2 0.04 70);
-  --sidebar-accent: oklch(0.27 0.04 262);
-  --sidebar-accent-foreground: oklch(0.94 0.012 85);
-  --sidebar-border: oklch(0.8 0.05 85 / 12%);
-  --sidebar-ring: oklch(0.8 0.15 85 / 70%);
+  --background: #1c1612;
+  --foreground: #f3e6cc;
+  --card: #2a211a;
+  --card-foreground: #f3e6cc;
+  --popover: #241c16;
+  --popover-foreground: #f3e6cc;
+  --primary: #e0a84a;
+  --primary-foreground: #1c1612;
+  --secondary: #33281f;
+  --secondary-foreground: #f3e6cc;
+  --muted: #33281f;
+  --muted-foreground: #bfae90;
+  --accent: #3a2d21;
+  --accent-foreground: #f3e6cc;
+  --destructive: #ee7b52;
+  --border: #e0a84a29;
+  --input: #e0a84a38;
+  --ring: #e0a84a;
+  --chart-1: #e0a84a;
+  --chart-2: #6dc5b0;
+  --chart-3: #ee7b52;
+  --chart-4: #7ca7e8;
+  --chart-5: #c99be0;
+  --sidebar: #17120f;
+  --sidebar-foreground: #f3e6cc;
+  --sidebar-primary: #e0a84a;
+  --sidebar-primary-foreground: #1c1612;
+  --sidebar-accent: #2e241b;
+  --sidebar-accent-foreground: #f3e6cc;
+  --sidebar-border: #e0a84a1f;
+  --sidebar-ring: #e0a84a;
+
+  --win: #6dc5b0;
+  --loss: #ee7b52;
+  --tie: #bfae90;
+  --brass-bright: #f6d896;
+  --sunken: #17120f;
+  --hairline: #f3e6cc12;
+  --glow: #e0a84a59;
+  --panel-shadow: inset 0 1px 0 #f3e6cc0f, 0 12px 30px -18px #000000cc;
+  --glow-shadow: 0 0 0 1px #e0a84a59, 0 0 24px #e0a84a40;
 }
 
 @layer base {
@@ -127,5 +170,68 @@
   html {
     @apply font-sans;
     font-variant-numeric: tabular-nums;
+  }
+}
+
+/* Faint grain + a warm light from the top left: the room, not the data. */
+@utility hearth-backdrop {
+  background-color: var(--background);
+  background-image:
+    radial-gradient(ellipse 60% 40% at 25% 0%, var(--glow), transparent 70%),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.35'/%3E%3C/svg%3E");
+  background-blend-mode: normal, soft-light;
+  background-attachment: fixed;
+}
+
+/* Numbers: Barlow Condensed with tabular figures so values never shift width. */
+@utility stat {
+  font-family: var(--font-stat);
+  font-variant-numeric: tabular-nums lining-nums;
+  letter-spacing: 0.01em;
+}
+
+/* Warm hover glow. Fades a pre-rendered shadow layer (opacity only, no repaint of the box). */
+@utility glow-hover {
+  position: relative;
+  &::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: var(--glow-shadow);
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 200ms var(--ease-snap);
+  }
+  &:hover::after,
+  &:focus-within::after {
+    opacity: 1;
+  }
+}
+
+/* Recharts reads colours from tokens here (SVG attributes cannot use var()). */
+@layer components {
+  .hs-chart .recharts-cartesian-grid line {
+    stroke: var(--hairline);
+  }
+  .hs-chart .recharts-cartesian-axis-tick-value {
+    fill: var(--muted-foreground);
+    font-family: var(--font-stat);
+    font-size: 13px;
+  }
+  .hs-chart .recharts-reference-line line {
+    stroke: var(--muted-foreground);
+    stroke-opacity: 0.6;
+  }
+  .hs-chart .recharts-area-curve {
+    stroke: var(--series);
+  }
+  .hs-chart .recharts-active-dot circle {
+    fill: var(--series);
+    stroke: var(--card);
+    stroke-width: 2;
+  }
+  .hs-chart .recharts-tooltip-cursor {
+    stroke: var(--muted-foreground);
   }
 }

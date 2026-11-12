@@ -7,3 +7,19 @@ test("dashboard shell loads and filters are kept in the URL", async ({ page }) =
   await page.getByRole("option", { name: "Ranked" }).click();
   await expect(page).toHaveURL(/mode=RANKED/);
 });
+
+test("'All time' range is kept in the URL (not treated as the default)", async ({ page }) => {
+  await page.goto("/");
+  await page.getByLabel("Date range").click();
+  await page.getByRole("option", { name: "All time" }).click();
+  await expect(page).toHaveURL(/range=all/);
+});
+
+test("overview shows the scoreboard, recent games and class standings", async ({ page }) => {
+  await page.goto("/?range=all");
+  const empty = page.getByRole("heading", { name: "No games yet" });
+  test.skip(await empty.isVisible(), "No games in the local database");
+  await expect(page.getByRole("region", { name: "Win rate" })).toBeVisible();
+  await expect(page.getByRole("region", { name: "Last 10 games" })).toBeVisible();
+  await expect(page.getByRole("table", { name: "Against each class" })).toBeVisible();
+});

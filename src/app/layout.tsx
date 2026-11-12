@@ -1,17 +1,29 @@
 import type { Metadata } from "next";
-import { Suspense } from "react";
-import { Geist, Geist_Mono } from "next/font/google";
+import { Barlow_Condensed, Fraunces, Instrument_Sans } from "next/font/google";
 import "./globals.css";
 import { Providers } from "@/components/layout/Providers";
-import { MobileNav, Sidebar } from "@/components/layout/Sidebar";
-import { FilterBar } from "@/components/layout/FilterBar";
 import { t } from "@/i18n";
 
-const geistSans = Geist({ variable: "--font-geist-sans", subsets: ["latin", "latin-ext"] });
-const geistMono = Geist_Mono({ variable: "--font-geist-mono", subsets: ["latin"] });
+// Display: page titles and the big win rate only.
+const fraunces = Fraunces({
+  variable: "--font-fraunces",
+  subsets: ["latin", "latin-ext"],
+  axes: ["opsz", "SOFT"],
+});
+// Stats, tables and the scoreboard (tabular figures via the `stat` utility).
+const barlowCondensed = Barlow_Condensed({
+  variable: "--font-barlow-condensed",
+  subsets: ["latin", "latin-ext"],
+  weight: ["500", "700"],
+});
+// Body text.
+const instrumentSans = Instrument_Sans({
+  variable: "--font-instrument",
+  subsets: ["latin", "latin-ext"],
+});
 
 export const metadata: Metadata = {
-  title: t.app.name,
+  title: { default: t.app.name, template: `%s · ${t.app.name}` },
   description: t.app.tagline,
 };
 
@@ -20,21 +32,10 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
     <html
       lang="en-GB"
       suppressHydrationWarning
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${fraunces.variable} ${barlowCondensed.variable} ${instrumentSans.variable} h-full antialiased`}
     >
-      <body className="min-h-full">
-        <Providers>
-          <div className="flex min-h-screen flex-col md:flex-row">
-            <Sidebar />
-            <MobileNav />
-            <div className="flex min-w-0 flex-1 flex-col">
-              <Suspense fallback={<div className="h-[73px] border-b border-border" />}>
-                <FilterBar />
-              </Suspense>
-              <main className="flex-1 px-4 py-6 md:px-8">{children}</main>
-            </div>
-          </div>
-        </Providers>
+      <body className="hearth-backdrop min-h-full">
+        <Providers>{children}</Providers>
       </body>
     </html>
   );

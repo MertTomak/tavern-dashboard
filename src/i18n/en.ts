@@ -62,7 +62,7 @@ export const en = {
   pages: {
     overview: {
       title: "Overview",
-      description: "A summary of all your games lives here.",
+      description: "Your form, your matchups and your climb at a glance.",
     },
     games: {
       title: "Games",
@@ -105,6 +105,15 @@ export const en = {
     comingSoon: "This screen opens in an upcoming phase.",
   },
   settings: {
+    appearance: {
+      title: "Appearance",
+      description: "How the dashboard looks on this Mac.",
+      theme: "Theme",
+      themes: { dark: "Dark", light: "Light", system: "Match system" },
+      motion: "Motion",
+      motionBody:
+        "Animations follow your Mac's Reduce motion setting (System Settings › Accessibility › Display). With it on, things fade instead of moving.",
+    },
     demo: {
       title: "Demo data",
       description:
@@ -124,6 +133,60 @@ export const en = {
   },
   errors: {
     generic: "Something went wrong. Please try again.",
+  },
+  overview: {
+    winRate: "Win rate",
+    record: (wins: string, losses: string) => `${wins} won, ${losses} lost`,
+    games: (n: string) => `${n} games`,
+    last7: "Last 7 days",
+    vsPrev: (delta: string) => `${delta} on the week before`,
+    streak: "Current streak",
+    streakWins: (n: number) => (n === 1 ? "1 win" : `${n} wins in a row`),
+    streakLosses: (n: number) => (n === 1 ? "1 loss" : `${n} losses in a row`),
+    noStreak: "No streak yet",
+    rolling: "Win rate over time",
+    rollingHint: (n: number) => `Average of your last ${n} games, game by game`,
+    byOpponent: "Against each class",
+    byOpponentHint: "Most-faced classes first",
+    decks: "Your decks",
+    decksHint: "Ordered by how sure the win rate is",
+    recent: "Last 10 games",
+    rank: "Ranked climb",
+    avgLength: "Average game",
+    result: { WIN: "Win", LOSS: "Loss", TIE: "Tie" },
+    resultShort: { WIN: "W", LOSS: "L", TIE: "T" },
+    vs: (cls: string) => `vs ${cls}`,
+    n: (n: string) => `n=${n}`,
+    lowSample: "Few games, treat with care",
+    game: (i: string) => `Game ${i}`,
+    noDeck: "No deck",
+    form: "Form, oldest to newest",
+    noPrevWeek: "Nothing to compare with the week before",
+    noMatch: "No games match these filters",
+    noMatchBody: "Try a longer date range, or clear the filters.",
+    standings: { position: "Position", cls: "Class", record: "Won–lost", winRate: "Win rate" },
+    winsLabel: "Won",
+    lossesLabel: "Lost",
+  },
+  ranks: {
+    leagues: ["Bronze", "Silver", "Gold", "Platinum", "Diamond"],
+    legend: "Legend",
+  },
+  designLab: {
+    title: "Style guide",
+    intro: "Tokens, type and motion for the Hearth design. Only available while developing.",
+    colours: "Colours",
+    results: "Results",
+    classColours: "Class colours",
+    type: "Type",
+    typeDisplay: "Fraunces: page titles and the big win rate",
+    typeStat: "Barlow Condensed: every number, table and the scoreboard",
+    typeBody: "Instrument Sans: body text, labels and help",
+    motion: "Motion",
+    motionIntro: "Try the live behaviours with made-up games. Nothing is saved.",
+    addWin: "Simulate a saved win",
+    addLoss: "Simulate a new loss",
+    reset: "Reset",
   },
 };
 

@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Panel } from "@/components/dashboard/Panel";
 import { t } from "@/i18n";
 import { formatNumber } from "@/lib/format";
 
@@ -46,21 +46,18 @@ export function DemoDataCard({ games, decks }: Props) {
   }
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FlaskConical className="size-4 text-primary" aria-hidden />
-          {copy.title}
-        </CardTitle>
-        <CardDescription>{copy.description}</CardDescription>
-      </CardHeader>
-      <CardContent className="flex flex-wrap items-center justify-between gap-3">
+    <Panel
+      title={copy.title}
+      hint={copy.description}
+      action={<FlaskConical className="size-4 text-primary" aria-hidden />}
+    >
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-sunken/60 p-3">
         <p className="text-sm">{hasDemo ? copy.summary(g, d) : copy.none}</p>
         <Button variant="destructive" disabled={!hasDemo} onClick={() => setOpen(true)}>
           <Trash2 className="size-4" aria-hidden />
           {copy.clear}
         </Button>
-      </CardContent>
+      </div>
       <AlertDialog open={open} onOpenChange={setOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
@@ -75,6 +72,6 @@ export function DemoDataCard({ games, decks }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Card>
+    </Panel>
   );
 }

@@ -15,6 +15,18 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 
 **Kabul:** `npm run dev` çalışır. Chrome'da boş dashboard iskeleti açılır, konsol temiz.
 
+## Faz 0.5 — Tasarım geçişi
+
+- [x] Üç görsel yön (Hearth, Arcane, Broadcast) seed verisiyle `/design-lab/1-3` taslakları olarak gösterildi
+- [x] Seçilen yön (Hearth görünümü + Broadcast yapısı) token'lara çevrildi: renkler (koyu + açık), sonuç ve sınıf renkleri, fontlar (`next/font`), köşe, gölge, parıltı. WCAG AA testi
+- [x] `motion` kuruldu: sayfa geçişi, sıralı panel girişi, sayan/dönen KPI rakamları, grafik girişi, hover/tap, filtre değişince satır animasyonu, canlı eklenen maç vurgusu, kazanç kutlaması, `reducedMotion="user"`
+- [x] Hazır bileşen kaynakları değerlendirildi (bu fazda bileşen eklenmedi, bkz. Kararlar)
+- [x] Uygulama kabuğu, Genel Bakış ve Ayarlar yeni tasarımla yeniden yapıldı; `/design-lab` canlı stil rehberi oldu
+- [x] Proje kuralları tasarım + hareket kurallarıyla güncellendi
+- [x] `docs/demos/design-pass.gif`
+
+**Kabul:** Genel Bakış seed verisiyle dolu, filtre değişince sayılar döner ve tablo yeniden sıralanır, CLS 0, konsol temiz.
+
 ## Faz 1 — Veri girişi
 
 - [ ] Hızlı maç ekleme formu (klavye kısayollarıyla)
@@ -32,7 +44,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [ ] Rank ilerleme grafiği
 - [ ] Eşleşme ısı haritası sayfası
 - [ ] İlk oynayan / coin, saat × gün ısı haritası, maç süresi dağılımı
-- [ ] URL tabanlı global filtreler, tüm grafiklere bağlı
+- [ ] URL tabanlı global filtreler, tüm grafiklere bağlı (Genel Bakış'ta tarih aralığı, mod ve format Faz 0.5'te bağlandı; deste, sınıf ve özel tarih kaldı)
 
 **Kabul:** Seed verisiyle tüm grafikler dolu. Filtre değişince her şey güncellenir. Yeni maç eklenince sayfa yenilemeden rakamlar değişir.
 
@@ -92,3 +104,10 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-12 — Next.js 16 `cacheComponents` açık: veritabanı okuyan sayfalar `await connection()` + `Suspense` kullanmalı, yoksa veri derleme anında donar.
 - 2026-11-12 — Arayüz dili İngilizce (en-GB), saat dilimi Europe/Istanbul. Metinler `src/i18n/en.ts` sözlüğünde (`Dictionary` tipi), başka dil aynı yapıda eklenir. Hızlı giriş kısayolları `W` (win) / `L` (loss) oldu.
 - 2026-11-12 — Rank/MMR Power.log'dan okunamadığı için elle girilir. Oyun belleği okunmayacak.
+- 2026-11-12 — Tasarım yönü: **Hearth görünümü + Broadcast yapısı** (kullanıcı seçimi). Meşe/pirinç/parşömen paleti, kenar çubuğu korunur; skor bandı, son maçlar ticker'ı ve rakip sınıf sıralama tablosu Broadcast'ten. Fontlar: Fraunces (yalnızca sayfa başlığı ve büyük WR), Barlow Condensed (tüm rakamlar), Instrument Sans (gövde). Arcane'deki çark grafiği kullanılmadı.
+- 2026-11-12 — Galibiyet/mağlubiyet rengi yeşil/kırmızı yerine **verdigris (#6DC5B0) / köz (#EE7B52)**: kahverengi zeminde AA geçiyor ve döteranopide ayrışıyor (ΔE 11.6). Her yerde W/L harfi veya ✓/✕ ikonu da var.
+- 2026-11-12 — Hareket: Broadcast zamanlaması (150–300 ms, overshoot yok) + Hearth parıltısı (hover, kazanç). `motion` paketi; Motion+ (ücretli) bileşenleri kullanılmadı, sayaç/rakam dönmesi kendi `StatNumber` bileşenimiz.
+- 2026-11-12 — Hazır bileşen kaynağı: istenen parçalar (animasyonlu sayı, parıltılı kart, animasyonlu sekme) `motion` ile birkaç düzine satır olduğu ve hazır sürümler çoğunlukla ek paket (`framer-motion`, `@number-flow/react`) getirdiği için sıfırdan yazıldı. Komut paleti Faz 7'de shadcn `Command` ile yeniden değerlendirilecek.
+- 2026-11-12 — `/design-lab` canlı stil rehberi olarak kaldı (token'lar, tipografi, hareket denemesi); production build'de 404 döner.
+- 2026-11-12 — Seed üretecinde rank Legend'de (50) sınırlandı; demo verisi kullanıcı onayıyla yeniden üretildi.
+- 2026-11-12 — Filtre çubuğunda "All time" seçilince varsayılan 30 güne dönen hata düzeltildi ("all" değeri hem "filtre yok" hem "tüm zamanlar" anlamına geliyordu).

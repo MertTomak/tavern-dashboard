@@ -15,6 +15,7 @@ import { t } from "@/i18n";
 import { ThemeToggle } from "./ThemeToggle";
 
 const ALL = "all";
+const DEFAULT_RANGE = "30d";
 
 type Option = { value: string; label: string };
 
@@ -43,10 +44,13 @@ type FilterSelectProps = {
 function FilterSelect({ label, param, options, fallback, value, onChange }: FilterSelectProps) {
   const current = options.find((o) => o.value === value)?.label ?? fallback;
   return (
-    <div className="flex flex-col gap-1">
-      <span className="text-xs text-muted-foreground">{label}</span>
+    <div className="glow-hover flex items-center rounded-xs border border-border bg-card/70">
+      <span className="stat pl-3 text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase">{label}</span>
       <Select value={value} onValueChange={(v) => onChange(param, String(v))}>
-        <SelectTrigger aria-label={label} className="w-36">
+        <SelectTrigger
+          aria-label={label}
+          className="h-8 min-w-28 border-0 bg-transparent font-medium shadow-none focus-visible:ring-2 dark:bg-transparent"
+        >
           <SelectValue>{current}</SelectValue>
         </SelectTrigger>
         <SelectContent>
@@ -69,7 +73,8 @@ export function FilterBar() {
   const update = useCallback(
     (param: string, value: string) => {
       const next = new URLSearchParams(params.toString());
-      if (value === ALL || (param === "range" && value === "30d")) next.delete(param);
+      const isDefault = param === "range" ? value === DEFAULT_RANGE : value === ALL;
+      if (isDefault) next.delete(param);
       else next.set(param, value);
       const qs = next.toString();
       router.replace(qs ? `${pathname}?${qs}` : pathname, { scroll: false });
@@ -83,14 +88,14 @@ export function FilterBar() {
     <div
       role="group"
       aria-label={t.a11y.filters}
-      className="flex flex-wrap items-end gap-3 border-b border-border bg-background/80 px-4 py-3 backdrop-blur md:px-8"
+      className="sticky top-0 z-30 flex flex-wrap items-center gap-2 border-b border-border bg-background/85 px-4 py-3 backdrop-blur-md md:px-8"
     >
       <FilterSelect
         label={t.filters.range}
         param="range"
         options={RANGE_OPTIONS}
         fallback={t.filters.ranges["30d"]}
-        value={params.get("range") ?? "30d"}
+        value={params.get("range") ?? DEFAULT_RANGE}
         onChange={update}
       />
       <FilterSelect

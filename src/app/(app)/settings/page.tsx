@@ -1,7 +1,9 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { PageHeader } from "@/components/layout/PageHeader";
+import { AppearanceCard } from "@/components/settings/AppearanceCard";
 import { DemoDataCard } from "@/components/settings/DemoDataCard";
+import { Stagger, StaggerItem } from "@/components/motion/Stagger";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getDemoCounts } from "@/lib/db/queries/demo";
 import { t } from "@/i18n";
@@ -17,11 +19,16 @@ export default function SettingsPage() {
   return (
     <>
       <PageHeader title={t.pages.settings.title} description={t.pages.settings.description} />
-      <div className="grid max-w-3xl gap-4">
-        <Suspense fallback={<Skeleton className="h-36 w-full rounded-xl" />}>
-          <DemoSection />
-        </Suspense>
-      </div>
+      <Stagger className="grid max-w-3xl grid-cols-1 gap-4">
+        <StaggerItem>
+          <AppearanceCard />
+        </StaggerItem>
+        <StaggerItem>
+          <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg" />}>
+            <DemoSection />
+          </Suspense>
+        </StaggerItem>
+      </Stagger>
     </>
   );
 }
