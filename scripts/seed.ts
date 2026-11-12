@@ -1,7 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { encode } from "deckstrings";
 import { db } from "../src/lib/db/client";
-import { deckCards, deckVersions, decks, games } from "../src/lib/db/schema";
+import { deckCards, deckVersions, decks, games, importBatches } from "../src/lib/db/schema";
+import { SEED_BATCH_NAME } from "../src/lib/db/queries/demo";
 import { loadCards, deriveClasses, type Card } from "../src/lib/cards/classes";
 import { backupDb } from "./backup-db";
 
@@ -69,7 +70,7 @@ function main() {
     const built = buildDeck(cards, def.cls);
     const deck = db
       .insert(decks)
-      .values({ name: def.name, playerClass: def.cls, format: "STANDARD" })
+      .values({ name: def.name, playerClass: def.cls, format: "STANDARD", isDemo: true })
       .returning()
       .get();
     const version = db
@@ -82,6 +83,12 @@ function main() {
       .run();
     return { ...def, deckId: deck.id, versionId: version.id };
   });
+
+  const batch = db
+    .insert(importBatches)
+    .values({ source: "MANUAL", fileName: SEED_BATCH_NAME, imported: 300 })
+    .returning()
+    .get();
 
   const modeWeights = [
     ["RANKED", 70],
@@ -127,6 +134,7 @@ function main() {
       rankAfter: ranked ? rank : null,
       source: "MANUAL" as const,
       sourceHash: `seed-${i}`,
+      importBatchId: batch.id,
     };
   });
 

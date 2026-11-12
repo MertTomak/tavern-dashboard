@@ -48,6 +48,7 @@ export const decks = sqliteTable("decks", {
   format: text("format", { enum: GAME_FORMATS }).notNull(),
   archetypeId: integer("archetype_id").references(() => archetypes.id),
   archived: integer("archived", { mode: "boolean" }).notNull().default(false),
+  isDemo: integer("is_demo", { mode: "boolean" }).notNull().default(false),
   createdAt: text("created_at").notNull().default(nowIso),
 });
 

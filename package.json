@@ -3,8 +3,11 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/check-node.mjs",
     "dev": "next dev",
+    "prewatch:logs": "node scripts/check-node.mjs",
     "watch:logs": "tsx scripts/watch-logs.ts",
+    "predev:all": "node scripts/check-node.mjs",
     "dev:all": "concurrently -n web,logs -c yellow,cyan \"npm:dev\" \"npm:watch:logs\"",
     "build": "next build",
     "start": "next start",
@@ -15,6 +18,7 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx scripts/migrate.ts",
     "db:seed": "tsx scripts/seed.ts",
+    "db:unseed": "tsx scripts/unseed.ts",
     "cards:sync": "tsx scripts/sync-cards.ts"
   },
   "dependencies": {
@@ -53,6 +57,6 @@
     "vitest": "^5.1.0"
   },
   "engines": {
-    "node": ">=22.12"
+    "node": ">=22"
   }
 }

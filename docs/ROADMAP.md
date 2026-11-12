@@ -88,4 +88,6 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-12 — Node 22+ gerekli (Next.js 16, better-sqlite3 13); `.nvmrc` ve `engines` eklendi. Terminalin varsayılan Node 18'i yetersiz, Homebrew Node 26 kullanıldı.
 - 2026-11-12 — E2E testleri Playwright'ın kendi tarayıcısını indirmek yerine kurulu Chrome'u kullanır (`channel: "chrome"`).
 - 2026-11-12 — Seed, veritabanında maç varsa hiçbir şey eklemez (verileri korumak için).
+- 2026-11-12 — Demo veri "seed" adlı import batch + `decks.is_demo` ile işaretlenir; `npm run db:unseed` ve Ayarlar > "Demo verisini sil" yalnızca bunları siler.
+- 2026-11-12 — Next.js 16 `cacheComponents` açık: veritabanı okuyan sayfalar `await connection()` + `Suspense` kullanmalı, yoksa veri derleme anında donar.
 - 2026-11-12 — Rank/MMR Power.log'dan okunamadığı için elle girilir. Oyun belleği okunmayacak.

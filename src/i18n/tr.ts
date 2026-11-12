@@ -97,6 +97,24 @@ export const tr = {
     importLog: "Log yükle",
     comingSoon: "Bu ekran sıradaki fazlarda açılacak.",
   },
+  settings: {
+    demo: {
+      title: "Demo verisi",
+      description:
+        "Uygulamayı denemen için eklenen sahte maçlar ve desteler. Gerçek verilerinle karışmaz, tek tıkla silinir.",
+      summary: (games: string, decks: string) => `${games} demo maç ve ${decks} demo deste var.`,
+      none: "Demo verisi yok. Veritabanında yalnızca senin kayıtların duruyor.",
+      clear: "Demo verisini sil",
+      confirmTitle: "Demo verisi silinsin mi?",
+      confirmBody: (games: string, decks: string) =>
+        `${games} demo maç ve ${decks} demo deste kalıcı olarak silinecek. Senin eklediğin maçlara ve destelere dokunulmaz. Bu işlem geri alınamaz.`,
+      cancel: "Vazgeç",
+      confirm: "Evet, sil",
+      deleting: "Siliniyor...",
+      done: (games: string, decks: string) => `${games} demo maç ve ${decks} demo deste silindi.`,
+      failed: "Demo verisi silinemedi. Lütfen tekrar dene.",
+    },
+  },
   errors: {
     generic: "Bir şeyler ters gitti. Lütfen tekrar dene.",
   },
