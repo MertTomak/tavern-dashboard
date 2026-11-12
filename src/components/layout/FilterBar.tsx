@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback } from "react";
+import { useCallback, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
-import { FilterX } from "lucide-react";
+import { FilterX, SlidersHorizontal } from "lucide-react";
+import { BottomSheet } from "./BottomSheet";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -12,7 +13,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { t } from "@/i18n";
-import { ThemeToggle } from "./ThemeToggle";
 
 const ALL = "all";
 const DEFAULT_RANGE = "30d";
@@ -44,7 +44,7 @@ type FilterSelectProps = {
 function FilterSelect({ label, param, options, fallback, value, onChange }: FilterSelectProps) {
   const current = options.find((o) => o.value === value)?.label ?? fallback;
   return (
-    <div className="glow-hover flex items-center rounded-xs border border-border bg-card/70">
+    <div className="glow-hover flex items-center rounded-full border border-brass/30 bg-oak/80 pl-1">
       <span className="stat pl-3 text-xs font-medium tracking-[0.08em] text-muted-foreground uppercase">{label}</span>
       <Select value={value} onValueChange={(v) => onChange(param, String(v))}>
         <SelectTrigger
@@ -82,51 +82,48 @@ export function FilterBar() {
     [params, pathname, router],
   );
 
-  const hasFilters = ["range", "mode", "format", "deck", "class"].some((k) => params.has(k));
+  const active = ["range", "mode", "format", "deck", "class"].filter((k) => params.has(k)).length;
+  const [sheetOpen, setSheetOpen] = useState(false);
+  const range = params.get("range") ?? DEFAULT_RANGE;
+  const mode = params.get("mode") ?? ALL;
+  const format = params.get("format") ?? ALL;
+  const label = (opts: Option[], v: string) => opts.find((o) => o.value === v)?.label ?? v;
+
+  const selects = (
+    <>
+      <FilterSelect label={t.filters.range} param="range" options={RANGE_OPTIONS} fallback={t.filters.ranges["30d"]} value={range} onChange={update} />
+      <FilterSelect label={t.filters.mode} param="mode" options={MODE_OPTIONS} fallback={t.filters.all} value={mode} onChange={update} />
+      <FilterSelect label={t.filters.format} param="format" options={FORMAT_OPTIONS} fallback={t.filters.all} value={format} onChange={update} />
+    </>
+  );
+  const reset = active > 0 && (
+    <Button variant="ghost" size="sm" onClick={() => router.replace(pathname, { scroll: false })}>
+      <FilterX className="size-4" aria-hidden />
+      {t.filters.reset}
+    </Button>
+  );
 
   return (
     <div
       role="group"
       aria-label={t.a11y.filters}
-      className="sticky top-0 z-30 flex flex-wrap items-center gap-2 border-b border-border bg-background/85 px-4 py-3 backdrop-blur-md md:px-8"
+      className="sticky top-14 z-30 flex items-center gap-2 border-b border-brass/15 bg-oak-deep/80 px-4 py-2.5 backdrop-blur-md md:top-0 md:px-8"
     >
-      <FilterSelect
-        label={t.filters.range}
-        param="range"
-        options={RANGE_OPTIONS}
-        fallback={t.filters.ranges["30d"]}
-        value={params.get("range") ?? DEFAULT_RANGE}
-        onChange={update}
-      />
-      <FilterSelect
-        label={t.filters.mode}
-        param="mode"
-        options={MODE_OPTIONS}
-        fallback={t.filters.all}
-        value={params.get("mode") ?? ALL}
-        onChange={update}
-      />
-      <FilterSelect
-        label={t.filters.format}
-        param="format"
-        options={FORMAT_OPTIONS}
-        fallback={t.filters.all}
-        value={params.get("format") ?? ALL}
-        onChange={update}
-      />
-      {hasFilters && (
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => router.replace(pathname, { scroll: false })}
-        >
-          <FilterX className="size-4" aria-hidden />
-          {t.filters.reset}
-        </Button>
-      )}
-      <div className="ml-auto">
-        <ThemeToggle />
+      <div className="hidden flex-wrap items-center gap-2 md:flex">
+        {selects}
+        {reset}
       </div>
+      <p className="stat min-w-0 truncate text-sm text-brass-dim md:hidden">
+        {label(RANGE_OPTIONS, range)} · {label(MODE_OPTIONS, mode)} · {label(FORMAT_OPTIONS, format)}
+      </p>
+      <Button variant="outline" size="sm" className="ml-auto md:hidden" onClick={() => setSheetOpen(true)} aria-haspopup="dialog">
+        <SlidersHorizontal className="size-4" aria-hidden />
+        {active ? t.filters.openWithCount(active) : t.filters.open}
+      </Button>
+      <BottomSheet open={sheetOpen} onOpenChange={setSheetOpen} title={t.a11y.filters}>
+        <div className="grid gap-3 [&>div]:justify-between">{selects}</div>
+        {reset}
+      </BottomSheet>
     </div>
   );
 }

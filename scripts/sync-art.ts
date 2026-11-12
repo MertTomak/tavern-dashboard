@@ -1,8 +1,9 @@
 // Downloads the card art the app shows today into data/art/ so it also works offline:
-// every class portrait, plus the tile, render and art of every card in your decks.
+// class art (newest-set legendaries), the newest set's featured legendaries, hero portraits,
+// plus the tile, render and art of every card in your decks.
 // Anything not covered here is still fetched on first view and cached.
 import { getArt } from "../src/lib/cards/art-cache";
-import { buildHeroMap } from "../src/lib/cards/catalog";
+import { buildClassArt, buildHeroMap, featuredLegendaries, findNewestSet } from "../src/lib/cards/catalog";
 import { loadCards } from "../src/lib/cards/classes";
 import { db } from "../src/lib/db/client";
 import { deckCards } from "../src/lib/db/schema";
@@ -13,7 +14,11 @@ async function main() {
   if (!cards) throw new Error("No card data. Run `npm run cards:sync` first.");
   const byDbf = new Map(cards.map((c) => [c.dbfId, c]));
   const jobs: [ArtKind, string][] = [];
-  for (const heroId of buildHeroMap(cards).values()) jobs.push(["art", heroId]);
+  const heroes = buildHeroMap(cards);
+  const newest = findNewestSet(cards);
+  for (const heroId of heroes.values()) jobs.push(["art", heroId]);
+  for (const id of buildClassArt(cards, newest, heroes).values()) jobs.push(["art", id]);
+  for (const card of featuredLegendaries(cards, newest)) jobs.push(["art", card.id], ["render", card.id]);
   const dbfIds = new Set(db.select({ dbfId: deckCards.dbfId }).from(deckCards).all().map((r) => r.dbfId));
   for (const dbfId of dbfIds) {
     const card = byDbf.get(dbfId);

@@ -13,6 +13,7 @@ const cardSchema = z.object({
   type: z.string().optional(),
   cost: z.number().optional(),
   rarity: z.string().optional(),
+  set: z.string().optional(),
 });
 export const cardsSchema = z.array(cardSchema);
 export type Card = z.infer<typeof cardSchema>;

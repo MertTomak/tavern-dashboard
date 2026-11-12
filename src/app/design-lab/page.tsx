@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { PageHeader } from "@/components/layout/PageHeader";
-import { Panel } from "@/components/dashboard/Panel";
+import { FramePanel as Panel } from "@/components/tavern/FramePanel";
 import { ResultChip } from "@/components/dashboard/ResultMark";
 import { classColor, classLabel } from "@/lib/cards/class-colors";
 import { t } from "@/i18n";
@@ -10,12 +10,13 @@ import { ArtFallback, ArtImage } from "@/components/cards/CardArt";
 import { CardPreview } from "@/components/cards/CardPreview";
 import { ClassPortrait } from "@/components/cards/ClassPortrait";
 import { ART_KINDS, artSrc } from "@/lib/cards/art";
+import { classArtId } from "@/lib/cards/catalog";
 
 const SAMPLE_CARD = { id: "EX1_001", name: "Lightwarden" };
 
 export const metadata: Metadata = { title: t.designLab.title };
 
-const TOKENS = ["background", "card", "sunken", "foreground", "muted-foreground", "primary", "brass-bright", "win", "loss", "tie"];
+const TOKENS = ["background", "card", "sunken", "foreground", "muted-foreground", "primary", "win", "loss", "tie"];
 const CLASSES = ["DEATHKNIGHT", "DEMONHUNTER", "DRUID", "HUNTER", "MAGE", "PALADIN", "PRIEST", "ROGUE", "SHAMAN", "WARLOCK", "WARRIOR", "MONK"];
 
 /** Living style guide for the Hearth design system. Development only. */
@@ -23,7 +24,7 @@ export default function StyleGuidePage() {
   if (process.env.NODE_ENV === "production") notFound();
   const copy = t.designLab;
   return (
-    <main className="mx-auto grid max-w-6xl gap-6 px-4 py-10 md:px-8">
+    <main className="mx-auto grid max-w-6xl grid-cols-1 gap-8 px-4 py-10 md:px-8">
       <PageHeader title={copy.title} description={copy.intro} />
 
       <Panel title={copy.colours}>
@@ -108,7 +109,7 @@ export default function StyleGuidePage() {
       </Panel>
 
       <Panel title={copy.motion} hint={copy.motionIntro}>
-        <MotionPlayground />
+        <MotionPlayground art={Object.fromEntries(CLASSES.map((c) => [c, classArtId(c) ?? ""]))} />
       </Panel>
     </main>
   );

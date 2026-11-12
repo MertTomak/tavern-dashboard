@@ -99,14 +99,22 @@ function main() {
   ] as const;
 
   const total = 300;
+  const seenDecks = new Set<string>();
   const end = Date.now();
   const start = end - 45 * 24 * 3600 * 1000;
   const times = Array.from({ length: total }, () => start + rand() * (end - start)).sort((a, b) => a - b);
 
-  let rank = 40; // numeric rank index, see stats rules
+  // Realistic shape: the climb starts in Silver, a new deck is added every ~60 games,
+  // and the player sticks with a deck for a while before switching.
+  let rank = 12; // numeric rank index (Silver 8), see stats rules
+  let deck = created[0];
   const rows = times.map((t, i) => {
     const mode = weighted(modeWeights);
-    const deck = pick(created);
+    const available = created.slice(0, 1 + Math.floor(i / 60));
+    const newest = available[available.length - 1];
+    if (newest !== deck && !seenDecks.has(newest.name)) deck = newest;
+    else if (rand() < 0.12) deck = pick(available);
+    seenDecks.add(deck.name);
     const opponent = pick(classes);
     const wentFirst = rand() < 0.5;
     const matchupAdj = opponent === "WARRIOR" ? -0.08 : opponent === "HUNTER" ? 0.05 : 0;

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildHeroMap, pickSignatureCard } from "@/lib/cards/catalog";
+import { buildClassArt, buildHeroMap, featuredLegendaries, findNewestSet, pickDaily, pickSignatureCard } from "@/lib/cards/catalog";
 import { artSrc, CARD_ID_PATTERN, portraitSrc, upstreamArtUrl } from "@/lib/cards/art";
 import type { Card } from "@/lib/cards/classes";
 
@@ -48,5 +48,35 @@ describe("art urls", () => {
   it("rejects ids that could escape the cache folder", () => {
     expect(CARD_ID_PATTERN.test("../../etc/passwd")).toBe(false);
     expect(CARD_ID_PATTERN.test("EX1_001")).toBe(true);
+  });
+});
+
+describe("newest set art", () => {
+  const cards: Card[] = [
+    card({ id: "OLD_1", dbfId: 10, rarity: "LEGENDARY", type: "MINION", cardClass: "MAGE", set: "OLD" }),
+    card({ id: "NEW_SPELL", dbfId: 30, rarity: "LEGENDARY", type: "SPELL", cardClass: "MAGE", set: "NEW" }),
+    card({ id: "NEW_1", dbfId: 31, rarity: "LEGENDARY", type: "MINION", cardClass: "MAGE", set: "NEW" }),
+    card({ id: "SKIN", dbfId: 99, rarity: "LEGENDARY", type: "HERO", cardClass: "MAGE", set: "HERO_SKINS" }),
+  ];
+
+  it("finds the newest expansion, ignoring skins and evergreen sets", () => {
+    expect(findNewestSet(cards)).toBe("NEW");
+  });
+
+  it("lists the newest set's legendaries with minions first", () => {
+    expect(featuredLegendaries(cards, "NEW").map((c) => c.id)).toEqual(["NEW_1", "NEW_SPELL"]);
+  });
+
+  it("uses the newest legendary minion for class art, else the default hero", () => {
+    const art = buildClassArt(cards, "NEW", new Map([["MAGE", "HERO_08"], ["MONK", "HERO_12"]]));
+    expect(art.get("MAGE")).toBe("NEW_1");
+    expect(art.get("MONK")).toBe("HERO_12");
+  });
+
+  it("picks the same daily card all day in Istanbul", () => {
+    const items = ["a", "b", "c"];
+    const morning = pickDaily(items, new Date("2026-11-13T06:00:00Z"), "Europe/Istanbul");
+    expect(pickDaily(items, new Date("2026-11-13T20:00:00Z"), "Europe/Istanbul")).toBe(morning);
+    expect(pickDaily(items, new Date("2026-11-13T21:30:00Z"), "Europe/Istanbul")).not.toBe(morning);
   });
 });

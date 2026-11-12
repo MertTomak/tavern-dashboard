@@ -1,13 +1,14 @@
 import { NextResponse } from "next/server";
 import { CLASS_PATTERN, isArtKind, type ArtKind } from "@/lib/cards/art";
 import { getArt } from "@/lib/cards/art-cache";
-import { heroCardId } from "@/lib/cards/catalog";
+import { effectiveClassArt } from "@/lib/cards/catalog";
+import { getClassArtChoices } from "@/lib/db/queries/preferences";
 
 const NOT_FOUND = () => new NextResponse(null, { status: 404, headers: { "Cache-Control": "no-store" } });
 
 /**
  * GET /api/art/{tile|render|art}/{CARD_ID}  → card image from the local cache
- * GET /api/art/portrait/{CLASS}              → the class's default hero art
+ * GET /api/art/portrait/{CLASS}              → the class's art (newest-set legendary)
  */
 export async function GET(_req: Request, ctx: RouteContext<"/api/art/[kind]/[id]">) {
   const { kind, id } = await ctx.params;
@@ -17,7 +18,7 @@ export async function GET(_req: Request, ctx: RouteContext<"/api/art/[kind]/[id]
   if (kind === "portrait") {
     if (!CLASS_PATTERN.test(id)) return NOT_FOUND();
     artKind = "art";
-    cardId = heroCardId(id);
+    cardId = effectiveClassArt(id, getClassArtChoices());
   } else if (isArtKind(kind)) {
     artKind = kind;
     cardId = id;
@@ -31,8 +32,8 @@ export async function GET(_req: Request, ctx: RouteContext<"/api/art/[kind]/[id]
   return new NextResponse(new Uint8Array(art.body), {
     headers: {
       "Content-Type": art.contentType,
-      // Card art never changes for a given id; let the browser keep it.
-      "Cache-Control": "public, max-age=2592000, immutable",
+      // Card art never changes for a given id. A class portrait can change when the user picks a skin.
+      "Cache-Control": kind === "portrait" ? "no-cache" : "public, max-age=2592000, immutable",
     },
   });
 }

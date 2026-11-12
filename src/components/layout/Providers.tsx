@@ -9,7 +9,7 @@ import { snap } from "@/components/motion/timing";
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <ThemeProvider attribute="class" defaultTheme="dark" disableTransitionOnChange>
+    <ThemeProvider attribute="class" forcedTheme="dark" disableTransitionOnChange>
       {/* "user": follows the OS Reduce motion setting (no movement, fades only). */}
       <MotionConfig reducedMotion="user" transition={snap}>
         <TooltipProvider>

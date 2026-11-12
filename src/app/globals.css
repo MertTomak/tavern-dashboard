@@ -13,6 +13,7 @@
   --color-background: var(--background);
   --color-foreground: var(--foreground);
   --font-sans: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
+  --default-font-family: var(--font-instrument), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-fraunces), ui-serif, Georgia, serif;
   --font-stat: var(--font-barlow-condensed), ui-sans-serif, system-ui, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, Menlo, monospace;
@@ -54,6 +55,17 @@
   --color-brass-bright: var(--brass-bright);
   --color-sunken: var(--sunken);
   --color-hairline: var(--hairline);
+
+  /* Tavern materials (dark, in-world UI). */
+  --color-parchment: #f3e6cc;
+  --color-ink-muted: #bfae90;
+  --color-brass: #e0a84a;
+  --color-brass-light: #fbe3a4;
+  --color-brass-dim: #d9b877;
+  --color-title-gold: #f6d896;
+  --color-oak: #1c1410;
+  --color-oak-deep: #120d0a;
+  --color-oak-panel: #1a130e;
 
   --radius-xs: 0.375rem; /* broadcast data pieces: scoreboard, ticker, chips */
   --radius-sm: calc(var(--radius) * 0.6);
@@ -171,6 +183,10 @@
     @apply font-sans;
     font-variant-numeric: tabular-nums;
   }
+  /* Toasts ship their own system stack (with Roboto/Arial); use ours instead. */
+  [data-sonner-toaster] {
+    font-family: var(--font-instrument), ui-sans-serif, system-ui, sans-serif !important;
+  }
 }
 
 /* Faint grain + a warm light from the top left: the room, not the data. */
@@ -234,4 +250,62 @@
   .hs-chart .recharts-tooltip-cursor {
     stroke: var(--muted-foreground);
   }
+}
+
+/* Brass frame: a thin bevelled gold edge for panels that sit on art (concept A). */
+@utility brass-frame {
+  border: 1.5px solid transparent;
+  background:
+    linear-gradient(var(--frame-fill, transparent), var(--frame-fill, transparent)) padding-box,
+    linear-gradient(140deg, #fbe3a4, #b07a2a 28%, #6e4614 52%, #e0a84a 74%, #fbe3a4) border-box;
+  box-shadow:
+    inset 0 0 0 1px #00000066,
+    inset 0 1px 0 #ffe9b380,
+    0 14px 32px -18px #000000e6;
+}
+
+/* Small diamond studs on two corners of a brass frame. */
+@utility brass-studs {
+  &::before,
+  &::after {
+    content: "";
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    rotate: 45deg;
+    background: linear-gradient(135deg, #fbe3a4, #8a5a1e);
+    box-shadow: 0 0 0 1px #2b1a0a;
+    z-index: 2;
+  }
+  &::before {
+    top: -5px;
+    left: 18px;
+  }
+  &::after {
+    bottom: -5px;
+    right: 18px;
+  }
+}
+
+/* Concept B palette: graphite with a hot amber accent (design lab only). */
+.concept-b {
+  --background: #0a0c11;
+  --foreground: #eef1f6;
+  --card: #131720;
+  --card-foreground: #eef1f6;
+  --popover: #171c26;
+  --popover-foreground: #eef1f6;
+  --primary: #ffb547;
+  --primary-foreground: #1a1205;
+  --muted-foreground: #9aa3b5;
+  --border: #ffffff17;
+  --hairline: #ffffff10;
+  --sunken: #0d1016;
+  --win: #4fd1b3;
+  --loss: #ff7a59;
+  --tie: #9aa3b5;
+  --chart-1: #ffb547;
+  --chart-2: #4fd1b3;
+  --glow: #ffb54740;
+  background: radial-gradient(ellipse 70% 50% at 80% -10%, #ff7a5922, transparent), #0a0c11;
 }

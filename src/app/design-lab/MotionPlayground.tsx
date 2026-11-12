@@ -3,9 +3,9 @@
 import { useState } from "react";
 import { RotateCcw, Trophy, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Scoreboard } from "@/components/dashboard/Scoreboard";
-import { Ticker } from "@/components/dashboard/Ticker";
-import type { RecentGameView, ScoreboardView } from "@/components/dashboard/overview-view";
+import { StatNumber } from "@/components/motion/StatNumber";
+import { LastGames } from "@/components/tavern/LastGames";
+import type { GameCard } from "@/components/tavern/types";
 import { celebrateWin } from "@/lib/celebrate";
 import { classLabel } from "@/lib/cards/class-colors";
 import { formatShortDateTime } from "@/lib/format";
@@ -15,60 +15,37 @@ import { t } from "@/i18n";
 const OPPONENTS = ["MAGE", "WARRIOR", "HUNTER", "PRIEST", "ROGUE", "SHAMAN", "DRUID", "PALADIN", "WARLOCK", "DEMONHUNTER", "DEATHKNIGHT"];
 const START = Date.UTC(2026, 10, 12, 15, 0);
 
-function fakeGame(i: number, result: GameResult): RecentGameView {
+/** Made-up games only; the art ids come from the page so they match the real class art. */
+function fakeGame(i: number, result: GameResult, art: Record<string, string>): GameCard {
   const cls = OPPONENTS[i % OPPONENTS.length];
   return {
     id: `demo-${i}`,
     result,
-    opponent: classLabel(cls),
-    opponentClass: cls,
+    myClass: "MAGE",
+    myArt: art.MAGE ?? "",
+    oppClass: cls,
+    oppArt: art[cls] ?? "",
+    oppLabel: classLabel(cls),
     when: formatShortDateTime(new Date(START + i * 9 * 60_000).toISOString()),
   };
 }
 
-const INITIAL: RecentGameView[] = Array.from({ length: 10 }, (_, i) =>
-  fakeGame(i, i % 3 === 1 ? "LOSS" : "WIN"),
-).reverse();
-
-function toView(games: RecentGameView[], wins: number, losses: number): ScoreboardView {
-  const [latest] = games;
-  let streak = 0;
-  for (const g of games) {
-    if (g.result !== latest.result) break;
-    streak++;
-  }
-  return {
-    winRate: wins / (wins + losses),
-    games: t.overview.games(String(wins + losses)),
-    wins,
-    losses,
-    last7: wins / (wins + losses),
-    last7n: t.overview.n(String(wins + losses)),
-    delta: t.overview.noPrevWeek,
-    deltaUp: true,
-    streak: latest.result === "WIN" ? t.overview.streakWins(streak) : t.overview.streakLosses(streak),
-    streakResult: latest.result,
-    avgDurationSec: 432,
-    form: [...games].reverse(),
-    mainClass: "MAGE",
-  };
-}
-
-/** Exercises live-update highlight, number flips and the win celebration with made-up games. */
-export function MotionPlayground() {
-  const [games, setGames] = useState(INITIAL);
+/** Exercises the live-update highlight, the number flip and the win celebration. Nothing is saved. */
+export function MotionPlayground({ art }: { art: Record<string, string> }) {
+  const initial = Array.from({ length: 8 }, (_, i) => fakeGame(i, i % 3 === 1 ? "LOSS" : "WIN", art)).reverse();
+  const [games, setGames] = useState(initial);
   const [score, setScore] = useState({ wins: 57, losses: 43 });
 
   function add(result: GameResult) {
-    setGames((g) => [fakeGame(Number(g[0].id.split("-")[1]) + 1, result), ...g].slice(0, 10));
+    setGames((g) => [fakeGame(Number(g[0].id.split("-")[1]) + 1, result, art), ...g].slice(0, 8));
     setScore((s) => (result === "WIN" ? { ...s, wins: s.wins + 1 } : { ...s, losses: s.losses + 1 }));
     if (result === "WIN") requestAnimationFrame(() => celebrateWin());
   }
 
   return (
-    <div className="grid gap-4">
+    <div className="grid gap-5">
       <div className="flex flex-wrap gap-2">
-        <Button size="lg" className="glow-hover px-4" onClick={() => add("WIN")}>
+        <Button size="lg" className="px-4" onClick={() => add("WIN")}>
           <Trophy aria-hidden />
           {t.designLab.addWin}
         </Button>
@@ -81,7 +58,7 @@ export function MotionPlayground() {
           variant="ghost"
           className="px-4"
           onClick={() => {
-            setGames(INITIAL);
+            setGames(initial);
             setScore({ wins: 57, losses: 43 });
           }}
         >
@@ -89,8 +66,10 @@ export function MotionPlayground() {
           {t.designLab.reset}
         </Button>
       </div>
-      <Scoreboard view={toView(games, score.wins, score.losses)} />
-      <Ticker games={games} />
+      <p data-celebrate-anchor className="w-fit font-display text-7xl font-semibold text-brass-light">
+        <StatNumber value={score.wins / (score.wins + score.losses)} kind="percent" className="[font-variant-numeric:lining-nums_tabular-nums]" />
+      </p>
+      <LastGames games={games} />
     </div>
   );
 }

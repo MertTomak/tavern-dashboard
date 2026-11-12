@@ -27,6 +27,16 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 
 **Kabul:** Genel Bakış seed verisiyle dolu, filtre değişince sayılar döner ve tablo yeniden sıralanır, CLS 0, konsol temiz.
 
+### Faz 0.5b — "In the Tavern" tasarım turu
+
+- [x] Moodboard (Dribbble, Behance, Awwwards) → kullanıcı seçimi: A için 2 + 4, B için 1 + 7, ikisi için 10
+- [x] İki konsept (`/design-lab/a`, `/design-lab/b`) gerçek kart görselleri ve seed verisiyle; A seçildi, B'den merdiven çubuğu ve deste okunurluğu alındı
+- [x] Güncel görseller: en yeni set (Reign of the Black Empire) otomatik bulunur, günün kartı her gün döner, sınıf görseli o sınıfın en yeni efsanevisi
+- [x] Uygulama kabuğu ve Genel Bakış "In the Tavern" ile yeniden yapıldı (madalyon navigasyon, hero, son maçlar, el, kahraman seçme, kilit anlı grafikler)
+- [x] Ayarlar: sınıf portresi / kahraman skin seçici (`preferences` tablosu)
+- [x] Henüz yapılmamış sayfalar için dürüst "Opens in Phase N" sayfaları, hata ve 404 sayfaları
+- [x] Mobil desenler (alt çubuk + More, filtre alt sayfası), font yedeklerinde Arial/Roboto yok
+
 ## Faz 1 — Veri girişi
 
 - [ ] Hızlı maç ekleme formu (klavye kısayollarıyla)
@@ -111,3 +121,11 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-12 — `/design-lab` canlı stil rehberi olarak kaldı (token'lar, tipografi, hareket denemesi); production build'de 404 döner.
 - 2026-11-12 — Seed üretecinde rank Legend'de (50) sınırlandı; demo verisi kullanıcı onayıyla yeniden üretildi.
 - 2026-11-12 — Filtre çubuğunda "All time" seçilince varsayılan 30 güne dönen hata düzeltildi ("all" değeri hem "filtre yok" hem "tüm zamanlar" anlamına geliyordu).
+- 2026-11-13 — Tasarım: **"In the Tavern"** (konsept A) seçildi. B'den Bronze → Legend segmentli çubuk ve okunur deste kartları alındı. Konsept sayfaları silindi, `/design-lab` stil rehberi olarak kaldı.
+- 2026-11-13 — Şimdilik yalnızca koyu tema (oyun içi his, renkler token'da). Açık "parşömen" tema ileride ayrı iş; açık token'lar ve kontrast testi duruyor.
+- 2026-11-13 — HearthstoneJSON'un en büyük görseli 512×512. Hero tam genişlik keskin görsel yerine: bulanık + renk düzeltmeli arka plan + sağda keskin görsel.
+- 2026-11-13 — En yeni set = içinde en yüksek dbfId'li efsanevi kartın bulunduğu set (skin, Core, Legacy, Event hariç). Kod değişmeden yeni genişlemeye geçer.
+- 2026-11-13 — Sınıf görseli: kullanıcı seçimi (Ayarlar) → sınıfın en yeni setteki efsanevi minyonu → varsayılan kahraman. Seçim `preferences` tablosunda (`classArt:CLASS`).
+- 2026-11-13 — Seed üreteci gerçekçi yapıldı (tırmanış Silver'dan başlar, her ~60 maçta yeni deste, deste değişimi seyrek) ki grafikteki kilit anlar görünsün; demo verisi yeniden üretildi.
+- 2026-11-13 — Chrome doğrulaması faz sonunda bir kez yapılır (kullanıcı isteği); görsel bir şey bozulursa hemen.
+

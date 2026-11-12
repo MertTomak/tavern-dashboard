@@ -15,13 +15,14 @@ type ImgProps = {
   /** Shown when the image is missing (no art upstream, or offline and never cached). */
   fallback: React.ReactNode;
   priority?: boolean;
+  style?: React.CSSProperties;
 };
 
 /**
  * Fixed-size, lazy-loaded image with a designed fallback. The box always has
  * its final size, so loading or failing never shifts the layout.
  */
-export function ArtImage({ src, alt, width, height, className, imgClassName, fallback, priority }: ImgProps) {
+export function ArtImage({ src, alt, width, height, className, imgClassName, fallback, priority, style }: ImgProps) {
   const [failedSrc, setFailedSrc] = useState<string | null>(null);
   const failed = failedSrc === src;
   const img = useRef<HTMLImageElement>(null);
@@ -32,7 +33,7 @@ export function ArtImage({ src, alt, width, height, className, imgClassName, fal
     if (el?.complete && el.naturalWidth === 0) setFailedSrc(src);
   }, [src]);
   return (
-    <span className={cn("relative block overflow-hidden bg-sunken", className)} style={{ aspectRatio: `${width} / ${height}` }}>
+    <span className={cn("relative block overflow-hidden bg-sunken", className)} style={{ aspectRatio: `${width} / ${height}`, ...style }}>
       {failed ? (
         fallback
       ) : (

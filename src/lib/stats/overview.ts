@@ -19,12 +19,12 @@ export type OverviewSnapshot = {
   last7: WinRate;
   prev7: WinRate;
   streak: Streak;
-  rolling: { index: number; playedAt: string; rate: number; n: number }[];
+  rolling: { index: number; gameId: string; playedAt: string; rate: number; n: number }[];
   daily: { day: string; games: number; rate: number; n: number }[];
   byOpponent: { cls: string; wr: WinRate; share: number }[];
   byDeck: { name: string; cls: string; wr: WinRate; lastPlayed: string }[];
   recent: OverviewGame[];
-  rank: { playedAt: string; rank: number }[];
+  rank: { gameId: string; playedAt: string; rank: number }[];
   avgDurationSec: number | null;
   mainClass: string | null;
 };
@@ -59,7 +59,7 @@ export function rollingWinRate(sortedAsc: readonly OverviewGame[], window = 20) 
   return decided.map((g, i) => {
     const slice = decided.slice(Math.max(0, i - window + 1), i + 1);
     const wr = winRate(slice.map((s) => s.result));
-    return { index: i + 1, playedAt: g.playedAt, rate: wr.rate, n: wr.n };
+    return { index: i + 1, gameId: g.id, playedAt: g.playedAt, rate: wr.rate, n: wr.n };
   });
 }
 
@@ -117,7 +117,7 @@ export function buildOverviewSnapshot(
       .sort((a, b) => b.wr.lower - a.wr.lower),
     recent: sorted.slice(-10).reverse(),
     rank: sorted.flatMap((g) =>
-      g.mode === "RANKED" && g.rankAfter != null ? [{ playedAt: g.playedAt, rank: g.rankAfter }] : [],
+      g.mode === "RANKED" && g.rankAfter != null ? [{ gameId: g.id, playedAt: g.playedAt, rank: g.rankAfter }] : [],
     ),
     avgDurationSec: durations.length
       ? Math.round(durations.reduce((s, d) => s + d, 0) / durations.length)

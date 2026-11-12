@@ -15,11 +15,18 @@ test("'All time' range is kept in the URL (not treated as the default)", async (
   await expect(page).toHaveURL(/range=all/);
 });
 
-test("overview shows the scoreboard, recent games and class standings", async ({ page }) => {
+test("overview shows the hero, last games, hand and matchups", async ({ page }) => {
   await page.goto("/?range=all");
   const empty = page.getByRole("heading", { name: "No games yet" });
   test.skip(await empty.isVisible(), "No games in the local database");
   await expect(page.getByRole("region", { name: "Win rate" })).toBeVisible();
-  await expect(page.getByRole("region", { name: "Last 10 games" })).toBeVisible();
-  await expect(page.getByRole("table", { name: "Against each class" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Last games" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Your hand" })).toBeVisible();
+  await expect(page.getByRole("list", { name: "Matchups" })).toBeVisible();
+});
+
+test("unbuilt pages say when they open and link back", async ({ page }) => {
+  await page.goto("/sessions");
+  await expect(page.getByText("Opens in Phase 5").first()).toBeVisible();
+  await expect(page.getByRole("link", { name: "Back to Overview" })).toBeVisible();
 });

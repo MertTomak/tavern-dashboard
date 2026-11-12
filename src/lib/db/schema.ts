@@ -156,3 +156,10 @@ export const watcherState = sqliteTable("watcher_state", {
   byteOffset: integer("byte_offset").notNull().default(0),
   updatedAt: text("updated_at").notNull().default(nowIso),
 });
+
+/** Small key/value store for user preferences (e.g. "classArt:MAGE" -> card id). */
+export const preferences = sqliteTable("preferences", {
+  key: text("key").primaryKey(),
+  value: text("value").notNull(),
+  updatedAt: text("updated_at").notNull().default(nowIso),
+});

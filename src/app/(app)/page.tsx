@@ -1,109 +1,92 @@
 import { Suspense } from "react";
 import { connection } from "next/server";
 import { SearchX } from "lucide-react";
-import { PageHeader } from "@/components/layout/PageHeader";
 import { EmptyState } from "@/components/layout/EmptyState";
-import { Panel } from "@/components/dashboard/Panel";
-import { Scoreboard } from "@/components/dashboard/Scoreboard";
-import { Ticker } from "@/components/dashboard/Ticker";
-import { DeckStandings, Standings } from "@/components/dashboard/Standings";
-import { TrendChart } from "@/components/charts/TrendChart";
-import { Stagger, StaggerItem } from "@/components/motion/Stagger";
+import { FramePanel } from "@/components/tavern/FramePanel";
+import { OverviewHero } from "@/components/tavern/OverviewHero";
+import { LastGames } from "@/components/tavern/LastGames";
+import { AnnotatedChart } from "@/components/tavern/AnnotatedChart";
+import { DeckHand } from "@/components/tavern/DeckHand";
+import { HeroSelect } from "@/components/tavern/HeroSelect";
 import { Skeleton } from "@/components/ui/skeleton";
-import {
-  currentRank,
-  decksView,
-  rankPoints,
-  recentView,
-  rollingPoints,
-  scoreboardView,
-  standingsView,
-} from "@/components/dashboard/overview-view";
-import { getOverviewGames, hasAnyGames } from "@/lib/db/queries/overview";
-import { getLatestDeckCardIds } from "@/lib/db/queries/decks";
-import { cardsByDbf, pickSignatureCard } from "@/lib/cards/catalog";
-import type { SignatureCard } from "@/components/dashboard/overview-view";
-import { buildOverviewSnapshot } from "@/lib/stats/overview";
-import { parseFilters, rangeStart } from "@/lib/filters";
-import { TIME_ZONE, t } from "@/i18n";
+import { hasAnyGames } from "@/lib/db/queries/overview";
+import { parseFilters } from "@/lib/filters";
+import { t } from "@/i18n";
+import { loadOverview } from "./overview-data";
 
-const ROLLING_WINDOW = 20;
+function Shell({ children }: { children: React.ReactNode }) {
+  return <div className="mx-auto max-w-[1180px] px-4 pt-8 md:px-8">{children}</div>;
+}
 
 function NoMatch() {
   return (
-    <div className="flex flex-col items-center gap-2 rounded-lg border border-dashed border-border bg-card/60 px-6 py-16 text-center">
-      <SearchX className="size-6 text-primary" aria-hidden />
-      <h2 className="font-semibold">{t.overview.noMatch}</h2>
-      <p className="text-sm text-muted-foreground">{t.overview.noMatchBody}</p>
-    </div>
+    <Shell>
+      <FramePanel>
+        <div className="flex flex-col items-center gap-2 py-12 text-center">
+          <SearchX className="size-6 text-brass" aria-hidden />
+          <h1 className="font-display text-2xl font-semibold text-title-gold">{t.overview.noMatch}</h1>
+          <p className="text-sm text-ink-muted">{t.overview.noMatchBody}</p>
+        </div>
+      </FramePanel>
+    </Shell>
   );
 }
 
-async function Dashboard({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
+async function Overview({ searchParams }: { searchParams: PageProps<"/">["searchParams"] }) {
   // The DB is local and changes at any time: read it per request, never at build time.
   await connection();
-  const filters = parseFilters(await searchParams);
-  const now = new Date();
-  if (!hasAnyGames()) return <EmptyState />;
-
-  const games = getOverviewGames({ from: rangeStart(filters.range, now, TIME_ZONE), mode: filters.mode, format: filters.format });
-  if (!games.length) return <NoMatch />;
-
-  const s = buildOverviewSnapshot(games, { now, timeZone: TIME_ZONE, rollingWindow: ROLLING_WINDOW });
-  const rank = rankPoints(s);
-  const deckCards = getLatestDeckCardIds();
-  const signatures = new Map<string, SignatureCard>();
-  for (const d of s.byDeck) {
-    const card = pickSignatureCard(cardsByDbf(deckCards.get(d.name) ?? []), d.cls);
-    if (card) signatures.set(d.name, { id: card.id, name: card.name });
+  if (!hasAnyGames()) {
+    return (
+      <Shell>
+        <EmptyState />
+      </Shell>
+    );
   }
+  const d = loadOverview(parseFilters(await searchParams), new Date());
+  if (!d) return <NoMatch />;
 
   return (
-    <Stagger className="grid grid-cols-1 gap-4">
-      <StaggerItem>
-        <Scoreboard view={scoreboardView(s)} />
-      </StaggerItem>
-      <StaggerItem>
-        <Ticker games={recentView(s)} />
-      </StaggerItem>
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_minmax(0,1fr)]">
-        <StaggerItem>
-          <Panel title={t.overview.rolling} hint={t.overview.rollingHint(ROLLING_WINDOW)} className="h-full">
-            <TrendChart data={rollingPoints(s, ROLLING_WINDOW)} kind="percent" ariaLabel={t.overview.rolling} height={340} />
-          </Panel>
-        </StaggerItem>
-        <StaggerItem>
-          <Panel title={t.overview.byOpponent} className="h-full">
-            <Standings rows={standingsView(s)} />
-          </Panel>
-        </StaggerItem>
-      </div>
-      <div className="grid gap-4 xl:grid-cols-2">
-        <StaggerItem>
-          <Panel title={t.overview.decks} hint={t.overview.decksHint} className="h-full">
-            <DeckStandings rows={decksView(s, signatures)} />
-          </Panel>
-        </StaggerItem>
-        {rank.length > 1 && (
-          <StaggerItem>
-            <Panel title={t.overview.rank} hint={currentRank(s) ?? undefined} className="h-full">
-              <TrendChart data={rank} kind="rank" ariaLabel={t.overview.rank} height={240} color="var(--chart-2)" curve="stepAfter" />
-            </Panel>
-          </StaggerItem>
+    <>
+      <h1 className="sr-only">{t.pages.overview.title}</h1>
+      <OverviewHero data={d} />
+      <div className="relative mx-auto -mt-14 grid max-w-[1180px] grid-cols-[minmax(0,1fr)] gap-8 px-4 md:px-8">
+        <FramePanel title={t.concepts.lastGames}>
+          <LastGames games={d.recent} />
+        </FramePanel>
+        <FramePanel title={t.concepts.hand} hint={t.concepts.handHint}>
+          <DeckHand decks={d.decks} />
+        </FramePanel>
+        <FramePanel title={t.concepts.form} hint={t.overview.rollingHint(d.rolling.window)}>
+          <AnnotatedChart points={d.rolling.points} milestones={d.rolling.milestones} kind="percent" ariaLabel={t.concepts.form} height={280} color="var(--chart-1)" />
+        </FramePanel>
+        <FramePanel title={t.concepts.matchups} hint={t.concepts.matchupsHint}>
+          <HeroSelect classes={d.classes} totalGames={d.games} />
+        </FramePanel>
+        {d.climb.points.length > 1 && (
+          <FramePanel title={t.concepts.climb} hint={d.rank ? (d.rank.legend ? t.concepts.atLegend : t.concepts.toLegend(d.rank.label)) : undefined}>
+            <AnnotatedChart
+              points={d.climb.points}
+              milestones={d.climb.milestones}
+              kind="rank"
+              ariaLabel={t.concepts.climb}
+              height={260}
+              color="var(--chart-2)"
+              curve="stepAfter"
+            />
+          </FramePanel>
         )}
       </div>
-    </Stagger>
+    </>
   );
 }
 
-function DashboardSkeleton() {
+function OverviewSkeleton() {
   return (
-    <div className="grid gap-4" aria-hidden>
-      <Skeleton className="h-52 rounded-lg" />
-      <Skeleton className="h-11 rounded-lg" />
-      <div className="grid gap-4 xl:grid-cols-[1.55fr_1fr]">
-        <Skeleton className="h-96 rounded-lg" />
-        <Skeleton className="h-96 rounded-lg" />
+    <div aria-hidden>
+      <Skeleton className="h-[min(72vh,600px)] rounded-none bg-oak" />
+      <div className="mx-auto -mt-14 grid max-w-[1180px] gap-8 px-4 md:px-8">
+        <Skeleton className="h-56 rounded-lg bg-card" />
+        <Skeleton className="h-80 rounded-lg bg-card" />
       </div>
     </div>
   );
@@ -111,11 +94,8 @@ function DashboardSkeleton() {
 
 export default function OverviewPage({ searchParams }: PageProps<"/">) {
   return (
-    <>
-      <PageHeader title={t.pages.overview.title} description={t.pages.overview.description} />
-      <Suspense fallback={<DashboardSkeleton />}>
-        <Dashboard searchParams={searchParams} />
-      </Suspense>
-    </>
+    <Suspense fallback={<OverviewSkeleton />}>
+      <Overview searchParams={searchParams} />
+    </Suspense>
   );
 }

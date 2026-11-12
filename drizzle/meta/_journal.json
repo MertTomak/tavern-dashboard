@@ -15,6 +15,13 @@
       "when": 1794511758273,
       "tag": "0001_living_annihilus",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1794518224962,
+      "tag": "0002_lean_vindicator",
+      "breakpoints": true
     }
   ]
 }

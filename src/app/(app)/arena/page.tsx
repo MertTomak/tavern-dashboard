@@ -1,12 +1,10 @@
-import { PageHeader } from "@/components/layout/PageHeader";
-import { EmptyState } from "@/components/layout/EmptyState";
-import { t } from "@/i18n";
+import { Suspense } from "react";
+import { ComingSoon } from "@/components/tavern/ComingSoon";
 
 export default function ArenaPage() {
   return (
-    <>
-      <PageHeader title={t.pages.arena.title} description={t.pages.arena.description} />
-      <EmptyState />
-    </>
+    <Suspense>
+      <ComingSoon page="arena" />
+    </Suspense>
   );
 }

@@ -14,7 +14,7 @@ import {
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
 import { Button } from "@/components/ui/button";
-import { Panel } from "@/components/dashboard/Panel";
+import { FramePanel } from "@/components/tavern/FramePanel";
 import { t } from "@/i18n";
 import { formatNumber } from "@/lib/format";
 
@@ -46,12 +46,12 @@ export function DemoDataCard({ games, decks }: Props) {
   }
 
   return (
-    <Panel
+    <FramePanel
       title={copy.title}
       hint={copy.description}
-      action={<FlaskConical className="size-4 text-primary" aria-hidden />}
+      action={<FlaskConical className="size-4 text-brass" aria-hidden />}
     >
-      <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-border bg-sunken/60 p-3">
+      <div className="flex flex-wrap items-center justify-between gap-3 rounded-md border border-brass/20 bg-oak-deep/70 p-3">
         <p className="text-sm">{hasDemo ? copy.summary(g, d) : copy.none}</p>
         <Button variant="destructive" disabled={!hasDemo} onClick={() => setOpen(true)}>
           <Trash2 className="size-4" aria-hidden />
@@ -72,6 +72,6 @@ export function DemoDataCard({ games, decks }: Props) {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </Panel>
+    </FramePanel>
   );
 }
