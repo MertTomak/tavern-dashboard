@@ -1,5 +1,5 @@
 import { clearDemoData, getDemoCounts } from "../src/lib/db/queries/demo";
-import { backupDb } from "./backup-db";
+import { backupDb } from "@/lib/db/backup";
 
 const before = getDemoCounts();
 if (before.games === 0 && before.decks === 0) {

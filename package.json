@@ -20,7 +20,10 @@
     "db:seed": "tsx scripts/seed.ts",
     "db:unseed": "tsx scripts/unseed.ts",
     "cards:sync": "tsx scripts/sync-cards.ts",
-    "art:sync": "tsx scripts/sync-art.ts"
+    "art:sync": "tsx scripts/sync-art.ts",
+    "app:bundle": "tsx scripts/build-electron.ts",
+    "preapp:dev": "node scripts/check-node.mjs",
+    "app:dev": "npm run app:bundle && concurrently -k -n web,app -c yellow,magenta \"npm:dev\" \"TAVERN_DEV_URL=http://localhost:3000 electron .\""
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -56,6 +59,9 @@
     "@types/three": "^0.182.0",
     "concurrently": "^10.0.7",
     "drizzle-kit": "^0.31.11",
+    "electron": "^45.3.2",
+    "electron-builder": "^26.18.0",
+    "esbuild": "^0.28.2",
     "eslint": "^9",
     "eslint-config-next": "16.4.6",
     "tailwindcss": "4.3.3",
@@ -65,5 +71,6 @@
   },
   "engines": {
     "node": ">=22"
-  }
+  },
+  "main": "dist-electron/main.cjs"
 }

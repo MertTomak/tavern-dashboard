@@ -1,20 +1,20 @@
 import fs from "node:fs";
 import path from "node:path";
+import { ART_DIR } from "@/lib/paths";
 import { ART_KINDS, CARD_ID_PATTERN, upstreamArtUrl, type ArtKind } from "./art";
 
-export const ART_DIR = path.join(process.cwd(), "data", "art");
 
 export type CachedArt = { body: Buffer; contentType: string };
 
 const CONTENT_TYPE = { webp: "image/webp", png: "image/png" } as const;
 
 function filePath(kind: ArtKind, cardId: string): string {
-  return path.join(ART_DIR, kind, `${cardId}.${ART_KINDS[kind].ext}`);
+  return path.join(/* turbopackIgnore: true */ ART_DIR, kind, `${cardId}.${ART_KINDS[kind].ext}`);
 }
 
 /** A card with no art upstream is remembered so we don't ask again on every render. */
 function missingMarker(kind: ArtKind, cardId: string): string {
-  return path.join(ART_DIR, kind, `${cardId}.missing`);
+  return path.join(/* turbopackIgnore: true */ ART_DIR, kind, `${cardId}.missing`);
 }
 
 /**

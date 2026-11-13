@@ -1,15 +1,6 @@
 import path from "node:path";
-import Database from "better-sqlite3";
-import { drizzle } from "drizzle-orm/better-sqlite3";
-import { migrate } from "drizzle-orm/better-sqlite3/migrator";
-import { backupDb } from "./backup-db";
+import { migrateDb } from "@/lib/db/migrate";
 
-const backup = backupDb();
+const { applied, backup } = migrateDb(path.join(process.cwd(), "drizzle"));
 if (backup) console.log(`Backup created: ${backup}`);
-
-const sqlite = new Database(path.join(process.cwd(), "data", "hearthstone.db"));
-sqlite.pragma("journal_mode = WAL");
-sqlite.pragma("foreign_keys = ON");
-migrate(drizzle(sqlite), { migrationsFolder: path.join(process.cwd(), "drizzle") });
-sqlite.close();
-console.log("Migration complete.");
+console.log(applied ? `Migration complete (${applied} applied).` : "Database already up to date.");

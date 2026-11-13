@@ -1,8 +1,8 @@
 import fs from "node:fs";
 import path from "node:path";
 import { z } from "zod";
+import { CARDS_DIR } from "@/lib/paths";
 
-export const CARDS_DIR = path.join(process.cwd(), "data", "cards");
 export const CARDS_FILE = path.join(CARDS_DIR, "cards.collectible.json");
 
 const cardSchema = z.object({

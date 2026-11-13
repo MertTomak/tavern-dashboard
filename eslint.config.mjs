@@ -12,6 +12,9 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
+    // Mac app build output
+    "dist-electron/**",
+    "dist-app/**",
   ]),
 ]);
 

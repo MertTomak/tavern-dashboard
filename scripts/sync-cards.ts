@@ -1,5 +1,6 @@
 import fs from "node:fs";
-import { CARDS_DIR, CARDS_FILE, cardsSchema, deriveClasses } from "../src/lib/cards/classes";
+import { CARDS_DIR } from "../src/lib/paths";
+import { CARDS_FILE, cardsSchema, deriveClasses } from "../src/lib/cards/classes";
 
 const URL = "https://api.hearthstonejson.com/v1/latest/enUS/cards.collectible.json";
 

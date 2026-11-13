@@ -4,7 +4,7 @@ import { db } from "../src/lib/db/client";
 import { deckCards, deckVersions, decks, games, importBatches } from "../src/lib/db/schema";
 import { SEED_BATCH_NAME } from "../src/lib/db/queries/demo";
 import { loadCards, deriveClasses, type Card } from "../src/lib/cards/classes";
-import { backupDb } from "./backup-db";
+import { backupDb } from "@/lib/db/backup";
 
 // Small deterministic PRNG so demo data is reproducible.
 function mulberry32(seed: number) {
