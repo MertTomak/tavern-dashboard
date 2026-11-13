@@ -174,3 +174,7 @@ export function tileCardsByDbf(dbfIds: readonly number[]): Map<number, { id: str
   }
   return out;
 }
+
+export function cardByDbf(dbfId: number): Card | undefined {
+  return catalog()?.byDbf.get(dbfId);
+}

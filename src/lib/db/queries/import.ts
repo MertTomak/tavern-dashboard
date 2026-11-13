@@ -1,9 +1,10 @@
 import { randomUUID } from "node:crypto";
-import { and, desc, eq, inArray, ne, sql } from "drizzle-orm";
+import { desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { db } from "../client";
-import { deckCards, decks, deckVersions, gameCardEvents, games, importBatches, watcherState } from "../schema";
+import { gameCardEvents, games, importBatches, watcherState } from "../schema";
+import { deckCandidates } from "./decks";
 import { SEED_BATCH_NAME } from "./demo";
-import { bestDeckMatch, type DeckCandidate } from "@/lib/import/deck-match";
+import { bestDeckMatch } from "@/lib/import/deck-match";
 import type { GameRecord } from "@/lib/parser/record";
 
 /** Which of these duplicate keys are already saved. */
@@ -11,24 +12,6 @@ export function existingHashes(hashes: readonly string[]): Set<string> {
   if (!hashes.length) return new Set();
   const rows = db.select({ h: games.sourceHash }).from(games).where(inArray(games.sourceHash, [...hashes])).all();
   return new Set(rows.map((r) => r.h));
-}
-
-/** Real (non-demo, not archived) deck versions of a class, with their cards, for matching a game to a deck. */
-function deckCandidates(playerClass: string): DeckCandidate[] {
-  const rows = db
-    .select({ deckId: decks.id, versionId: deckVersions.id, format: decks.format, dbfId: deckCards.dbfId })
-    .from(decks)
-    .innerJoin(deckVersions, eq(deckVersions.deckId, decks.id))
-    .innerJoin(deckCards, eq(deckCards.deckVersionId, deckVersions.id))
-    .where(and(eq(decks.playerClass, playerClass), eq(decks.isDemo, false), eq(decks.archived, false)))
-    .all();
-  const byVersion = new Map<number, DeckCandidate>();
-  for (const r of rows) {
-    const c = byVersion.get(r.versionId) ?? { deckId: r.deckId, versionId: r.versionId, format: r.format, cards: new Set<number>() };
-    c.cards.add(r.dbfId);
-    byVersion.set(r.versionId, c);
-  }
-  return [...byVersion.values()];
 }
 
 export type SavedGame = { id: string; result: GameRecord["result"]; playerClass: string; opponentClass: string; playedAt: string };
@@ -51,7 +34,7 @@ export function saveParsedGames(records: readonly GameRecord[], opts: { source: 
       const deck = bestDeckMatch(
         r.format,
         r.cardEvents.filter((e) => e.side === "FRIENDLY").map((e) => e.dbfId),
-        deckCandidates(r.playerClass),
+        deckCandidates(r.playerClass, tx),
       );
       const id = randomUUID();
       const inserted = tx
