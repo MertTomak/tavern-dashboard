@@ -3,6 +3,7 @@ import { Flame } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
+import { QuickAddEmptyButton } from "@/components/quick-add/QuickAddButton";
 
 export function EmptyState({ note }: { note?: string }) {
   return (
@@ -19,9 +20,7 @@ export function EmptyState({ note }: { note?: string }) {
         <p className="max-w-md text-sm text-muted-foreground">{note ?? t.empty.body}</p>
       </div>
       <div className="relative flex flex-wrap justify-center gap-2">
-        <Link href="/games" className={cn(buttonVariants({ size: "lg" }), "glow-hover px-4")}>
-          {t.empty.addGame}
-        </Link>
+        <QuickAddEmptyButton className="glow-hover px-4" />
         <Link href="/import" className={cn(buttonVariants({ variant: "outline", size: "lg" }), "px-4")}>
           {t.empty.importLog}
         </Link>

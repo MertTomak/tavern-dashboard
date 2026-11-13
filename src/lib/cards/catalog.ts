@@ -1,4 +1,4 @@
-import { loadCards, type Card } from "./classes";
+import { deriveClasses, loadCards, type Card } from "./classes";
 
 type Catalog = {
   byDbf: Map<number, Card>;
@@ -8,6 +8,7 @@ type Catalog = {
   newestSet: string | null;
   featured: Card[];
   classArt: Map<string, string>;
+  classes: string[];
 };
 
 const globalForCatalog = globalThis as unknown as { cardCatalog?: Catalog | null };
@@ -103,6 +104,7 @@ function catalog(): Catalog | null {
       newestSet,
       featured: featuredLegendaries(cards, newestSet),
       classArt: buildClassArt(cards, newestSet, heroByClass),
+      classes: deriveClasses(cards),
     };
   }
   globalForCatalog.cardCatalog = value;
@@ -177,4 +179,9 @@ export function tileCardsByDbf(dbfIds: readonly number[]): Map<number, { id: str
 
 export function cardByDbf(dbfId: number): Card | undefined {
   return catalog()?.byDbf.get(dbfId);
+}
+
+/** Playable classes from the card data (a new class such as Monk appears without code changes). */
+export function playableClasses(): string[] {
+  return catalog()?.classes ?? [];
 }

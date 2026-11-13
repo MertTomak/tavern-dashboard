@@ -1,8 +1,10 @@
+import { createHash, randomUUID } from "node:crypto";
 import { and, asc, desc, eq, gte, isNull, sql, type SQL } from "drizzle-orm";
 import { db } from "../client";
 import { decks, deckVersions, gameCardEvents, games } from "../schema";
 import type { Filters } from "@/lib/filters";
 import type { GameListParams } from "@/lib/games-list";
+import type { GameCreateInput } from "@/lib/validation/games";
 import { PAGE_SIZE } from "@/lib/games-list";
 
 export type GameRow = {
@@ -182,4 +184,54 @@ export function rankPromptGame(skippedId: string | null): RankPromptGame | null 
     playedAt: g.playedAt,
     lastRank: last && last.rankAfter !== null ? { rankAfter: last.rankAfter, legendRank: last.legendRank } : null,
   };
+}
+
+/**
+ * Saves a game added by hand, played now. A chosen deck must be the same
+ * class and is marked manual (auto matching leaves it alone). The duplicate
+ * key is derived from the new id, so two quick adds never collide.
+ * Returns null if the deck does not fit.
+ */
+export function createManualGame(input: GameCreateInput, now = new Date()): { id: string; playedAt: string } | null {
+  return db.transaction((tx) => {
+    let versionId: number | null = null;
+    if (input.deckId !== null) {
+      const deck = tx.select({ cls: decks.playerClass }).from(decks).where(eq(decks.id, input.deckId)).get();
+      if (!deck || deck.cls !== input.playerClass) return null;
+      versionId =
+        tx.select({ id: deckVersions.id }).from(deckVersions).where(eq(deckVersions.deckId, input.deckId)).orderBy(desc(deckVersions.versionNo)).get()?.id ?? null;
+    }
+    const id = randomUUID();
+    const playedAt = now.toISOString();
+    tx.insert(games)
+      .values({
+        id,
+        playedAt,
+        mode: input.mode,
+        format: input.format,
+        result: input.result,
+        playerClass: input.playerClass,
+        opponentClass: input.opponentClass,
+        deckId: input.deckId,
+        deckVersionId: versionId,
+        deckManual: input.deckId !== null,
+        wentFirst: input.wentFirst,
+        source: "MANUAL",
+        sourceHash: createHash("sha256").update(`manual:${id}`).digest("hex"),
+      })
+      .run();
+    return { id, playedAt };
+  });
+}
+
+export type QuickAddDefaults = { playerClass: string | null; deckId: number | null; mode: string; format: string | null };
+
+/** Quick add starts from the newest game: same class, deck, mode and format. */
+export function quickAddDefaults(): QuickAddDefaults {
+  const g = db
+    .select({ playerClass: games.playerClass, deckId: games.deckId, mode: games.mode, format: games.format })
+    .from(games)
+    .orderBy(desc(games.playedAt))
+    .get();
+  return g ?? { playerClass: null, deckId: null, mode: "RANKED", format: "STANDARD" };
 }

@@ -6,6 +6,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "motion/react";
 import { Flame, Lock, MoreHorizontal } from "lucide-react";
 import { BottomSheet } from "@/components/layout/BottomSheet";
+import { QuickAddCoin } from "@/components/quick-add/QuickAddButton";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
@@ -131,9 +132,9 @@ export function MobileCoinBar() {
       >
         {items
           .filter((d) => d.primary)
-          .map((d) => {
+          .flatMap((d, i) => {
             const active = isActive(pathname, d.href);
-            return (
+            const link = (
               <Link
                 key={d.href}
                 href={d.href}
@@ -145,6 +146,8 @@ export function MobileCoinBar() {
                 <span className={active ? "text-brass-light" : "text-ink-muted"}>{d.label}</span>
               </Link>
             );
+            // The Quick add coin sits in the middle of the bar, within thumb reach.
+            return i === 2 ? [<QuickAddCoin key="quick-add" />, link] : [link];
           })}
         <button type="button" onClick={() => setMoreOpen(true)} aria-haspopup="dialog" className="flex flex-col items-center gap-1 text-[11px]">
           <Coin icon={MoreHorizontal} active={moreActive} locked={false} size={40} />

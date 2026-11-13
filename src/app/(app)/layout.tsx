@@ -4,6 +4,7 @@ import { AppChrome } from "@/components/layout/AppChrome";
 import { FilterBar } from "@/components/layout/FilterBar";
 import { PageNavigator } from "@/components/layout/PageNavigator";
 import { LiveUpdates } from "@/components/layout/LiveUpdates";
+import { QuickAddMount } from "@/components/quick-add/QuickAddMount";
 import { t } from "@/i18n";
 
 export default function AppShellLayout({ children }: LayoutProps<"/">) {
@@ -21,6 +22,9 @@ export default function AppShellLayout({ children }: LayoutProps<"/">) {
       <footer className="mx-auto w-full max-w-[1180px] px-4 pt-6 pb-28 text-xs text-ink-muted md:px-8 md:pb-6">{t.legal.trademark}</footer>
       <MobileCoinBar />
       <LiveUpdates />
+      <Suspense fallback={null}>
+        <QuickAddMount />
+      </Suspense>
     </div>
   );
 }

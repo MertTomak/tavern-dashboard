@@ -4,6 +4,7 @@ import { useCallback, useState } from "react";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { FilterX, SlidersHorizontal } from "lucide-react";
 import { BottomSheet } from "./BottomSheet";
+import { QuickAddBarButton } from "@/components/quick-add/QuickAddButton";
 import { Button } from "@/components/ui/button";
 import {
   Select,
@@ -120,6 +121,7 @@ export function FilterBar() {
         <SlidersHorizontal className="size-4" aria-hidden />
         {active ? t.filters.openWithCount(active) : t.filters.open}
       </Button>
+      <QuickAddBarButton />
       <BottomSheet open={sheetOpen} onOpenChange={setSheetOpen} title={t.a11y.filters}>
         <div className="grid gap-3 [&>div]:justify-between">{selects}</div>
         {reset}
