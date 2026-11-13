@@ -7,6 +7,7 @@ import { OverviewHero } from "@/components/tavern/OverviewHero";
 import { LastGames } from "@/components/tavern/LastGames";
 import { AnnotatedChart } from "@/components/tavern/AnnotatedChart";
 import { DeckHand } from "@/components/tavern/DeckHand";
+import { OverviewJourney, type Chapter } from "@/components/tavern/journey/OverviewJourney";
 import { HeroSelect } from "@/components/tavern/HeroSelect";
 import { Skeleton } from "@/components/ui/skeleton";
 import { hasAnyGames } from "@/lib/db/queries/overview";
@@ -16,6 +17,14 @@ import { loadOverview } from "./overview-data";
 
 function Shell({ children }: { children: React.ReactNode }) {
   return <div className="mx-auto max-w-[1180px] px-4 pt-8 md:px-8">{children}</div>;
+}
+
+/** Chart height: grows with the screen in the journey, fixed on the vertical page. */
+const CHART_HEIGHT = "clamp(240px, calc(100dvh - var(--chrome-h) - 300px), 460px)";
+
+/** A chapter's content, centred in its full-height panel with room for the chapter rail. */
+function ChapterFrame({ children }: { children: React.ReactNode }) {
+  return <div className="mx-auto flex max-w-[1180px] flex-col justify-center px-4 md:px-8 journey:h-full journey:pt-6 journey:pb-20">{children}</div>;
 }
 
 function NoMatch() {
@@ -45,37 +54,84 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
   const d = loadOverview(parseFilters(await searchParams), new Date());
   if (!d) return <NoMatch />;
 
-  return (
-    <>
-      <h1 className="sr-only">{t.pages.overview.title}</h1>
-      <OverviewHero data={d} />
-      <div className="relative mx-auto -mt-14 grid max-w-[1180px] grid-cols-[minmax(0,1fr)] gap-8 px-4 md:px-8">
-        <FramePanel title={t.concepts.lastGames}>
-          <LastGames games={d.recent} />
-        </FramePanel>
-        <FramePanel title={t.concepts.hand} hint={t.concepts.handHint}>
-          <DeckHand decks={d.decks} />
-        </FramePanel>
-        <FramePanel title={t.concepts.form} hint={t.overview.rollingHint(d.rolling.window)}>
-          <AnnotatedChart points={d.rolling.points} milestones={d.rolling.milestones} kind="percent" ariaLabel={t.concepts.form} height={280} color="var(--chart-1)" />
-        </FramePanel>
-        <FramePanel title={t.concepts.matchups} hint={t.concepts.matchupsHint}>
-          <HeroSelect classes={d.classes} totalGames={d.games} />
-        </FramePanel>
-        {d.climb.points.length > 1 && (
+  const chapters: Chapter[] = [
+    { id: "scoreboard", label: t.journey.scoreboard, children: <OverviewHero data={d} /> },
+    {
+      id: "last-games",
+      label: t.concepts.lastGames,
+      art: d.recent[0]?.oppArt,
+      children: (
+        <ChapterFrame>
+          <FramePanel title={t.concepts.lastGames}>
+            <LastGames games={d.recent} />
+          </FramePanel>
+        </ChapterFrame>
+      ),
+    },
+    {
+      id: "win-rate",
+      label: t.concepts.form,
+      art: d.recent[0]?.myArt,
+      children: (
+        <ChapterFrame>
+          <FramePanel title={t.concepts.form} hint={t.overview.rollingHint(d.rolling.window)}>
+            <AnnotatedChart points={d.rolling.points} milestones={d.rolling.milestones} kind="percent" ariaLabel={t.concepts.form} height={CHART_HEIGHT} color="var(--chart-1)" />
+          </FramePanel>
+        </ChapterFrame>
+      ),
+    },
+    {
+      id: "hand",
+      label: t.concepts.hand,
+      art: d.decks[0]?.art,
+      children: (
+        <ChapterFrame>
+          <FramePanel title={t.concepts.hand} hint={t.concepts.handHint}>
+            <DeckHand decks={d.decks} />
+          </FramePanel>
+        </ChapterFrame>
+      ),
+    },
+    {
+      id: "matchups",
+      label: t.concepts.matchups,
+      art: d.classes[0]?.art,
+      children: (
+        <ChapterFrame>
+          <FramePanel title={t.concepts.matchups} hint={t.concepts.matchupsHint}>
+            <HeroSelect classes={d.classes} totalGames={d.games} />
+          </FramePanel>
+        </ChapterFrame>
+      ),
+    },
+  ];
+  if (d.climb.points.length > 1) {
+    chapters.push({
+      id: "climb",
+      label: t.concepts.climb,
+      art: d.featured?.id,
+      children: (
+        <ChapterFrame>
           <FramePanel title={t.concepts.climb} hint={d.rank ? (d.rank.legend ? t.concepts.atLegend : t.concepts.toLegend(d.rank.label)) : undefined}>
             <AnnotatedChart
               points={d.climb.points}
               milestones={d.climb.milestones}
               kind="rank"
               ariaLabel={t.concepts.climb}
-              height={260}
+              height={CHART_HEIGHT}
               color="var(--chart-2)"
               curve="stepAfter"
             />
           </FramePanel>
-        )}
-      </div>
+        </ChapterFrame>
+      ),
+    });
+  }
+
+  return (
+    <>
+      <h1 className="sr-only">{t.pages.overview.title}</h1>
+      <OverviewJourney chapters={chapters} />
     </>
   );
 }
@@ -83,8 +139,8 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
 function OverviewSkeleton() {
   return (
     <div aria-hidden>
-      <Skeleton className="h-[min(72vh,600px)] rounded-none bg-oak" />
-      <div className="mx-auto -mt-14 grid max-w-[1180px] gap-8 px-4 md:px-8">
+      <Skeleton className="h-[min(72vh,600px)] rounded-none bg-oak journey:h-[calc(100dvh-var(--chrome-h))]" />
+      <div className="mx-auto mt-10 grid max-w-[1180px] gap-8 px-4 md:px-8 journey:hidden">
         <Skeleton className="h-56 rounded-lg bg-card" />
         <Skeleton className="h-80 rounded-lg bg-card" />
       </div>

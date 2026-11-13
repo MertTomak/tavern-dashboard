@@ -7,6 +7,8 @@ import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { ArtCrop } from "./ArtCrop";
 import type { ClassStanding } from "./types";
+import { useChapter } from "./journey/reveal";
+import { SCENE } from "@/components/motion/timing";
 
 /** Glow strength grows with distance from 50%, in the result colour. */
 function glow(rate: number, low: boolean) {
@@ -37,17 +39,24 @@ function Pin({ label, value, className, tone }: { label: string; value: string; 
  */
 export function HeroSelect({ classes, totalGames }: { classes: ClassStanding[]; totalGames: number }) {
   const [selected, setSelected] = useState(classes[0]?.cls ?? "");
+  const { revealed } = useChapter();
   const sel = classes.find((c) => c.cls === selected) ?? classes[0];
   if (!sel) return null;
   const good = sel.rate >= 0.5;
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
-      <ul className="grid grid-cols-3 gap-x-3 gap-y-5 sm:grid-cols-4 xl:grid-cols-4" aria-label={t.concepts.matchups}>
-        {classes.map((c) => {
+      <ul className="grid grid-cols-3 content-start gap-x-3 gap-y-5 sm:grid-cols-4 xl:grid-cols-6" aria-label={t.concepts.matchups}>
+        {classes.map((c, i) => {
           const active = c.cls === sel.cls;
           return (
-            <li key={c.cls}>
+            // Portraits light up one after another as the chapter arrives.
+            <motion.li
+              key={c.cls}
+              initial={{ opacity: 0.25, filter: "brightness(0.3)" }}
+              animate={revealed ? { opacity: 1, filter: "brightness(1)" } : undefined}
+              transition={{ delay: i * SCENE.step, duration: 0.3, ease: [0.2, 0, 0, 1] }}
+            >
               <button
                 type="button"
                 onClick={() => setSelected(c.cls)}
@@ -76,7 +85,7 @@ export function HeroSelect({ classes, totalGames }: { classes: ClassStanding[]; 
                   <span className="stat block text-xs text-ink-muted">{t.overview.n(formatNumber(c.n))}</span>
                 </span>
               </button>
-            </li>
+            </motion.li>
           );
         })}
       </ul>
@@ -89,7 +98,7 @@ export function HeroSelect({ classes, totalGames }: { classes: ClassStanding[]; 
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 1.01 }}
             transition={{ duration: 0.22, ease: [0.2, 0, 0, 1] }}
-            className="brass-frame brass-studs relative aspect-[3/4] w-full overflow-hidden rounded-lg [--frame-fill:#120d0a]"
+            className="brass-frame brass-studs relative mx-auto aspect-[3/4] w-full max-w-[calc((100dvh-var(--chrome-h)-230px)*0.75)] min-w-[260px] overflow-hidden rounded-lg [--frame-fill:#120d0a]"
           >
             <ArtCrop cardId={sel.art} alt={sel.label} focus="center" />
             <span aria-hidden className="absolute inset-0 bg-[linear-gradient(180deg,transparent_45%,#120d0af0)]" />

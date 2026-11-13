@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { ArtCrop } from "./ArtCrop";
 import { TiltCard } from "./TiltCard";
+import { useChapter } from "./journey/reveal";
 import type { DeckStanding } from "./types";
 
 const CARD_W = 160;
@@ -70,12 +71,15 @@ function useSpread(count: number) {
   return { ref, step };
 }
 
-/** Decks fanned like a hand: the fan opens on first paint; the hovered card lifts clear of the others. */
+const STACKED = { rotate: 0, x: 0, y: 40, opacity: 0 };
+
+/** Decks fanned like a hand: the fan opens when its chapter arrives; the hovered card lifts clear of the others. */
 export function DeckHand({ decks }: { decks: DeckStanding[] }) {
   const mid = (decks.length - 1) / 2;
   const { ref, step } = useSpread(decks.length);
   const overlap = step < CARD_W;
   const [focused, setFocused] = useState<number | null>(null);
+  const { revealed } = useChapter();
   return (
     <>
       <ol ref={ref} aria-label={t.concepts.hand} className="relative hidden h-[290px] w-full sm:block">
@@ -87,9 +91,11 @@ export function DeckHand({ decks }: { decks: DeckStanding[] }) {
               key={d.name}
               className="absolute bottom-6 left-1/2 origin-[50%_130%]"
               style={{ width: CARD_W, marginLeft: -CARD_W / 2 }}
-              initial={{ rotate: 0, x: 0, y: 40, opacity: 0 }}
+              initial={STACKED}
               animate={
-                lifted
+                !revealed
+                  ? STACKED
+                  : lifted
                   ? { rotate: 0, x: off * step, y: -34, scale: 1.06, opacity: 1, zIndex: 60 }
                   : { rotate: off * (overlap ? 4 : 3), x: off * step, y: Math.abs(off) * Math.abs(off) * (overlap ? 5 : 6), scale: 1, opacity: 1, zIndex: 10 + i }
               }
@@ -114,7 +120,7 @@ export function DeckHand({ decks }: { decks: DeckStanding[] }) {
           );
         })}
       </ol>
-      <ol aria-label={t.concepts.hand} className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2 sm:hidden">
+      <ol data-lenis-prevent aria-label={t.concepts.hand} className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2 sm:hidden">
         {decks.map((d) => (
           <li key={d.name} className={cn("w-[150px] shrink-0 snap-start", d.lowSample && "grayscale-[0.6] brightness-75")}>
             <DeckCardFace deck={d} />

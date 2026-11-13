@@ -6,6 +6,8 @@ import { classLabel } from "@/lib/cards/class-colors";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { ArtCrop } from "./ArtCrop";
+import { useChapter } from "./journey/reveal";
+import { SCENE } from "@/components/motion/timing";
 import type { GameCard } from "./types";
 
 type Props = { game: GameCard; index: number; fresh?: boolean };
@@ -16,11 +18,12 @@ type Props = { game: GameCard; index: number; fresh?: boolean };
  * mark the outcome. Cards flip in like a dealt hand; a live addition flashes brass.
  */
 export function VersusCard({ game, index, fresh }: Props) {
+  const { revealed } = useChapter();
   return (
     <motion.li
-      initial={{ rotateY: 90, opacity: 0 }}
-      animate={{ rotateY: 0, opacity: 1 }}
-      transition={{ delay: fresh ? 0 : 0.1 + index * 0.05, duration: 0.35, ease: [0.2, 0, 0, 1] }}
+      initial={{ rotateY: 90, y: -24, opacity: 0 }}
+      animate={revealed ? { rotateY: 0, y: 0, opacity: 1 } : undefined}
+      transition={{ delay: fresh ? 0 : index * SCENE.step, duration: 0.35, ease: [0.2, 0, 0, 1] }}
       style={{ transformPerspective: 800 }}
       className="w-[136px] shrink-0 snap-start"
     >

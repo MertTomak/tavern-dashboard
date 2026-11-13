@@ -1,8 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@import "lenis/dist/lenis.css";
 
 @custom-variant dark (&:is(.dark *));
+/* The Overview's sideways journey (mirror of JOURNEY_QUERY in components/tavern/journey/reveal.tsx). */
+@custom-variant journey (@media (min-width: 768px) and (min-height: 600px) and (prefers-reduced-motion: no-preference));
 
 /*
  * Design tokens: "Hearth" palette (oak, brass, parchment, candle glow) with a

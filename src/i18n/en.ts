@@ -256,6 +256,17 @@ export const en = {
     decksHint: "Win rate on the chip; games and record below",
     vs: "vs",
   },
+  journey: {
+    chapters: "Chapters",
+    scoreboard: "Scoreboard",
+    goTo: (label: string) => `Go to ${label}`,
+    scrollCue: "Scroll to travel",
+  },
+  card3d: {
+    label: (name: string) => `${name}, today's featured card. Drag or use the arrow keys to turn it, click or press Enter to flip it.`,
+    back: "Your record",
+    flipHint: "Drag to turn · click to flip",
+  },
   designLab: {
     title: "Style guide",
     intro: "Tokens, type and motion for the Hearth design. Only available while developing.",

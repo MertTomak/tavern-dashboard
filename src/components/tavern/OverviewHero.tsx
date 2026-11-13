@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useReducedMotion, useScroll, useTransform } from "motion/react";
+import { motion, useTransform } from "motion/react";
 import { Crown } from "lucide-react";
 import { StatNumber } from "@/components/motion/StatNumber";
 import { formatNumber, formatPercent } from "@/lib/format";
@@ -8,6 +8,26 @@ import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { ArtCrop } from "./ArtCrop";
 import type { OverviewData, RankState } from "./types";
+import { useChapter } from "./journey/reveal";
+import { SCENE } from "@/components/motion/timing";
+
+/** Plaques rise in one after another. */
+function Rise({ index, children, className }: { index: number; children: React.ReactNode; className?: string }) {
+  return (
+    <motion.div
+      className={className}
+      initial={{ opacity: 0, y: 18 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{
+        delay: 0.15 + index * SCENE.step,
+        duration: 0.4,
+        ease: [0.2, 0, 0, 1],
+      }}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 function Plaque({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -36,7 +56,11 @@ function LadderBar({ rank }: { rank: RankState }) {
                 className="absolute inset-0 origin-left bg-[linear-gradient(90deg,#b07a2a,#fbe3a4)]"
                 initial={{ scaleX: 0 }}
                 animate={{ scaleX: fill }}
-                transition={{ delay: 0.3 + i * 0.1, duration: 0.3, ease: [0.2, 0, 0, 1] }}
+                transition={{
+                  delay: 0.3 + i * 0.1,
+                  duration: 0.3,
+                  ease: [0.2, 0, 0, 1],
+                }}
               />
             </span>
           );
@@ -63,17 +87,17 @@ function LadderBar({ rank }: { rank: RankState }) {
  * right, and the win rate is set over it like a match result.
  */
 export function OverviewHero({ data }: { data: OverviewData }) {
-  const reduce = useReducedMotion();
-  const { scrollY } = useScroll();
-  const artY = useTransform(scrollY, [0, 600], [0, reduce ? 0 : 90]);
-  const bgY = useTransform(scrollY, [0, 600], [0, reduce ? 0 : 40]);
+  // Depth while the journey moves on: the blurred scene drifts a little, the sharp art more.
+  const { offset } = useChapter();
+  const bgX = useTransform(offset, (o) => `${o * 10}%`);
+  const artX = useTransform(offset, (o) => `${o * 34}%`);
   const f = data.featured;
 
   return (
-    <section aria-label={t.overview.winRate} className="relative isolate overflow-hidden">
+    <section aria-label={t.overview.winRate} className="relative isolate overflow-hidden journey:h-full">
       {f && (
         <>
-          <motion.div aria-hidden className="absolute -inset-10 -z-20" style={{ y: bgY }}>
+          <motion.div aria-hidden className="absolute -inset-10 -z-20" style={{ x: bgX }}>
             <ArtCrop cardId={f.id} className="scale-125 blur-2xl brightness-[0.5] saturate-[0.9]" />
           </motion.div>
           {/* Colour grade: oak shadows, ember highlights. */}
@@ -83,14 +107,14 @@ export function OverviewHero({ data }: { data: OverviewData }) {
           />
           <motion.div
             className="absolute top-0 right-0 bottom-0 -z-10 w-[min(560px,62%)] [mask-image:linear-gradient(to_right,transparent,black_30%),linear-gradient(to_top,transparent,black_30%)] [mask-composite:intersect]"
-            style={{ y: artY }}
+            style={{ x: artX }}
           >
             <ArtCrop cardId={f.id} alt={f.name} priority />
           </motion.div>
         </>
       )}
 
-      <div className="mx-auto flex min-h-[min(72vh,600px)] max-w-[1180px] flex-col justify-end gap-5 px-4 pt-14 pb-24 md:px-8">
+      <div className="mx-auto flex min-h-[min(72vh,600px)] max-w-[1180px] flex-col justify-end gap-5 px-4 pt-14 pb-12 md:px-8 journey:h-full journey:min-h-0 journey:pb-24">
         {f && (
           <p className="stat max-w-[60ch] text-sm tracking-[0.14em] text-brass-dim uppercase [text-shadow:0_1px_8px_#000]">
             {t.concepts.featured} · {f.name} · {t.concepts.featuredFrom(f.set)}
@@ -117,29 +141,35 @@ export function OverviewHero({ data }: { data: OverviewData }) {
         </div>
         <div className="grid max-w-[760px] gap-3">
           <div className="grid grid-cols-3 gap-3">
-            <Plaque label={t.concepts.today}>
-              {data.today.n ? (
-                <>
-                  <span className="text-win">{data.today.wins}</span>
-                  <span className="text-ink-muted">–</span>
-                  <span className="text-loss">{data.today.losses}</span>
-                </>
-              ) : (
-                <span className="text-base font-medium text-ink-muted">{t.concepts.todayNone}</span>
-              )}
-            </Plaque>
-            <Plaque label={t.concepts.streak}>
-              <span className={data.streak?.result === "WIN" ? "text-win" : "text-loss"}>
-                {data.streak
-                  ? data.streak.result === "WIN"
-                    ? t.overview.streakWins(data.streak.length)
-                    : t.overview.streakLosses(data.streak.length)
-                  : t.overview.noStreak}
-              </span>
-            </Plaque>
-            <Plaque label={t.concepts.last7}>{data.last7.n ? formatPercent(data.last7.rate) : "–"}</Plaque>
+            <Rise index={0}>
+              <Plaque label={t.concepts.today}>
+                {data.today.n ? (
+                  <>
+                    <span className="text-win">{data.today.wins}</span>
+                    <span className="text-ink-muted">–</span>
+                    <span className="text-loss">{data.today.losses}</span>
+                  </>
+                ) : (
+                  <span className="text-base font-medium text-ink-muted">{t.concepts.todayNone}</span>
+                )}
+              </Plaque>
+            </Rise>
+            <Rise index={1}>
+              <Plaque label={t.concepts.streak}>
+                <span className={data.streak?.result === "WIN" ? "text-win" : "text-loss"}>
+                  {data.streak ? (data.streak.result === "WIN" ? t.overview.streakWins(data.streak.length) : t.overview.streakLosses(data.streak.length)) : t.overview.noStreak}
+                </span>
+              </Plaque>
+            </Rise>
+            <Rise index={2}>
+              <Plaque label={t.concepts.last7}>{data.last7.n ? formatPercent(data.last7.rate) : "–"}</Plaque>
+            </Rise>
           </div>
-          {data.rank && <LadderBar rank={data.rank} />}
+          {data.rank && (
+            <Rise index={3}>
+              <LadderBar rank={data.rank} />
+            </Rise>
+          )}
         </div>
       </div>
     </section>

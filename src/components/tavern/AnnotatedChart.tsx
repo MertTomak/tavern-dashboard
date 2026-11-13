@@ -3,18 +3,9 @@
 import { useId } from "react";
 import { useReducedMotion } from "motion/react";
 import { Crown, Flame, Layers, Shield, type LucideIcon } from "lucide-react";
-import {
-  Area,
-  AreaChart,
-  CartesianGrid,
-  ReferenceLine,
-  ResponsiveContainer,
-  Tooltip,
-  XAxis,
-  YAxis,
-  type TooltipContentProps,
-} from "recharts";
+import { Area, AreaChart, CartesianGrid, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis, type TooltipContentProps } from "recharts";
 import { formatPercent } from "@/lib/format";
+import { useChapter } from "./journey/reveal";
 import { LEGEND_INDEX, rankLabel } from "@/lib/stats/rank";
 import type { ChartMilestone, ChartPoint } from "./types";
 
@@ -30,7 +21,8 @@ type Props = {
   milestones: ChartMilestone[];
   kind: "percent" | "rank";
   ariaLabel: string;
-  height: number;
+  /** Pixels or any CSS length (e.g. a clamp() that grows with the screen). */
+  height: number | string;
   /** Token colour for the series, e.g. "var(--chart-1)". */
   color: string;
   curve?: "monotone" | "stepAfter";
@@ -56,6 +48,7 @@ function ChartTip({ active, payload }: TooltipContentProps) {
  */
 export function AnnotatedChart({ points, milestones, kind, ariaLabel, height, color, curve = "monotone" }: Props) {
   const reduce = useReducedMotion();
+  const { revealed } = useChapter();
   const id = useId().replace(/:/g, "");
   const isPercent = kind === "percent";
   const min = isPercent ? 0 : Math.max(0, Math.floor(Math.min(...points.map((d) => d.y)) / 10) * 10);
@@ -65,69 +58,72 @@ export function AnnotatedChart({ points, milestones, kind, ariaLabel, height, co
   return (
     <figure className="hs-chart m-0" style={{ ["--series" as string]: color }}>
       <div role="img" aria-label={ariaLabel} style={{ height }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <AreaChart data={points} margin={{ top: 30, right: 12, bottom: 0, left: 0 }}>
-            <defs>
-              <linearGradient id={`${id}-fill`} x1="0" y1="0" x2="0" y2="1">
-                <stop offset="0%" style={{ stopColor: "var(--series)", stopOpacity: 0.32 }} />
-                <stop offset="100%" style={{ stopColor: "var(--series)", stopOpacity: 0 }} />
-              </linearGradient>
-            </defs>
-            <CartesianGrid vertical={false} />
-            <XAxis dataKey="x" type="number" domain={["dataMin", "dataMax"]} hide />
-            <YAxis
-              domain={[min, max]}
-              ticks={ticks}
-              tickFormatter={(v: number) => (isPercent ? formatPercent(v).replace(".0", "") : rankLabel(v))}
-              axisLine={false}
-              tickLine={false}
-              width={isPercent ? 44 : 100}
-            />
-            <ReferenceLine y={isPercent ? 0.5 : LEGEND_INDEX} strokeDasharray="4 4" />
-            {milestones.map((m) => {
-              const Icon = ICONS[m.kind];
-              return (
-                <ReferenceLine
-                  key={`${m.kind}-${m.x}`}
-                  x={m.x}
-                  stroke="var(--series)"
-                  strokeOpacity={0.35}
-                  strokeDasharray="2 3"
-                  label={({ viewBox }: { viewBox?: { x?: number; y?: number } }) => {
-                    const x = viewBox?.x ?? 0;
-                    const y = (viewBox?.y ?? 0) - 16;
-                    return (
-                      <g transform={`translate(${x}, ${y})`} className="cursor-help">
-                        <title>{m.label}</title>
-                        <circle r={12} fill={`url(#${id}-coin)`} stroke="#3a2610" strokeWidth={1} />
-                        <circle r={9.5} fill="none" stroke="#f6d896" strokeOpacity={0.6} />
-                        <Icon x={-7} y={-7} width={14} height={14} color="#2b1a0a" strokeWidth={2.4} />
-                      </g>
-                    );
-                  }}
-                />
-              );
-            })}
-            <Tooltip content={ChartTip} cursor={{ strokeWidth: 1 }} isAnimationActive={false} />
-            <Area
-              type={curve}
-              dataKey="y"
-              strokeWidth={2}
-              fill={`url(#${id}-fill)`}
-              activeDot={{ r: 4 }}
-              isAnimationActive={!reduce}
-              animationDuration={700}
-              animationEasing="ease-out"
-            />
-            <defs>
-              <radialGradient id={`${id}-coin`} cx="35%" cy="30%">
-                <stop offset="0%" stopColor="#ffe7a8" />
-                <stop offset="55%" stopColor="#e0a84a" />
-                <stop offset="100%" stopColor="#8a5a1e" />
-              </radialGradient>
-            </defs>
-          </AreaChart>
-        </ResponsiveContainer>
+        {/* Mounted when its chapter arrives, so the line draws itself in view. */}
+        {revealed && (
+          <ResponsiveContainer width="100%" height="100%">
+            <AreaChart data={points} margin={{ top: 30, right: 12, bottom: 0, left: 0 }}>
+              <defs>
+                <linearGradient id={`${id}-fill`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" style={{ stopColor: "var(--series)", stopOpacity: 0.32 }} />
+                  <stop offset="100%" style={{ stopColor: "var(--series)", stopOpacity: 0 }} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid vertical={false} />
+              <XAxis dataKey="x" type="number" domain={["dataMin", "dataMax"]} hide />
+              <YAxis
+                domain={[min, max]}
+                ticks={ticks}
+                tickFormatter={(v: number) => (isPercent ? formatPercent(v).replace(".0", "") : rankLabel(v))}
+                axisLine={false}
+                tickLine={false}
+                width={isPercent ? 44 : 100}
+              />
+              <ReferenceLine y={isPercent ? 0.5 : LEGEND_INDEX} strokeDasharray="4 4" />
+              {milestones.map((m) => {
+                const Icon = ICONS[m.kind];
+                return (
+                  <ReferenceLine
+                    key={`${m.kind}-${m.x}`}
+                    x={m.x}
+                    stroke="var(--series)"
+                    strokeOpacity={0.35}
+                    strokeDasharray="2 3"
+                    label={({ viewBox }: { viewBox?: { x?: number; y?: number } }) => {
+                      const x = viewBox?.x ?? 0;
+                      const y = (viewBox?.y ?? 0) - 16;
+                      return (
+                        <g transform={`translate(${x}, ${y})`} className="cursor-help">
+                          <title>{m.label}</title>
+                          <circle r={12} fill={`url(#${id}-coin)`} stroke="#3a2610" strokeWidth={1} />
+                          <circle r={9.5} fill="none" stroke="#f6d896" strokeOpacity={0.6} />
+                          <Icon x={-7} y={-7} width={14} height={14} color="#2b1a0a" strokeWidth={2.4} />
+                        </g>
+                      );
+                    }}
+                  />
+                );
+              })}
+              <Tooltip content={ChartTip} cursor={{ strokeWidth: 1 }} isAnimationActive={false} />
+              <Area
+                type={curve}
+                dataKey="y"
+                strokeWidth={2}
+                fill={`url(#${id}-fill)`}
+                activeDot={{ r: 4 }}
+                isAnimationActive={!reduce}
+                animationDuration={700}
+                animationEasing="ease-out"
+              />
+              <defs>
+                <radialGradient id={`${id}-coin`} cx="35%" cy="30%">
+                  <stop offset="0%" stopColor="#ffe7a8" />
+                  <stop offset="55%" stopColor="#e0a84a" />
+                  <stop offset="100%" stopColor="#8a5a1e" />
+                </radialGradient>
+              </defs>
+            </AreaChart>
+          </ResponsiveContainer>
+        )}
       </div>
       {milestones.length > 0 && (
         <figcaption className="mt-3 flex flex-wrap gap-x-4 gap-y-1.5 text-xs text-muted-foreground">
