@@ -77,14 +77,16 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 
 **Kabul:** `npm run dev:all` açıkken Hearthstone'da bir maç bitirilir. Birkaç saniye içinde dashboard kendiliğinden güncellenir.
 
-## Faz 1 — Veri girişi
+## Faz 1 — Veri girişi (`docs/tasks/phase-1.md`, gerçek maçlara odaklı)
 
-- [ ] Hızlı maç ekleme formu (klavye kısayollarıyla)
-- [ ] Maç listesi: filtre, sıralama, sayfalama, satır içi düzenleme, silme (AlertDialog)
-- [ ] Deste yönetimi: deste kodu yapıştırarak ekle (`deckstrings` + kart önbelleği), kart listesi görünümü
-- [ ] İçe aktarma geçmişi ve batch'i tek tıkla geri alma
+- [x] Maç listesi (`/games`): filtre (sonuç, rakip, deste + üst çubuk), sıralama (tarih, tur, süre), sayfalama (50), satır içi düzenleme (deste, rank, not), silme (AlertDialog)
+- [x] Maç dökümü (`/games/[id]`): mulligan ve tur tur çekilen/oynanan kartlar (Faz 5'teki maddenin basit hâli)
+- [x] Deste yönetimi: deste kodu yapıştırarak ekle (`deckstrings` + kart önbelleği), kart listesi, mana eğrisi, sürümler; geçmiş ve gelecek maçlar kartlarından otomatik eşleşir, elle düzeltilebilir
+- [x] Rank girişi: ranked maçtan sonra Overview'da iki tıkla rank, tırmanış grafiğini doldurur
+- [x] Hızlı maç ekleme (Quick add): telefonda alt çubukta pirinç buton + alt sayfa, masaüstünde N; klavye kısayolları
+- [x] İçe aktarma geçmişi ve batch'i tek tıkla geri alma (Faz 3'te Power.log için yapıldı)
 
-**Kabul:** Kullanıcı Chrome'da 5 maç ekler, birini düzenler, birini siler. Hepsi listede doğru görünür. (CSV/JSON "Sonra"ya taşındı.)
+**Kabul:** Kullanıcı Chrome'da maç ekler, birini düzenler, birini siler. Hepsi listede doğru görünür. (CSV/JSON "Sonra"ya taşındı.) 2026-11-14: Chrome'da doğrulandı, `docs/demos/phase-1.gif`.
 
 ## Faz 2 — Dashboard ve istatistikler
 
@@ -102,7 +104,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [ ] **Rakip arketip tespiti:** rakibin açılan kartlarından arketip bul. Arketip editörü (Ayarlar): ad, sınıf, imza kartları. Deste kodu yapıştırarak arketip oluşturma (ör. HSTopDecks'ten kopyalanan kod). Eşleşme matrisi sınıf ↔ arketip arasında geçiş yapabilsin
 - [ ] **Kişisel kart istatistikleri** (`/decks/[id]`): her kart için mulligan'da tutulunca WR, çekilince WR, oynanınca WR, ortalama oynanma turu. Az veri uyarısıyla
 - [ ] **Deste sürümleri:** sürümler arası kart farkı (+/−) ve WR karşılaştırması ("v3 → v4: %48 → %56")
-- [ ] **Maç dökümü** (`/games/[id]`): tur tur kim ne oynadı. Basit, okunaklı bir zaman çizelgesi
+- [ ] **Maç dökümü** (`/games/[id]`): tur tur kim ne oynadı. Basit hâli Faz 1'de yapıldı; burada kart istatistikleri ve arketip bilgisiyle zenginleşir
 - [ ] **İçgörüler paneli:** Genel Bakış'ın üstünde 3-5 otomatik İngilizce içgörü
 - [ ] **Seans ve tilt analizi:** seans içi maç sırasına göre WR, art arda kayıp uyarısı
 - [ ] **Legend tahmini:** mevcut WR ve rank'la tahmini kalan maç sayısı
@@ -176,3 +178,8 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-14 — Maç sürerken (izleyicinin bildirdiği) Full efektler Light çalışır; kayıtlı ayar değişmez. Durum yalnızca sunucu belleğinde, 45 dk sessizlikte kendiliğinden düşer.
 - 2026-11-14 — Destesi eşleşme: oyunda görülen farklı kartların en az %80'i kayıtlı (demo olmayan, aynı format) bir destede olmalı, en az 4 kart; yoksa `deck_id` boş. Şu an gerçek deste olmadığı için maçlar destesiz kaydediliyor (Faz 1'de deste kodu ile eklenecek).
 - 2026-11-14 — CSV/JSON içe aktarma "Sonra"ya taşındı (kullanıcı kararı); Faz 1 gerçek maçlara odaklandı (Games, Decks, rank girişi, Quick add).
+- 2026-11-14 — Deste eşleşmesi elle seçilirse (`games.deck_manual`) otomatik eşleşme o maça bir daha dokunmaz; deste silinince bu işaret kalkar. Yeni deste/sürüm eklenince o sınıfın maçları yeniden eşleşir.
+- 2026-11-14 — Rank sorusu yalnızca en yeni ranked maç için ve o maçta rank yoksa çıkar; × ile atlanan maç `preferences` `rankPrompt:skipped`'te. Son girilen rank'ın ligi açık gelir, çoğu zaman tek tık yeter.
+- 2026-11-14 — Quick add maçı "şimdi oynandı" olarak kaydeder; varsayılanlar en yeni maçtan (sınıf, deste, mod, format) gelir, tarayıcı deposu kullanılmaz. Tekrar anahtarı yeni maç id'sinden türetilir.
+- 2026-11-14 — Yedekleme `VACUUM INTO` ile: düz dosya kopyası WAL'daki son yazmaları kaçırıyordu (eski yedekler eksik olabilir).
+- 2026-11-14 — Kimlikli sayfalar (`/games/[id]`, `/decks/[id]`) yolu çalışma anında bilir; menü, telefon çubuğu ve ← → gezgini bu yüzden Suspense içinde. `PageNavigator` artık children sarmalamıyor, pencereyi dinliyor.
