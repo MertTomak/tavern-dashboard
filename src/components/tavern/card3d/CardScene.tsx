@@ -5,6 +5,7 @@ import { Canvas, useFrame, useThree, type ThreeEvent } from "@react-three/fiber"
 import { PerformanceMonitor } from "@react-three/drei";
 import * as THREE from "three";
 import { CORNER, FACE_H, FACE_W, paintBack, paintFront, type CardBackData } from "./card-faces";
+import { EmberDissolve, type DissolveState } from "./EmberDissolve";
 
 /** Card size in world units (5:7) and thickness. */
 const W = 2.5;
@@ -18,6 +19,16 @@ const CLICK_SLOP = 6;
 const DRAG_SPEED = 0.011;
 const MAX_TILT = 0.22;
 const MAX_SCROLL_TURN = 0.45;
+/** Ember dissolve: seconds for the whole break-apart-and-reassemble. */
+const DISSOLVE_S = 1.3;
+
+/** Dissolve amount over its run (k 0 … 1): bursts out, hangs a moment, then gathers back. */
+function dissolveCurve(k: number) {
+  if (k < 0.38) return 1 - Math.pow(1 - k / 0.38, 3);
+  if (k < 0.48) return 1;
+  const r = (k - 0.48) / 0.52;
+  return 1 - (r < 0.5 ? 4 * r * r * r : 1 - Math.pow(-2 * r + 2, 3) / 2);
+}
 
 export type CardControls = {
   flip: () => void;
@@ -32,6 +43,8 @@ type SceneProps = {
   scrollTurn: () => number;
   /** 0 … 1: how far the front art has melted into vertical streaks (the hero leaving the screen). */
   melt: () => number;
+  /** Changes when a new game arrives: the card breaks into embers and reassembles. */
+  burst: string;
   /** Fired once the card textures are painted and the first frame is drawn. */
   onReady: () => void;
   running: boolean;
@@ -224,7 +237,7 @@ type Motion = {
   dragging: boolean;
 };
 
-const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card({ artUrl, data, scrollTurn, melt, onReady }, ref) {
+const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card({ artUrl, data, scrollTurn, melt, burst, onReady }, ref) {
   const group = useRef<THREE.Group>(null);
   const light = useRef<THREE.PointLight>(null);
   const candle = useRef<THREE.PointLight>(null);
@@ -235,6 +248,19 @@ const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card
   const foilMaterial = useRef<THREE.ShaderMaterial>(null);
   const [foil] = useState(() => ({ uLight: { value: new THREE.Vector2() }, uStrength: { value: 0.35 } }));
   const meltUniform = useRef({ value: 0 });
+  const meshes = useRef<THREE.Group>(null);
+  const dissolve = useRef<DissolveState>({ d: 0, back: false });
+  const dissolveStart = useRef<number | null>(null);
+  const startDissolve = () => {
+    dissolveStart.current = performance.now() / 1000;
+  };
+  // A new game (not the first render) sets the card alight.
+  const lastBurst = useRef(burst);
+  useEffect(() => {
+    if (lastBurst.current === burst) return;
+    lastBurst.current = burst;
+    startDissolve();
+  }, [burst]);
   const frontMaterial = useRef<THREE.MeshPhysicalMaterial>(null);
   useEffect(() => {
     if (frontMaterial.current) withMelt(frontMaterial.current, meltUniform.current);
@@ -313,6 +339,16 @@ const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card
       (fu.uLight.value as THREE.Vector2).set(pointer.x, pointer.y);
       fu.uStrength.value += ((s.hover || s.dragging ? 1 : 0.35) - (fu.uStrength.value as number)) * k;
     }
+    // Ember dissolve: the meshes hide while the cloud of embers stands in for the card.
+    const ds = dissolve.current;
+    if (dissolveStart.current !== null) {
+      const k = (performance.now() / 1000 - dissolveStart.current) / DISSOLVE_S;
+      if (k >= 1) dissolveStart.current = null;
+      ds.d = k >= 1 ? 0 : dissolveCurve(k);
+    }
+    ds.back = Math.cos(g.rotation.y) * Math.cos(g.rotation.x) < 0;
+    if (meshes.current) meshes.current.visible = ds.d <= 0.001;
+
     meltUniform.current.value = Math.max(0, Math.min(1, melt()));
     if (candle.current) candle.current.intensity = 9 + Math.sin(state.clock.elapsedTime * 7.3) * 0.8 + Math.sin(state.clock.elapsedTime * 13.1) * 0.5;
 
@@ -330,6 +366,7 @@ const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card
         s.vx = 0;
         s.vy = 0;
         s.settle = Math.round(s.ry / Math.PI) * Math.PI + Math.PI;
+        startDissolve();
       },
       nudge: (x, y) => {
         const s = m.current;
@@ -385,6 +422,7 @@ const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card
         s.vx = 0;
         s.vy = 0;
         s.settle = Math.round(s.ry / Math.PI) * Math.PI + Math.PI;
+        startDissolve();
       }
     };
     window.addEventListener("pointermove", move);
@@ -411,22 +449,25 @@ const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card
           if (!m.current.dragging) document.body.style.cursor = "";
         }}
       >
-        <mesh geometry={body}>
-          <meshStandardMaterial color="#b07a2a" metalness={0.85} roughness={0.32} />
-        </mesh>
-        {faces && (
-          <>
-            <mesh geometry={face} position-z={FACE_Z}>
-              <meshPhysicalMaterial ref={frontMaterial} map={faces.front} roughness={0.42} metalness={0.08} clearcoat={1} clearcoatRoughness={0.25} />
-            </mesh>
-            <mesh geometry={face} position-z={FACE_Z + 0.001}>
-              <shaderMaterial ref={foilMaterial} uniforms={foil} vertexShader={foilVertex} fragmentShader={foilFragment} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
-            </mesh>
-            <mesh geometry={face} position-z={-FACE_Z} rotation-y={Math.PI}>
-              <meshPhysicalMaterial map={faces.back} roughness={0.4} metalness={0.1} clearcoat={0.8} clearcoatRoughness={0.3} />
-            </mesh>
-          </>
-        )}
+        <group ref={meshes}>
+          <mesh geometry={body}>
+            <meshStandardMaterial color="#b07a2a" metalness={0.85} roughness={0.32} />
+          </mesh>
+          {faces && (
+            <>
+              <mesh geometry={face} position-z={FACE_Z}>
+                <meshPhysicalMaterial ref={frontMaterial} map={faces.front} roughness={0.42} metalness={0.08} clearcoat={1} clearcoatRoughness={0.25} />
+              </mesh>
+              <mesh geometry={face} position-z={FACE_Z + 0.001}>
+                <shaderMaterial ref={foilMaterial} uniforms={foil} vertexShader={foilVertex} fragmentShader={foilFragment} transparent depthWrite={false} blending={THREE.AdditiveBlending} />
+              </mesh>
+              <mesh geometry={face} position-z={-FACE_Z} rotation-y={Math.PI}>
+                <meshPhysicalMaterial map={faces.back} roughness={0.4} metalness={0.1} clearcoat={0.8} clearcoatRoughness={0.3} />
+              </mesh>
+            </>
+          )}
+        </group>
+        {faces && <EmberDissolve width={W} height={H} corner={W * CORNER} front={faces.front} back={faces.back} state={dissolve} />}
       </group>
     </>
   );

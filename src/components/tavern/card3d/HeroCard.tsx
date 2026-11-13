@@ -109,6 +109,8 @@ export function HeroCard({ cardId, data, className }: Props) {
             scrollTurn={() => scrollY.get() * 0.0009}
             // The art melts during the first part of the strip transition, before its strip is gone.
             melt={() => -offset.get() * 1.6}
+            // A new game changes the record: the card breaks into embers and reassembles.
+            burst={`${data.games}|${data.wins}|${data.losses}`}
           />
           <p className="stat pointer-events-none absolute inset-x-0 bottom-3 text-center text-xs tracking-[0.12em] text-brass-dim uppercase [text-shadow:0_1px_6px_#000]">
             {t.card3d.flipHint}
