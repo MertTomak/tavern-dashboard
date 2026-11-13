@@ -1,4 +1,4 @@
-import { desc, eq } from "drizzle-orm";
+import { and, asc, desc, eq } from "drizzle-orm";
 import { db } from "../client";
 import { deckCards, decks, deckVersions } from "../schema";
 
@@ -20,4 +20,16 @@ export function getLatestDeckCardIds(): Map<string, number[]> {
     out.set(r.name, [...(out.get(r.name) ?? []), r.dbfId]);
   }
   return out;
+}
+
+export type DeckOption = { id: number; name: string; playerClass: string };
+
+/** The user's real decks that can be picked for a game (not demo, not archived), by name. */
+export function listDeckOptions(): DeckOption[] {
+  return db
+    .select({ id: decks.id, name: decks.name, playerClass: decks.playerClass })
+    .from(decks)
+    .where(and(eq(decks.isDemo, false), eq(decks.archived, false)))
+    .orderBy(asc(decks.name))
+    .all();
 }

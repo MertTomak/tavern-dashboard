@@ -108,6 +108,8 @@ export const games = sqliteTable(
     opponentArchetypeId: integer("opponent_archetype_id").references(() => archetypes.id),
     deckId: integer("deck_id").references(() => decks.id),
     deckVersionId: integer("deck_version_id").references(() => deckVersions.id),
+    /** The deck was set (or cleared) by hand; automatic matching leaves it alone. */
+    deckManual: integer("deck_manual", { mode: "boolean" }).notNull().default(false),
     wentFirst: integer("went_first", { mode: "boolean" }),
     turns: integer("turns"),
     durationSec: integer("duration_sec"),

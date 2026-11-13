@@ -22,6 +22,13 @@
       "when": 1794518224962,
       "tag": "0002_lean_vindicator",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "6",
+      "when": 1794610671293,
+      "tag": "0003_busy_lizard",
+      "breakpoints": true
     }
   ]
 }

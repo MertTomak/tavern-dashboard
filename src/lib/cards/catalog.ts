@@ -162,3 +162,15 @@ export function effectiveClassArt(cls: string, choices: Readonly<Record<string, 
   if (chosen && classArtOptions(cls).some((o) => o.id === chosen)) return chosen;
   return classArtId(cls);
 }
+
+/** Card data for tiles and previews, keyed by dbfId. Unknown ids (e.g. cards newer than the local data) are absent. */
+export function tileCardsByDbf(dbfIds: readonly number[]): Map<number, { id: string; name: string; cost: number | null; rarity: string | null }> {
+  const c = catalog();
+  const out = new Map<number, { id: string; name: string; cost: number | null; rarity: string | null }>();
+  if (!c) return out;
+  for (const id of new Set(dbfIds)) {
+    const card = c.byDbf.get(id);
+    if (card) out.set(id, { id: card.id, name: card.name, cost: card.cost ?? null, rarity: card.rarity ?? null });
+  }
+  return out;
+}

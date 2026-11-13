@@ -1,0 +1,1 @@
+ALTER TABLE `games` ADD `deck_manual` integer DEFAULT false NOT NULL;
