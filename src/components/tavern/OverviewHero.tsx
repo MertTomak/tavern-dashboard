@@ -126,13 +126,13 @@ export function OverviewHero({ data }: { data: OverviewData }) {
             aria-hidden
             className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_70%_at_70%_30%,transparent,#120d0a_75%),linear-gradient(180deg,#e0782a22,#120d0a)] mix-blend-multiply"
           />
-          <motion.div className="absolute top-0 right-0 -z-10 h-[58%] w-[72%] md:bottom-0 md:h-auto md:w-[min(600px,50%)]" style={{ x: artX }}>
+          <motion.div className="relative -z-10 mt-2 h-[min(34vh,290px)] w-full md:absolute md:top-0 md:right-0 md:bottom-0 md:mt-0 md:h-auto md:w-[44%]" style={{ x: artX }}>
             <HeroCard cardId={f.id} data={cardData(data, f)} className="size-full" />
           </motion.div>
         </>
       )}
 
-      <div className="pointer-events-none mx-auto flex min-h-[min(72vh,600px)] max-w-[1180px] flex-col [&>*]:pointer-events-auto justify-end gap-5 px-4 pt-14 pb-12 md:px-8 journey:h-full journey:min-h-0 journey:pb-24">
+      <div className="pointer-events-none mx-auto flex max-w-[1180px] flex-col justify-end gap-5 px-4 pt-4 pb-12 md:min-h-[min(72vh,600px)] md:px-8 md:pt-14 [&>*]:pointer-events-auto journey:h-full journey:min-h-0 journey:pb-24">
         {f && (
           <p className="stat max-w-[60ch] self-start text-sm tracking-[0.14em] text-brass-dim uppercase [text-shadow:0_1px_8px_#000]">
             {t.concepts.featured} · {f.name} · {t.concepts.featuredFrom(f.set)}
@@ -157,7 +157,7 @@ export function OverviewHero({ data }: { data: OverviewData }) {
             <span className="ml-3 text-base text-ink-muted">{t.concepts.games(formatNumber(data.games))}</span>
           </p>
         </div>
-        <div className="grid w-full max-w-[760px] gap-3">
+        <div className="grid w-full max-w-[760px] gap-3 md:max-w-[min(760px,52vw)]">
           <div className="grid grid-cols-3 gap-3">
             <Rise index={0}>
               <Plaque label={t.concepts.today}>

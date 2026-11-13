@@ -35,11 +35,19 @@ export function PageNavigator({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const touch = useRef<{ x: number; y: number; t: number } | null>(null);
+  // Where we are heading: quick repeated presses step on from there, not from the page still sliding out.
+  const heading = useRef<string | null>(null);
+  useEffect(() => {
+    heading.current = null;
+  }, [pathname]);
 
   const go = useCallback(
     (step: 1 | -1) => {
-      const href = neighbour(pathname, step);
-      if (href) router.push(href, { transitionTypes: slideDirection(pathname, href) });
+      const from = heading.current ?? pathname;
+      const href = neighbour(from, step);
+      if (!href) return;
+      heading.current = href;
+      router.push(href, { transitionTypes: slideDirection(from, href) });
     },
     [pathname, router],
   );
