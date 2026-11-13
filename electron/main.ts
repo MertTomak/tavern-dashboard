@@ -4,53 +4,23 @@
  * - reads the Hearthstone logs (the one log watcher, see src/lib/watcher/lock.ts).
  */
 import "./env";
-import { app, BrowserWindow, shell } from "electron";
+import path from "node:path";
+import { app } from "electron";
 import { DATA_DIR, LOG_ROOT } from "@/lib/paths";
 import { waitForWatcherLock, type WatcherLock } from "@/lib/watcher/lock";
 import { LogWatcher } from "@/lib/watcher/log-watcher";
+import { openDashboard } from "./dashboard-window";
 import { startServer, type DashboardServer } from "./server";
+import { flushState } from "./store";
 
 let server: DashboardServer | null = null;
 let watcher: LogWatcher | null = null;
 let lock: WatcherLock | null = null;
-let mainWindow: BrowserWindow | null = null;
 
 const say = (msg: string) => console.log(msg);
 
-function openDashboard() {
-  if (!server) return;
-  if (mainWindow) {
-    if (mainWindow.isMinimized()) mainWindow.restore();
-    mainWindow.show();
-    mainWindow.focus();
-    return;
-  }
-  const win = new BrowserWindow({
-    width: 1440,
-    height: 900,
-    minWidth: 390,
-    minHeight: 600,
-    show: false,
-    backgroundColor: "#140d08",
-    title: "Tavern Dashboard",
-    webPreferences: { sandbox: true, contextIsolation: true },
-  });
-  const origin = new URL(server.url).origin;
-  // Links that leave the app open in the default browser.
-  win.webContents.setWindowOpenHandler(({ url }) => {
-    if (!url.startsWith(origin)) void shell.openExternal(url);
-    return { action: "deny" };
-  });
-  win.webContents.on("will-navigate", (event, url) => {
-    if (!url.startsWith(origin)) {
-      event.preventDefault();
-      void shell.openExternal(url);
-    }
-  });
-  win.once("ready-to-show", () => win.show());
-  win.on("closed", () => (mainWindow = null));
-  void win.loadURL(server.url);
-  mainWindow = win;
+function showDashboard() {
+  if (server) openDashboard(server.url);
 }
 
 async function startWatcher(url: string) {
@@ -64,13 +34,15 @@ async function startWatcher(url: string) {
 if (!app.requestSingleInstanceLock()) {
   app.quit();
 } else {
-  app.on("second-instance", () => openDashboard());
-  app.on("activate", () => openDashboard());
+  app.on("second-instance", showDashboard);
+  app.on("activate", showDashboard);
 
   app.whenReady().then(async () => {
     say(`… Data folder: ${DATA_DIR}`);
+    // The built app gets its icon from the bundle; `npm run app:dev` sets it here.
+    if (!app.isPackaged) app.dock?.setIcon(path.join(app.getAppPath(), "assets", "app-icon", "icon.png"));
     server = await startServer(DATA_DIR);
-    openDashboard();
+    showDashboard();
     await startWatcher(server.url);
   }).catch((err: unknown) => {
     console.error(err);
@@ -88,6 +60,7 @@ if (!app.requestSingleInstanceLock()) {
     void (async () => {
       await watcher?.stop().catch(() => undefined);
       lock?.release();
+      flushState();
       server?.stop();
       app.exit(0);
     })();
