@@ -9,6 +9,7 @@ import { AnnotatedChart } from "@/components/tavern/AnnotatedChart";
 import { DeckHand } from "@/components/tavern/DeckHand";
 import { OverviewJourney, type Chapter } from "@/components/tavern/journey/OverviewJourney";
 import { HeroSelect } from "@/components/tavern/HeroSelect";
+import { KineticTitle } from "@/components/tavern/journey/KineticTitle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { hasAnyGames } from "@/lib/db/queries/overview";
 import { parseFilters } from "@/lib/filters";
@@ -19,12 +20,17 @@ function Shell({ children }: { children: React.ReactNode }) {
   return <div className="mx-auto max-w-[1180px] px-4 pt-8 md:px-8">{children}</div>;
 }
 
-/** Chart height: grows with the screen in the journey, fixed on the vertical page. */
-const CHART_HEIGHT = "clamp(240px, calc(100dvh - var(--chrome-h) - 300px), 460px)";
+/** Chart height: grows with the screen in the journey (below the large chapter title), fixed on the vertical page. */
+const CHART_HEIGHT = "clamp(220px, calc(100dvh - var(--chrome-h) - 420px), 440px)";
 
-/** A chapter's content, centred in its full-height panel with room for the chapter rail. */
-function ChapterFrame({ children }: { children: React.ReactNode }) {
-  return <div className="mx-auto flex max-w-[1180px] flex-col justify-center px-4 md:px-8 journey:h-full journey:pt-6 journey:pb-20">{children}</div>;
+/** A chapter's content under its large kinetic title, centred in its full-height panel with room for the chapter rail. */
+function ChapterFrame({ title, children }: { title: string; children: React.ReactNode }) {
+  return (
+    <div className="mx-auto flex max-w-[1180px] flex-col justify-center gap-3 px-4 md:px-8 journey:h-full journey:pt-4 journey:pb-20">
+      <KineticTitle text={title} />
+      {children}
+    </div>
+  );
 }
 
 function NoMatch() {
@@ -61,8 +67,8 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
       label: t.concepts.lastGames,
       art: d.recent[0]?.oppArt,
       children: (
-        <ChapterFrame>
-          <FramePanel title={t.concepts.lastGames}>
+        <ChapterFrame title={t.concepts.lastGames}>
+          <FramePanel>
             <LastGames games={d.recent} />
           </FramePanel>
         </ChapterFrame>
@@ -73,8 +79,8 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
       label: t.concepts.form,
       art: d.recent[0]?.myArt,
       children: (
-        <ChapterFrame>
-          <FramePanel title={t.concepts.form} hint={t.overview.rollingHint(d.rolling.window)}>
+        <ChapterFrame title={t.concepts.form}>
+          <FramePanel hint={t.overview.rollingHint(d.rolling.window)}>
             <AnnotatedChart points={d.rolling.points} milestones={d.rolling.milestones} kind="percent" ariaLabel={t.concepts.form} height={CHART_HEIGHT} color="var(--chart-1)" />
           </FramePanel>
         </ChapterFrame>
@@ -85,8 +91,8 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
       label: t.concepts.hand,
       art: d.decks[0]?.art,
       children: (
-        <ChapterFrame>
-          <FramePanel title={t.concepts.hand} hint={t.concepts.handHint}>
+        <ChapterFrame title={t.concepts.hand}>
+          <FramePanel hint={t.concepts.handHint}>
             <DeckHand decks={d.decks} />
           </FramePanel>
         </ChapterFrame>
@@ -97,8 +103,8 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
       label: t.concepts.matchups,
       art: d.classes[0]?.art,
       children: (
-        <ChapterFrame>
-          <FramePanel title={t.concepts.matchups} hint={t.concepts.matchupsHint}>
+        <ChapterFrame title={t.concepts.matchups}>
+          <FramePanel hint={t.concepts.matchupsHint}>
             <HeroSelect classes={d.classes} totalGames={d.games} />
           </FramePanel>
         </ChapterFrame>
@@ -111,8 +117,8 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
       label: t.concepts.climb,
       art: d.featured?.id,
       children: (
-        <ChapterFrame>
-          <FramePanel title={t.concepts.climb} hint={d.rank ? (d.rank.legend ? t.concepts.atLegend : t.concepts.toLegend(d.rank.label)) : undefined}>
+        <ChapterFrame title={t.concepts.climb}>
+          <FramePanel hint={d.rank ? (d.rank.legend ? t.concepts.atLegend : t.concepts.toLegend(d.rank.label)) : undefined}>
             <AnnotatedChart
               points={d.climb.points}
               milestones={d.climb.milestones}
