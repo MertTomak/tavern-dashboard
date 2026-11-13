@@ -9,6 +9,7 @@ import { t } from "@/i18n";
 import { ArtCrop } from "./ArtCrop";
 import { TiltCard } from "./TiltCard";
 import { useChapter } from "./journey/reveal";
+import { useLean } from "./journey/velocity";
 import type { DeckStanding } from "./types";
 
 const CARD_W = 160;
@@ -80,9 +81,10 @@ export function DeckHand({ decks }: { decks: DeckStanding[] }) {
   const overlap = step < CARD_W;
   const [focused, setFocused] = useState<number | null>(null);
   const { revealed } = useChapter();
+  const lean = useLean(0.8);
   return (
     <>
-      <ol ref={ref} aria-label={t.concepts.hand} className="relative hidden h-[290px] w-full sm:block">
+      <motion.ol ref={ref} style={lean} aria-label={t.concepts.hand} className="relative hidden h-[290px] w-full sm:block">
         {decks.map((d, i) => {
           const off = i - mid;
           const lifted = focused === i;
@@ -119,7 +121,7 @@ export function DeckHand({ decks }: { decks: DeckStanding[] }) {
             </motion.li>
           );
         })}
-      </ol>
+      </motion.ol>
       <ol data-lenis-prevent aria-label={t.concepts.hand} className="-mx-5 flex snap-x gap-3 overflow-x-auto px-5 pb-2 sm:hidden">
         {decks.map((d) => (
           <li key={d.name} className={cn("w-[150px] shrink-0 snap-start", d.lowSample && "grayscale-[0.6] brightness-75")}>

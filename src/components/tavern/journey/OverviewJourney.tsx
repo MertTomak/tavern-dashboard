@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { ArtCrop } from "../ArtCrop";
 import { ChapterProvider, useJourneyEnabled } from "./reveal";
+import { ScrollVelocityProvider } from "./velocity";
 
 export type Chapter = {
   id: string;
@@ -122,48 +123,50 @@ export function OverviewJourney({ chapters }: { chapters: Chapter[] }) {
   };
 
   return (
-    <div
-      ref={outer}
-      className="relative journey:h-[calc((var(--n)-1)*var(--per)*100dvh+100dvh)]"
-      style={{ ["--n" as string]: n, ["--per" as string]: SCROLL_PER_CHAPTER }}
-    >
-      <div className="journey:sticky journey:top-(--chrome-h) journey:h-[calc(100dvh-var(--chrome-h))] journey:overflow-clip">
-        <motion.div className="flex flex-col gap-10 journey:h-full journey:w-[calc(var(--n)*100%)] journey:flex-row journey:gap-0" style={journey ? { x } : undefined}>
-          {chapters.map((c, i) => (
-            <ChapterPanel key={c.id} chapter={c} index={i} progress={progress} count={n} journey={journey} arrived={i <= arrived} />
-          ))}
-        </motion.div>
+    <ScrollVelocityProvider horizontal={journey} enabled>
+      <div
+        ref={outer}
+        className="relative journey:h-[calc((var(--n)-1)*var(--per)*100dvh+100dvh)]"
+        style={{ ["--n" as string]: n, ["--per" as string]: SCROLL_PER_CHAPTER }}
+      >
+        <div className="journey:sticky journey:top-(--chrome-h) journey:h-[calc(100dvh-var(--chrome-h))] journey:overflow-clip">
+          <motion.div className="flex flex-col gap-10 journey:h-full journey:w-[calc(var(--n)*100%)] journey:flex-row journey:gap-0" style={journey ? { x } : undefined}>
+            {chapters.map((c, i) => (
+              <ChapterPanel key={c.id} chapter={c} index={i} progress={progress} count={n} journey={journey} arrived={i <= arrived} />
+            ))}
+          </motion.div>
 
-        <nav aria-label={t.journey.chapters} className="pointer-events-none absolute inset-x-0 bottom-4 hidden justify-center journey:flex">
-          <ol className="pointer-events-auto flex items-center gap-1 rounded-full border border-brass/25 bg-oak-deep/85 px-2 py-1.5 shadow-panel backdrop-blur-md">
-            {chapters.map((c, i) => {
-              const active = i === current;
-              return (
-                <li key={c.id}>
-                  <button
-                    type="button"
-                    onClick={() => jump(i)}
-                    aria-label={t.journey.goTo(c.label)}
-                    aria-current={active ? "step" : undefined}
-                    className="group flex items-center gap-2 rounded-full px-2.5 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                  >
-                    <span
-                      aria-hidden
-                      className={cn(
-                        "size-2.5 rotate-45 rounded-[2px] transition-[background-color,box-shadow] duration-200",
-                        active ? "bg-brass-light shadow-[0_0_10px_var(--glow)]" : i < current ? "bg-brass-dim" : "bg-parchment/20 group-hover:bg-brass-dim",
-                      )}
-                    />
-                    <span className={cn("stat hidden text-xs tracking-[0.08em] whitespace-nowrap uppercase lg:inline", active ? "text-brass-light" : "text-ink-muted group-hover:text-parchment")}>
-                      {c.label}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ol>
-        </nav>
+          <nav aria-label={t.journey.chapters} className="pointer-events-none absolute inset-x-0 bottom-4 hidden justify-center journey:flex">
+            <ol className="pointer-events-auto flex items-center gap-1 rounded-full border border-brass/25 bg-oak-deep/85 px-2 py-1.5 shadow-panel backdrop-blur-md">
+              {chapters.map((c, i) => {
+                const active = i === current;
+                return (
+                  <li key={c.id}>
+                    <button
+                      type="button"
+                      onClick={() => jump(i)}
+                      aria-label={t.journey.goTo(c.label)}
+                      aria-current={active ? "step" : undefined}
+                      className="group flex items-center gap-2 rounded-full px-2.5 py-1 outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    >
+                      <span
+                        aria-hidden
+                        className={cn(
+                          "size-2.5 rotate-45 rounded-[2px] transition-[background-color,box-shadow] duration-200",
+                          active ? "bg-brass-light shadow-[0_0_10px_var(--glow)]" : i < current ? "bg-brass-dim" : "bg-parchment/20 group-hover:bg-brass-dim",
+                        )}
+                      />
+                      <span className={cn("stat hidden text-xs tracking-[0.08em] whitespace-nowrap uppercase lg:inline", active ? "text-brass-light" : "text-ink-muted group-hover:text-parchment")}>
+                        {c.label}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ol>
+          </nav>
+        </div>
       </div>
-    </div>
+    </ScrollVelocityProvider>
   );
 }
