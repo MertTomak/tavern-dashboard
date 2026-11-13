@@ -63,7 +63,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 
 - [x] Kullanıcıdan gerçek Power.log örnekleri iste, anonimleştirip fixture yap (3 ranked maç, `scripts/anonymise-log.ts`)
 - [x] Parser + fixture testleri (`src/lib/parser/`, `scripts/parse-log.ts`)
-- [ ] `/import` sayfasında Power.log sürükle-bırak → bulunan maçların önizlemesi → onay
+- [x] `/import` sayfasında Power.log sürükle-bırak → bulunan maçların önizlemesi → onay (geçmiş içe aktarmalar + geri al)
 - [ ] Ayarlar: log.config durum kontrolü ve onaylı düzeltme
 
 **Kabul:** Gerçek bir oturum logu yüklenince maçlar doğru sonuç, sınıf ve sırayla gelir. Aynı log tekrar yüklenince 0 yeni, N atlandı.

@@ -5,7 +5,6 @@ import { t } from "@/i18n";
 export const OPENS_IN: Record<string, number> = {
   "/games": 1,
   "/decks": 1,
-  "/import": 3,
   "/matchups": 2,
   "/sessions": 5,
   "/arena": 6,

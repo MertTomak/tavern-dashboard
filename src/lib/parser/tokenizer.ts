@@ -24,6 +24,13 @@ export function tokenize(line: string): LogLine | null {
   return { clock: ((Number(h) * 60 + Number(mi)) * 60 + Number(s)) * 1000 + ms, method, body: body.trim() };
 }
 
+/** Time of day (ms) of any log line, GameState or not; null for lines without one. */
+export function tokenizeClock(line: string): number | null {
+  const m = /^D (\d{2}):(\d{2}):(\d{2})\.(\d{1,7}) /.exec(line);
+  if (!m?.[1] || !m[2] || !m[3] || !m[4]) return null;
+  return ((Number(m[1]) * 60 + Number(m[2])) * 60 + Number(m[3])) * 1000 + Math.floor(Number(`0.${m[4]}`) * 1000);
+}
+
 /**
  * An entity reference as the log writes it: a number ("74"), a name
  * ("GameEntity", a player's BattleTag), or a bracket "[entityName=… id=17 … player=1]".

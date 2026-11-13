@@ -7,7 +7,7 @@ import { gameRecordSchema, isBattlegrounds, toFormat, toMode, type CardEvent, ty
 export type DbfLookup = (cardId: string) => number | undefined;
 
 export type ParserOptions = {
-  /** Session folder name (or file name for old single-file logs): part of the duplicate check. */
+  /** Session folder name (or a stand-in for old single-file logs and uploads); kept on each record. */
   session: string;
   /** Local date and time the session started; line times are added to it. */
   start: SessionStart;
@@ -352,7 +352,9 @@ export class PowerLogParser {
     const ended = g.endedAt ?? g.startedAt;
     const playerHeroCardId = myHero.cardId;
     const opponentHeroCardId = theirHero?.cardId ?? "";
-    const sourceHash = createHash("sha256").update([this.opts.session, startedAt, playerHeroCardId, opponentHeroCardId].join("|")).digest("hex");
+    // The key leaves out the session name: an uploaded file may arrive without its folder, and the
+    // watcher and an upload of the same log must agree. Start time to the second plus both heroes is unique.
+    const sourceHash = createHash("sha256").update([startedAt.slice(0, 19), playerHeroCardId, opponentHeroCardId].join("|")).digest("hex");
 
     const record = {
       sourceHash,

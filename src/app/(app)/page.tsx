@@ -13,6 +13,7 @@ import { KineticTitle } from "@/components/tavern/journey/KineticTitle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { hasAnyGames } from "@/lib/db/queries/overview";
 import { getEffectsLevel } from "@/lib/db/queries/preferences";
+import { effectiveEffects, isInGame } from "@/lib/live/game-state";
 import { parseFilters } from "@/lib/filters";
 import { t } from "@/i18n";
 import { loadOverview } from "./overview-data";
@@ -139,7 +140,7 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
   return (
     <>
       <h1 className="sr-only">{t.pages.overview.title}</h1>
-      <OverviewJourney chapters={chapters} effects={getEffectsLevel()} />
+      <OverviewJourney chapters={chapters} effects={effectiveEffects(getEffectsLevel(), isInGame())} />
     </>
   );
 }

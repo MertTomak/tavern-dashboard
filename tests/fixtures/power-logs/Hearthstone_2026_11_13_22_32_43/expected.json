@@ -1,7 +1,7 @@
 {
   "games": [
     {
-      "sourceHash": "6f7712763778c084fbd4341c8800d77fde5cd81f9404295c942678a7764f827a",
+      "sourceHash": "0bd236b3ff6281ab4a14503f72905e4108d6a888056fbdb023ab347b271d6f9a",
       "session": "Hearthstone_2026_11_13_22_32_43",
       "startedAt": "2026-11-13T19:33:33.961Z",
       "endedAt": "2026-11-13T19:38:10.776Z",
@@ -228,7 +228,7 @@
       ]
     },
     {
-      "sourceHash": "a3981771feac8403a5e12cb289668f76a7edec2ec0c51e0183c7446f14543597",
+      "sourceHash": "da5f7db888235db42bdbd1cbd1061f5b501eff20b0f5f1b7feb5fb3e68f57da7",
       "session": "Hearthstone_2026_11_13_22_32_43",
       "startedAt": "2026-11-13T19:38:48.644Z",
       "endedAt": "2026-11-13T19:42:14.502Z",
@@ -359,7 +359,7 @@
       ]
     },
     {
-      "sourceHash": "ef90d4679a946a194c3cae97c3c91b1d5755e8ef4072794ca10bad5588c0bccf",
+      "sourceHash": "9a229c2aafa225ca9a9fbae86e294647f3b9ad402b9f01593cf0cf415fdf603b",
       "session": "Hearthstone_2026_11_13_22_32_43",
       "startedAt": "2026-11-13T19:43:04.235Z",
       "endedAt": "2026-11-13T19:45:56.453Z",

@@ -129,3 +129,25 @@ describe("Power.log parser edge cases", () => {
     expect(games[0]).toMatchObject({ mode: "BATTLEGROUNDS", placement: 3, wentFirst: null, cardEvents: [] });
   });
 });
+
+describe("dating an uploaded log without its folder name", () => {
+  it("walks back from the file's last write over the midnights the log crossed", async () => {
+    const { scanClock, sessionFromLastWrite } = await import("@/lib/parser/time");
+    const h = (n: number) => n * 3_600_000;
+    // 23:10 → 23:59 → 00:30: one midnight; the file was last written at 00:31 on the 14th (Istanbul).
+    const scan = [h(23) + 600_000, h(23) + 3_540_000, h(0) + 1_800_000].reduce(scanClock, null as ReturnType<typeof scanClock> | null);
+    expect(scan?.rollovers).toBe(1);
+    const start = sessionFromLastWrite(new Date("2026-11-13T21:31:00Z"), scan!, TZ);
+    expect(start).toEqual({ y: 2026, m: 11, d: 13, clock: h(23) + 600_000 });
+  });
+
+  it("dates the real fixture the same way as its folder name does", async () => {
+    const { scanLogClock, parsePowerLogStream } = await import("@/lib/parser/read-file");
+    const { sessionFromLastWrite } = await import("@/lib/parser/time");
+    const scan = await scanLogClock(fs.createReadStream(LOG));
+    const start = sessionFromLastWrite(new Date("2026-11-13T19:45:57Z"), scan!, TZ);
+    const viaUpload = await parsePowerLogStream(fs.createReadStream(LOG), { session: "upload", start, timeZone: TZ, dbfOf });
+    const viaFolder = await parsePowerLogFile(LOG, { timeZone: TZ, dbfOf });
+    expect(viaUpload.games.map((g) => g.sourceHash)).toEqual(viaFolder.games.map((g) => g.sourceHash));
+  });
+});

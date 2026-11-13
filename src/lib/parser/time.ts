@@ -82,3 +82,25 @@ export function sessionFromDate(date: Date, timeZone: string): SessionStart {
   const get = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
   return { y: get("year"), m: get("month"), d: get("day"), clock: ((get("hour") * 60 + get("minute")) * 60 + get("second")) * 1000 };
 }
+
+/** What a quick first pass over a log learns about its clock: first and last time of day and midnights crossed. */
+export type ClockScan = { first: number; last: number; rollovers: number };
+
+/** Feeds line clocks in order; same midnight rule as LogClock. */
+export function scanClock(scan: ClockScan | null, clock: number): ClockScan {
+  if (!scan) return { first: clock, last: clock, rollovers: 0 };
+  return { first: scan.first, last: clock, rollovers: scan.rollovers + (clock + ROLLOVER < scan.last ? 1 : 0) };
+}
+
+/**
+ * Session start for a log that arrives without its folder name (an uploaded file):
+ * the file's last write is when its last line was written, so walk back from that
+ * date over the midnights the log crossed.
+ */
+export function sessionFromLastWrite(lastWrite: Date, scan: ClockScan, timeZone: string): SessionStart {
+  const end = sessionFromDate(lastWrite, timeZone);
+  // The last line can't be later in the day than the file's last write; if it is, the write happened after midnight.
+  const endShift = scan.last > end.clock + 5 * 60_000 ? 1 : 0;
+  const day = new Date(Date.UTC(end.y, end.m - 1, end.d) - (scan.rollovers + endShift) * DAY);
+  return { y: day.getUTCFullYear(), m: day.getUTCMonth() + 1, d: day.getUTCDate(), clock: scan.first };
+}
