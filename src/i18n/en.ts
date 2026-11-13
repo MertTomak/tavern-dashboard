@@ -500,6 +500,14 @@ export const en = {
     back: "Your record",
     flipHint: "Drag to turn · click to flip",
   },
+  desktop: {
+    trayTooltip: "Tavern Dashboard",
+    trayToday: (w: number, l: number) => `${w}–${l}`,
+    trayTodayLabel: (w: number, l: number, ties: number) => `Today: ${w} W – ${l} L${ties ? ` – ${ties} T` : ""}`,
+    openDashboard: "Open Dashboard",
+    quit: "Quit Tavern Dashboard",
+    gameSaved: "Game saved",
+  },
   designLab: {
     title: "Style guide",
     intro: "Tokens, type and motion for the Hearth design. Only available while developing.",

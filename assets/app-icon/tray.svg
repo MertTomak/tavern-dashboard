@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <!-- Menu bar icon (template image: macOS tints it). A tankard, matching the app icon. -->
+  <path d="M7 9.5 Q7 6.5 10 6.8 Q11 4.6 13.6 5.4 Q15.4 3.6 17.8 5.2 Q20.6 4.6 21.4 7.2 Q23.6 7.6 23 10 Z" fill="#000"/>
+  <path d="M8 11 L22 11 L21.2 25 Q21.1 26.5 19.6 26.5 L10.4 26.5 Q8.9 26.5 8.8 25 Z" fill="#000"/>
+  <path d="M22 13.5 C27.5 13.5 27.5 22.5 22 22.5" fill="none" stroke="#000" stroke-width="2.6" stroke-linecap="round"/>
+  <path d="M8.3 14.2 L21.7 14.2 L21.6 15.8 L8.4 15.8 Z M8.8 21.4 L21.2 21.4 L21.1 23 L8.9 23 Z" fill="#000" fill-opacity="0.35"/>
+</svg>

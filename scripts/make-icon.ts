@@ -1,5 +1,6 @@
 /**
- * Renders assets/app-icon/icon.svg into the macOS app icon (assets/app-icon/icon.icns)
+ * Renders assets/app-icon/icon.svg into the macOS app icon (icon.icns) and tray.svg into
+ * the menu bar icon (trayTemplate.png)
  * with tools that ship with the Mac (Chrome for the SVG, sips + iconutil for the .icns).
  * Run after changing the SVG: npx tsx scripts/make-icon.ts
  */
@@ -13,9 +14,18 @@ const dir = path.resolve("assets/app-icon");
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "tavern-icon-"));
 const png = path.join(dir, "icon.png");
 
-const html = path.join(tmp, "icon.html");
-fs.writeFileSync(html, `<html><body style="margin:0;background:transparent">${fs.readFileSync(path.join(dir, "icon.svg"), "utf8")}</body></html>`);
-execFileSync(CHROME, ["--headless", "--disable-gpu", "--hide-scrollbars", "--default-background-color=00000000", "--window-size=1024,1024", `--screenshot=${png}`, `file://${html}`], { stdio: "ignore" });
+/** Renders an SVG to a transparent PNG at `size` × `size` pixels. */
+function render(svg: string, out: string, size: number) {
+  const html = path.join(tmp, `${path.basename(out)}.html`);
+  const markup = fs.readFileSync(path.join(dir, svg), "utf8").replace(/width="\d+" height="\d+"/, `width="${size}" height="${size}"`);
+  fs.writeFileSync(html, `<html style="background:transparent"><body style="margin:0;background:transparent">${markup}</body></html>`);
+  execFileSync(CHROME, ["--headless", "--disable-gpu", "--hide-scrollbars", "--default-background-color=00000000", `--window-size=${size},${size}`, `--screenshot=${out}`, `file://${html}`], { stdio: "ignore" });
+}
+
+render("icon.svg", png, 1024);
+// Menu bar icon: "Template" in the name lets macOS tint it for light and dark menu bars.
+render("tray.svg", path.join(dir, "trayTemplate.png"), 16);
+render("tray.svg", path.join(dir, "trayTemplate@2x.png"), 32);
 
 const iconset = path.join(tmp, "icon.iconset");
 fs.mkdirSync(iconset);
