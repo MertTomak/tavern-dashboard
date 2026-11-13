@@ -40,7 +40,7 @@ export function CardTile({ card, count, muted, className }: Props) {
           alt=""
           width={width}
           height={height}
-          className="absolute inset-y-0 right-0 h-full w-auto bg-transparent [mask-image:linear-gradient(to_right,transparent,black_45%)]"
+          className="absolute inset-y-0 right-0 h-full w-auto bg-transparent [mask-image:linear-gradient(to_right,transparent_10%,black_70%)]"
           fallback={<span />}
         />
         <span aria-hidden className="absolute inset-0 bg-linear-to-r from-oak-deep via-oak-deep/85 to-transparent" />

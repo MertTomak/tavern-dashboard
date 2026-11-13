@@ -69,7 +69,7 @@ async function GameDetail({ params }: { params: PageProps<"/games/[id]">["params
               <span className={RESULT_TEXT[game.result]}>{t.overview.result[game.result]}</span> · {formatDateTime(game.playedAt)}
             </p>
           </div>
-          <dl className="mx-auto grid w-full max-w-3xl grid-cols-2 gap-4 rounded-md bg-oak-deep/75 p-4 backdrop-blur-sm sm:grid-cols-4 lg:grid-cols-7">
+          <dl className="mx-auto grid w-full max-w-5xl grid-cols-2 gap-4 rounded-md bg-oak-deep/75 p-4 backdrop-blur-sm sm:grid-cols-4 lg:grid-cols-7">
             <Fact label={copy.facts.mode} value={`${t.filters.modes[game.mode]}${game.format ? ` · ${t.filters.formats[game.format]}` : ""}`} />
             <Fact label={copy.facts.start} value={start} />
             <Fact label={copy.facts.turns} value={game.turns ?? t.games.unknown} />

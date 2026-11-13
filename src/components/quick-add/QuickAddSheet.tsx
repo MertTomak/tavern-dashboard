@@ -127,7 +127,9 @@ export function QuickAddSheet({ classes, decks, defaults }: Props) {
     else if (k === "c") setFirst(false);
     else if (k === "enter" && ready) void save();
     else return;
+    // Handled before the focused control sees it, so a focused dropdown never type-searches "W" to Warlock.
     e.preventDefault();
+    e.stopPropagation();
   }
 
   const deckName = deck === NONE ? copy.noDeck : (myDecks.find((d) => String(d.id) === deck)?.name ?? copy.noDeck);
@@ -135,88 +137,14 @@ export function QuickAddSheet({ classes, decks, defaults }: Props) {
   return (
     <Dialog open={open} onOpenChange={(o) => !busy && setOpen(o)}>
       <DialogContent
-        onKeyDown={onKeyDown}
+        onKeyDownCapture={onKeyDown}
         data-lenis-prevent
         className="brass-frame top-auto bottom-0 left-0 max-h-[92dvh] max-w-none translate-x-0 translate-y-0 gap-5 overflow-y-auto rounded-t-2xl rounded-b-none p-5 pb-[max(env(safe-area-inset-bottom),20px)] [--frame-fill:#1a130e] data-open:slide-in-from-bottom-8 data-closed:slide-out-to-bottom-8 sm:max-w-none md:top-1/2 md:bottom-auto md:left-1/2 md:w-[min(640px,calc(100%-2rem))] md:-translate-x-1/2 md:-translate-y-1/2 md:rounded-2xl md:p-6 md:data-open:slide-in-from-bottom-0 md:data-open:zoom-in-95"
       >
         <span aria-hidden className="mx-auto -mt-2 h-1 w-10 rounded-full bg-parchment/25 md:hidden" />
         <div>
           <DialogTitle className="font-display text-2xl text-title-gold">{copy.title}</DialogTitle>
-          <DialogDescription className="mt-1 text-ink-muted">{copy.hint}</DialogDescription>
-        </div>
-
-        <div className="grid gap-3 sm:grid-cols-2">
-          <div className="grid gap-1.5">
-            <span className="text-sm font-medium text-parchment">{copy.you}</span>
-            <Select
-              value={me}
-              onValueChange={(v) => {
-                setMe(String(v));
-                setDeck(NONE);
-              }}
-            >
-              <SelectTrigger aria-label={copy.you} className="h-10 w-full border-brass/30 bg-oak-deep/70">
-                <SelectValue>
-                  <ClassPortrait cls={me} size={22} />
-                  {classLabel(me)}
-                </SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {classes.map((c) => (
-                  <SelectItem key={c} value={c}>
-                    {classLabel(c)}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <span className="text-sm font-medium text-parchment">{copy.deck}</span>
-            <Select value={deck} onValueChange={(v) => setDeck(String(v))}>
-              <SelectTrigger aria-label={copy.deck} className="h-10 w-full border-brass/30 bg-oak-deep/70">
-                <SelectValue>{deckName}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value={NONE}>{copy.noDeck}</SelectItem>
-                {myDecks.map((d) => (
-                  <SelectItem key={d.id} value={String(d.id)}>
-                    {d.name}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <span className="text-sm font-medium text-parchment">{copy.mode}</span>
-            <Select value={mode} onValueChange={(v) => setMode(v as Mode)}>
-              <SelectTrigger aria-label={copy.mode} className="h-10 w-full border-brass/30 bg-oak-deep/70">
-                <SelectValue>{t.filters.modes[mode]}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {QUICK_ADD_MODES.map((m) => (
-                  <SelectItem key={m} value={m}>
-                    {t.filters.modes[m]}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="grid gap-1.5">
-            <span className="text-sm font-medium text-parchment">{copy.format}</span>
-            <Select value={format ?? NONE} onValueChange={(v) => setFormat(v === NONE ? null : (v as Format))}>
-              <SelectTrigger aria-label={copy.format} className="h-10 w-full border-brass/30 bg-oak-deep/70">
-                <SelectValue>{format ? t.filters.formats[format] : copy.noFormat}</SelectValue>
-              </SelectTrigger>
-              <SelectContent>
-                {(Object.keys(t.filters.formats) as Format[]).map((f) => (
-                  <SelectItem key={f} value={f}>
-                    {t.filters.formats[f]}
-                  </SelectItem>
-                ))}
-                <SelectItem value={NONE}>{copy.noFormat}</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+          <DialogDescription className="mt-1 text-sm text-ink-muted">{copy.hint}</DialogDescription>
         </div>
 
         <fieldset className="grid gap-2">
@@ -290,6 +218,80 @@ export function QuickAddSheet({ classes, decks, defaults }: Props) {
                 { value: null, label: <Minus className="size-4" aria-label={copy.unknown} /> },
               ]}
             />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-2 gap-3">
+          <div className="grid gap-1.5">
+            <span className="text-sm font-medium text-parchment">{copy.you}</span>
+            <Select
+              value={me}
+              onValueChange={(v) => {
+                setMe(String(v));
+                setDeck(NONE);
+              }}
+            >
+              <SelectTrigger aria-label={copy.you} className="h-10 w-full border-brass/30 bg-oak-deep/70">
+                <SelectValue>
+                  <ClassPortrait cls={me} size={22} />
+                  {classLabel(me)}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {classes.map((c) => (
+                  <SelectItem key={c} value={c}>
+                    {classLabel(c)}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5">
+            <span className="text-sm font-medium text-parchment">{copy.deck}</span>
+            <Select value={deck} onValueChange={(v) => setDeck(String(v))}>
+              <SelectTrigger aria-label={copy.deck} className="h-10 w-full border-brass/30 bg-oak-deep/70">
+                <SelectValue>{deckName}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={NONE}>{copy.noDeck}</SelectItem>
+                {myDecks.map((d) => (
+                  <SelectItem key={d.id} value={String(d.id)}>
+                    {d.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5">
+            <span className="text-sm font-medium text-parchment">{copy.mode}</span>
+            <Select value={mode} onValueChange={(v) => setMode(v as Mode)}>
+              <SelectTrigger aria-label={copy.mode} className="h-10 w-full border-brass/30 bg-oak-deep/70">
+                <SelectValue>{t.filters.modes[mode]}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {QUICK_ADD_MODES.map((m) => (
+                  <SelectItem key={m} value={m}>
+                    {t.filters.modes[m]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="grid gap-1.5">
+            <span className="text-sm font-medium text-parchment">{copy.format}</span>
+            <Select value={format ?? NONE} onValueChange={(v) => setFormat(v === NONE ? null : (v as Format))}>
+              <SelectTrigger aria-label={copy.format} className="h-10 w-full border-brass/30 bg-oak-deep/70">
+                <SelectValue>{format ? t.filters.formats[format] : copy.noFormat}</SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {(Object.keys(t.filters.formats) as Format[]).map((f) => (
+                  <SelectItem key={f} value={f}>
+                    {t.filters.formats[f]}
+                  </SelectItem>
+                ))}
+                <SelectItem value={NONE}>{copy.noFormat}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
         </div>
 

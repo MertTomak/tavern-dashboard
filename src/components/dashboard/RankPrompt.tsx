@@ -62,7 +62,7 @@ export function RankPrompt({ gameId, result, opponentClass, when, lastRank }: Pr
       animate={{ opacity: 1, y: 0 }}
       transition={snap}
       // Above the phone's coin bar; bottom right on wider screens, clear of the chapter rail.
-      className="brass-frame fixed inset-x-3 bottom-[calc(76px+env(safe-area-inset-bottom))] z-30 grid gap-3 rounded-lg p-4 shadow-panel [--frame-fill:#1a130ef7] md:inset-x-auto md:right-6 md:bottom-24 md:w-[400px]"
+      className="brass-frame fixed inset-x-3 bottom-[calc(76px+env(safe-area-inset-bottom))] z-30 grid gap-3 rounded-lg p-4 shadow-panel [--frame-fill:#1a130ef7] md:inset-x-auto md:right-6 md:bottom-24 md:w-[440px]"
     >
       <div className="flex items-start gap-3">
         <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-brass/20 text-brass-light">
@@ -79,7 +79,7 @@ export function RankPrompt({ gameId, result, opponentClass, when, lastRank }: Pr
         </Button>
       </div>
       <RankPicker compact value={lastRank ? { rankAfter: lastRank.rankAfter, legendRank: lastRank.legendRank } : { rankAfter: null, legendRank: null }} onChange={save} disabled={busy} />
-      <p className="text-xs text-ink-muted">{t.rank.promptHint}</p>
+      <p className="hidden text-xs text-ink-muted md:block">{t.rank.promptHint}</p>
     </motion.aside>
   );
 }

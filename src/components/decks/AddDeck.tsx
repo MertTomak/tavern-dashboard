@@ -142,7 +142,9 @@ export function AddDeck() {
             <p className="text-xs text-ink-muted">{copy.matchHint}</p>
           </form>
           <ul className="grid content-start gap-1.5 sm:grid-cols-2" aria-label={t.decks.detail.cards}>
-            {preview.cards.map((c) => (
+            {[...preview.cards]
+              .sort((a, b) => (a.card.cost ?? 0) - (b.card.cost ?? 0) || a.card.name.localeCompare(b.card.name))
+              .map((c) => (
               <li key={c.dbfId}>
                 <CardTile card={c.card} count={c.count} />
               </li>

@@ -28,13 +28,12 @@ function touchIsTaken(target: EventTarget | null): boolean {
 /**
  * Pages sit side by side in menu order. ← / → (and a sideways swipe on touch)
  * move to the neighbouring page with a directional slide; the URL updates.
- * The container blocks horizontal overscroll so Chrome's two-finger back/forward
- * gesture never fires by accident.
+ * Listens on the window and renders nothing, so it can sit in its own Suspense
+ * boundary (the path is runtime data on pages with an id, like /games/[id]).
  */
-export function PageNavigator({ children }: { children: React.ReactNode }) {
+export function PageNavigator() {
   const router = useRouter();
   const pathname = usePathname();
-  const touch = useRef<{ x: number; y: number; t: number } | null>(null);
   // Where we are heading: quick repeated presses step on from there, not from the page still sliding out.
   const heading = useRef<string | null>(null);
   useEffect(() => {
@@ -53,34 +52,37 @@ export function PageNavigator({ children }: { children: React.ReactNode }) {
   );
 
   useEffect(() => {
+    let touch: { x: number; y: number; t: number } | null = null;
     const onKey = (e: KeyboardEvent) => {
       if ((e.key !== "ArrowRight" && e.key !== "ArrowLeft") || keyIsTaken(e)) return;
       e.preventDefault();
       go(e.key === "ArrowRight" ? 1 : -1);
     };
+    const onTouchStart = (e: TouchEvent) => {
+      const p = e.touches[0];
+      touch = e.touches.length === 1 && p && !touchIsTaken(e.target) ? { x: p.clientX, y: p.clientY, t: e.timeStamp } : null;
+    };
+    const onTouchEnd = (e: TouchEvent) => {
+      const start = touch;
+      const p = e.changedTouches[0];
+      touch = null;
+      if (!start || !p) return;
+      const dx = p.clientX - start.x;
+      const dy = p.clientY - start.y;
+      if (Math.abs(dx) < SWIPE_MIN_PX || Math.abs(dx) < Math.abs(dy) * 1.6 || e.timeStamp - start.t > SWIPE_MAX_MS) return;
+      // A swipe that began inside an open dialog or sheet stays there.
+      if (document.querySelector("[role=dialog], [role=alertdialog]")) return;
+      go(dx < 0 ? 1 : -1);
+    };
     window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
+    window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchend", onTouchEnd, { passive: true });
+    return () => {
+      window.removeEventListener("keydown", onKey);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend", onTouchEnd);
+    };
   }, [go]);
 
-  return (
-    <div
-      className="overscroll-x-none"
-      onTouchStart={(e) => {
-        const p = e.touches[0];
-        touch.current = e.touches.length === 1 && p && !touchIsTaken(e.target) ? { x: p.clientX, y: p.clientY, t: e.timeStamp } : null;
-      }}
-      onTouchEnd={(e) => {
-        const start = touch.current;
-        const p = e.changedTouches[0];
-        touch.current = null;
-        if (!start || !p) return;
-        const dx = p.clientX - start.x;
-        const dy = p.clientY - start.y;
-        if (Math.abs(dx) < SWIPE_MIN_PX || Math.abs(dx) < Math.abs(dy) * 1.6 || e.timeStamp - start.t > SWIPE_MAX_MS) return;
-        go(dx < 0 ? 1 : -1);
-      }}
-    >
-      {children}
-    </div>
-  );
+  return null;
 }
