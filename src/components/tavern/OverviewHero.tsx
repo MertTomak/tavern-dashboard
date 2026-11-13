@@ -109,9 +109,9 @@ function cardData(d: OverviewData, f: NonNullable<OverviewData["featured"]>): Ca
  */
 export function OverviewHero({ data }: { data: OverviewData }) {
   // Depth while the journey moves on: the blurred scene drifts a little, the sharp art more.
-  const { offset } = useChapter();
-  const bgX = useTransform(offset, (o) => `${o * 10}%`);
-  const artX = useTransform(offset, (o) => `${o * 34}%`);
+  const { drift } = useChapter();
+  const bgX = useTransform(drift, (o) => `${o * 10}%`);
+  const artX = useTransform(drift, (o) => `${o * 34}%`);
   const f = data.featured;
 
   return (

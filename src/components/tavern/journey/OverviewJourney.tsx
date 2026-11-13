@@ -8,19 +8,23 @@ import { t } from "@/i18n";
 import { ArtCrop } from "../ArtCrop";
 import { ChapterProvider, useJourneyEnabled } from "./reveal";
 import { ScrollVelocityProvider } from "./velocity";
+import { clamp, held, HOLD, stripClip } from "./geometry";
 
 export type Chapter = {
   id: string;
   label: string;
-  /** Card art behind the chapter (dimmed, moves slower than the panel for depth). */
+  /** Card art behind the chapter (dimmed, drifts with the scroll for depth). */
   art?: string | null;
   children: React.ReactNode;
 };
 
-/** A chapter counts as arrived a bit before it is centred, so its entrance is done by the time it is. */
-const ARRIVE_EARLY = 0.45;
+/** A chapter arrives as soon as the strips start uncovering it, so its entrance is done by the time it rests centred. */
+const ARRIVE_EARLY = 1 - HOLD;
 /** Vertical scroll per chapter, as a share of the viewport height. */
-const SCROLL_PER_CHAPTER = 0.85;
+const SCROLL_PER_CHAPTER = 1;
+/** How far the outgoing chapter slides left, and the incoming one waits to the right (share of the width). */
+const OUT_SHIFT = 18;
+const IN_SHIFT = 8;
 
 /** Scroll geometry of the journey: where it starts and how far it scrolls, re-measured on resize. */
 function useGeometry(outer: React.RefObject<HTMLDivElement | null>) {
@@ -45,31 +49,45 @@ function useGeometry(outer: React.RefObject<HTMLDivElement | null>) {
 function ChapterPanel({
   chapter,
   index,
-  progress,
-  count,
+  pos,
+  raw,
   journey,
   arrived,
+  onFocus,
 }: {
   chapter: Chapter;
   index: number;
-  progress: MotionValue<number>;
-  count: number;
+  pos: MotionValue<number>;
+  raw: MotionValue<number>;
   journey: boolean;
   arrived: boolean;
+  onFocus: () => void;
 }) {
   const ref = useRef<HTMLElement>(null);
   const inView = useInView(ref, { once: true, amount: 0.2 });
-  // 0 when centred, +1 one screen to the right, -1 one screen to the left.
-  const offset = useTransform(progress, (p) => Math.max(-1, Math.min(1, index - p * (count - 1))));
-  const artX = useTransform(offset, (o) => `${o * 28}%`);
-  const value = useMemo(() => ({ revealed: journey ? arrived : inView, offset }), [journey, arrived, inView, offset]);
+  // 0 when centred (and resting), +1 next in line on the right, -1 gone to the left.
+  const offset = useTransform(pos, (p) => clamp(index - p, -1, 1));
+  const drift = useTransform(raw, (p) => clamp(index - p, -1.5, 1.5));
+  const value = useMemo(() => ({ revealed: journey ? arrived : inView, offset, drift }), [journey, arrived, inView, offset, drift]);
+
+  // The outgoing chapter lies on top and leaves in strips; the next one waits underneath, dimmed and set back.
+  const x = useTransform(offset, (o) => `${o < 0 ? o * OUT_SHIFT : o * IN_SHIFT}%`);
+  const scale = useTransform(offset, (o) => (o > 0 ? 1 - o * 0.05 : 1));
+  const clipPath = useTransform(offset, (o) => (o < 0 ? stripClip(-o) : "none"));
+  const zIndex = useTransform(offset, (o) => (o <= 0 ? 2 : 1));
+  const opacity = useTransform(offset, (o) => (Math.abs(o) >= 1 ? 0 : 1));
+  const pointerEvents = useTransform(offset, (o) => (Math.abs(o) < 0.5 ? "auto" : "none"));
+  const shade = useTransform(offset, (o) => (o > 0 ? o * 0.75 : 0));
+  const artX = useTransform(drift, (o) => `${o * 14}%`);
 
   return (
-    <section
+    <motion.section
       ref={ref}
       id={`chapter-${chapter.id}`}
       aria-label={chapter.label}
-      className="relative isolate overflow-clip journey:h-full journey:w-[calc(100%/var(--n))] journey:shrink-0"
+      onFocusCapture={onFocus}
+      className="relative isolate overflow-clip bg-background journey:absolute journey:inset-0"
+      style={journey ? { x, scale, clipPath, zIndex, opacity, pointerEvents } : undefined}
     >
       {chapter.art && (
         <motion.div
@@ -82,16 +100,18 @@ function ChapterPanel({
         </motion.div>
       )}
       <ChapterProvider value={value}>{chapter.children}</ChapterProvider>
-    </section>
+      {journey && <motion.span aria-hidden className="pointer-events-none absolute inset-0 z-10 bg-oak-deep" style={{ opacity: shade }} />}
+    </motion.section>
   );
 }
 
 /**
- * The Overview as a sideways journey. Normal vertical scrolling drives a pinned
- * track of full-height chapters from left to right; art layers move slower than
- * the panels for depth. No snapping. Each chapter's entrance plays once, as it
- * arrives, and is finished before it is centred. A brass chapter rail jumps
- * between chapters. Phones and Reduce motion get a normal vertical page.
+ * The Overview as a journey. Normal vertical scrolling moves through a pinned
+ * stage of full-height chapters. Each chapter rests centred for a moment, then
+ * splits into horizontal strips that slide away at different speeds and reveal
+ * the next one, which waits underneath. Scroll-scrubbed and reversible, no
+ * snapping. Each chapter's entrance plays once as it arrives. A brass chapter
+ * rail jumps between chapters. Phones and Reduce motion get a normal vertical page.
  */
 export function OverviewJourney({ chapters }: { chapters: Chapter[] }) {
   const journey = useJourneyEnabled();
@@ -101,15 +121,14 @@ export function OverviewJourney({ chapters }: { chapters: Chapter[] }) {
   const n = chapters.length;
 
   const { scrollY } = useScroll();
-  const progress = useTransform(scrollY, (y) => Math.max(0, Math.min(1, (y - geo.current.start) / geo.current.range)));
-  const x = useTransform(progress, (p) => `${(-p * (n - 1) * 100) / n}%`);
+  const raw = useTransform(scrollY, (y) => clamp((y - geo.current.start) / geo.current.range, 0, 1) * (n - 1));
+  const pos = useTransform(raw, (p) => held(p, n - 1));
 
   const [arrived, setArrived] = useState(0);
   const [current, setCurrent] = useState(0);
-  useMotionValueEvent(progress, "change", (p) => {
-    const at = p * (n - 1);
-    setCurrent(Math.round(at));
-    setArrived((a) => Math.max(a, Math.floor(at + ARRIVE_EARLY)));
+  useMotionValueEvent(raw, "change", (p) => {
+    setCurrent(Math.round(held(p, n - 1)));
+    setArrived((a) => Math.max(a, Math.floor(p + ARRIVE_EARLY)));
   });
 
   const jump = (i: number) => {
@@ -130,13 +149,23 @@ export function OverviewJourney({ chapters }: { chapters: Chapter[] }) {
         style={{ ["--n" as string]: n, ["--per" as string]: SCROLL_PER_CHAPTER }}
       >
         <div className="journey:sticky journey:top-(--chrome-h) journey:h-[calc(100dvh-var(--chrome-h))] journey:overflow-clip">
-          <motion.div className="flex flex-col gap-10 journey:h-full journey:w-[calc(var(--n)*100%)] journey:flex-row journey:gap-0" style={journey ? { x } : undefined}>
+          <div className="flex flex-col gap-10 journey:relative journey:block journey:h-full">
             {chapters.map((c, i) => (
-              <ChapterPanel key={c.id} chapter={c} index={i} progress={progress} count={n} journey={journey} arrived={i <= arrived} />
+              <ChapterPanel
+                key={c.id}
+                chapter={c}
+                index={i}
+                pos={pos}
+                raw={raw}
+                journey={journey}
+                arrived={i <= arrived}
+                // Tabbing into a chapter that is not on screen brings it there.
+                onFocus={() => journey && i !== current && jump(i)}
+              />
             ))}
-          </motion.div>
+          </div>
 
-          <nav aria-label={t.journey.chapters} className="pointer-events-none absolute inset-x-0 bottom-4 hidden justify-center journey:flex">
+          <nav aria-label={t.journey.chapters} className="pointer-events-none absolute inset-x-0 bottom-4 z-20 hidden justify-center journey:flex">
             <ol className="pointer-events-auto flex items-center gap-1 rounded-full border border-brass/25 bg-oak-deep/85 px-2 py-1.5 shadow-panel backdrop-blur-md">
               {chapters.map((c, i) => {
                 const active = i === current;

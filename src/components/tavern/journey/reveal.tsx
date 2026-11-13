@@ -27,12 +27,14 @@ export function useJourneyEnabled(): boolean {
 type Chapter = {
   /** True once the chapter has arrived; its entrance animations play once. */
   revealed: boolean;
-  /** -1 … 1: how far the chapter sits from the centre of the screen (0 = centred). For parallax. */
+  /** -1 … 1: how far the chapter sits from the centre of the screen. Holds at 0 while the chapter rests centred. */
   offset: MotionValue<number>;
+  /** Like `offset` but never holds: keeps moving with every scroll. For parallax and walking past things. */
+  drift: MotionValue<number>;
 };
 
 const STILL = motionValue(0);
-const ChapterContext = createContext<Chapter>({ revealed: true, offset: STILL });
+const ChapterContext = createContext<Chapter>({ revealed: true, offset: STILL, drift: STILL });
 
 export const ChapterProvider = ChapterContext.Provider;
 
