@@ -70,9 +70,9 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 
 ## Faz 4 — Otomatik takip (canlı)
 
-- [ ] `scripts/watch-logs.ts` (chokidar, byte offset, yeniden deneme kuyruğu)
-- [ ] `POST /api/import/watcher` + `GET /api/events` (SSE)
-- [ ] Dashboard'da canlı güncelleme + toast
+- [x] `scripts/watch-logs.ts` (chokidar, byte offset, yeniden deneme kuyruğu)
+- [x] `POST /api/import/watcher` + `GET /api/events` (SSE)
+- [x] Dashboard'da canlı güncelleme + toast (maç sürerken efektler otomatik Light)
 - [ ] Ayarlar'da izleyici durumu (çalışıyor mu, son okunan dosya, son maç)
 
 **Kabul:** `npm run dev:all` açıkken Hearthstone'da bir maç bitirilir. Birkaç saniye içinde dashboard kendiliğinden güncellenir.
@@ -171,3 +171,7 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-13 — GSAP yine eklenmedi: tüm kaydırma efektleri Motion motion value'ları ve Lenis hızıyla temiz yapıldı. Tam 3B dünya içinde uçuş yapılmadı (3B model ister, oyunun yanında ağır kalır).
 - 2026-11-13 — Parser: istemci her olayı iki kez yazıyor (`GameState` ve `PowerTaskList`); yalnızca `GameState` satırları okunur. "Sen" olan taraf mulligan'dan önce elindeki kartları `SHOW_ENTITY` ile açılan oyuncudur (The Coin `FULL_ENTITY` ile açık oluşturulduğu için sayılmaz); yedek yol logda adı yazılan tek oyuncu. Sınıf kahraman varlığının `CLASS` etiketinden okunur (skin'lerde de çalışır). Tur sayısı = oyun sayacının yarısı yukarı yuvarlanmış (her oyuncunun kendi turu); ham sayaç `gameTurns` olarak duruyor. Süre `CREATE_GAME` ile oyunun `COMPLETE` olması arası. Kart olayları yalnızca kurulumda destede/elde başlayan koleksiyon kartları için (üretilen kartlar, The Coin, kahraman güçleri hariç).
 - 2026-11-13 — Battlegrounds menüden kaldırıldı (kullanıcı oynamıyor); iş "Sonra / planlanmıyor" altında. Kod ve parser desteği duruyor.
+- 2026-11-14 — Tekrar kontrolü anahtarı oturum klasörü adını içermiyor: `sha256(oyun başlangıcı (saniye) + iki kahraman CardID)`. Klasörsüz yüklenen bir dosya ile izleyici aynı oyuna aynı anahtarı üretsin diye. Klasörsüz dosyanın tarihi son yazılma zamanından, logdaki gece yarısı geçişleri geriye sayılarak bulunur.
+- 2026-11-14 — Yüklenen log sunucuda ayrıştırılır, sonuç onaya kadar 30 dk bellekte tutulur (tek kullanımlık jeton); dosya iki kez gönderilmez ve onay adımında veri değiştirilemez. Yazma uçları başka bir siteden gelen istekleri (farklı `Origin`) reddeder.
+- 2026-11-14 — Maç sürerken (izleyicinin bildirdiği) Full efektler Light çalışır; kayıtlı ayar değişmez. Durum yalnızca sunucu belleğinde, 45 dk sessizlikte kendiliğinden düşer.
+- 2026-11-14 — Destesi eşleşme: oyunda görülen farklı kartların en az %80'i kayıtlı (demo olmayan, aynı format) bir destede olmalı, en az 4 kart; yoksa `deck_id` boş. Şu an gerçek deste olmadığı için maçlar destesiz kaydediliyor (Faz 1'de deste kodu ile eklenecek).
