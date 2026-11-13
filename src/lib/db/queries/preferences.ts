@@ -1,6 +1,7 @@
 import { eq, like } from "drizzle-orm";
 import { db } from "../client";
 import { preferences } from "../schema";
+import { DEFAULT_EFFECTS, effectsLevelSchema, type EffectsLevel } from "@/lib/effects";
 
 const CLASS_ART = "classArt:";
 
@@ -20,5 +21,21 @@ export function setClassArtChoice(cls: string, cardId: string | null): void {
   db.insert(preferences)
     .values({ key, value: cardId })
     .onConflictDoUpdate({ target: preferences.key, set: { value: cardId, updatedAt: new Date().toISOString() } })
+    .run();
+}
+
+const EFFECTS = "effects";
+
+/** The Overview effects level; anything unknown falls back to the default. */
+export function getEffectsLevel(): EffectsLevel {
+  const row = db.select().from(preferences).where(eq(preferences.key, EFFECTS)).get();
+  const parsed = effectsLevelSchema.safeParse(row?.value);
+  return parsed.success ? parsed.data : DEFAULT_EFFECTS;
+}
+
+export function setEffectsLevel(level: EffectsLevel): void {
+  db.insert(preferences)
+    .values({ key: EFFECTS, value: level })
+    .onConflictDoUpdate({ target: preferences.key, set: { value: level, updatedAt: new Date().toISOString() } })
     .run();
 }

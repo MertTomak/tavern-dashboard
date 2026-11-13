@@ -8,6 +8,7 @@ import { DURATION, EASE_SNAP, SCENE } from "@/components/motion/timing";
 import { DeckCardFace, withPreview } from "./DeckHand";
 import { useChapter } from "./journey/reveal";
 import { clamp } from "./journey/geometry";
+import { useEffects } from "./journey/effects";
 import type { DeckStanding } from "./types";
 
 const CARD_W = 150;
@@ -28,7 +29,8 @@ export function DeckWall({ decks }: { decks: DeckStanding[] }) {
   const mid = (decks.length - 1) / 2;
   const span = mid * STEP;
   // Scrolling on (drift falling) walks to the right: later decks come round to the front.
-  const turn = useTransform(drift, (o) => -clamp(o / WALK, -1, 1) * span);
+  const walking = useEffects().motion;
+  const turn = useTransform(drift, (o) => (walking ? -clamp(o / WALK, -1, 1) * span : 0));
   const world = useTransform(turn, (a) => `translateZ(${RADIUS}px) rotateY(${a}deg)`);
 
   return (

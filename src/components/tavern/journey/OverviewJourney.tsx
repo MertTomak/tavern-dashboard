@@ -9,6 +9,8 @@ import { ArtCrop } from "../ArtCrop";
 import { ChapterProvider, useJourneyEnabled } from "./reveal";
 import { ScrollVelocityProvider } from "./velocity";
 import { StreakArt } from "./StreakArt";
+import { EffectsProvider, useEffects } from "./effects";
+import type { EffectsLevel } from "@/lib/effects";
 import { clamp, held, HOLD, stripClip } from "./geometry";
 
 export type Chapter = {
@@ -74,12 +76,14 @@ function ChapterPanel({
   // 0 when centred (and resting), +1 next in line on the right, -1 gone to the left.
   const offset = useTransform(pos, (p) => clamp(index - p, -1, 1));
   const drift = useTransform(raw, (p) => clamp(index - p, -1.5, 1.5));
+  const { motion: moving, rich } = useEffects();
   const value = useMemo(() => ({ revealed: journey ? arrived : inView, offset, drift }), [journey, arrived, inView, offset, drift]);
 
   // The outgoing chapter lies on top and leaves in strips; the next one waits underneath, dimmed and set back.
   const x = useTransform(offset, (o) => `${o < 0 ? o * OUT_SHIFT : o * IN_SHIFT}%`);
   const scale = useTransform(offset, (o) => (o > 0 ? 1 - o * 0.05 : 1));
-  const clipPath = useTransform(offset, (o) => (o < 0 ? stripClip(-o) : "none"));
+  // Effects Off: one strip, a plain wipe.
+  const clipPath = useTransform(offset, (o) => (o < 0 ? stripClip(-o, moving ? undefined : 1) : "none"));
   const zIndex = useTransform(offset, (o) => (o <= 0 ? 2 : 1));
   const opacity = useTransform(offset, (o) => (Math.abs(o) >= 1 ? 0 : 1));
   const pointerEvents = useTransform(offset, (o) => (Math.abs(o) < 0.5 ? "auto" : "none"));
@@ -103,7 +107,7 @@ function ChapterPanel({
           className="absolute -inset-y-10 -inset-x-[18%] -z-10 [mask-image:linear-gradient(to_right,transparent_8%,black_32%,black_68%,transparent_92%)]"
           style={journey ? { x: artX } : undefined}
         >
-          {journey && chapter.streakIn ? (
+          {journey && rich && chapter.streakIn ? (
             <StreakArt cardId={chapter.art} form={artForm} className={ART_LOOK} />
           ) : (
             <ArtCrop cardId={chapter.art} className={ART_LOOK} />
@@ -125,7 +129,16 @@ function ChapterPanel({
  * snapping. Each chapter's entrance plays once as it arrives. A brass chapter
  * rail jumps between chapters. Phones and Reduce motion get a normal vertical page.
  */
-export function OverviewJourney({ chapters }: { chapters: Chapter[] }) {
+export function OverviewJourney({ chapters, effects }: { chapters: Chapter[]; effects: EffectsLevel }) {
+  return (
+    <EffectsProvider level={effects}>
+      <Journey chapters={chapters} />
+    </EffectsProvider>
+  );
+}
+
+function Journey({ chapters }: { chapters: Chapter[] }) {
+  const { motion: moving } = useEffects();
   const journey = useJourneyEnabled();
   const outer = useRef<HTMLDivElement>(null);
   const geo = useGeometry(outer);
@@ -154,7 +167,7 @@ export function OverviewJourney({ chapters }: { chapters: Chapter[] }) {
   };
 
   return (
-    <ScrollVelocityProvider horizontal={journey} enabled>
+    <ScrollVelocityProvider horizontal={journey} enabled={moving}>
       <div
         ref={outer}
         className="relative journey:h-[calc((var(--n)-1)*var(--per)*100dvh+100dvh)]"

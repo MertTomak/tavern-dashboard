@@ -120,6 +120,18 @@ export const en = {
       saved: (cls: string) => `${cls} portrait saved.`,
       failed: "Could not save the portrait. Please try again.",
     },
+    effects: {
+      title: "Effects",
+      description: "How much of the Overview's visual effects run. Choose Light while you play to keep your Mac cool.",
+      label: "Effects level",
+      levels: {
+        FULL: { name: "Full", body: "Everything: strips between chapters, bending titles, the card melting and breaking into embers, depth blur." },
+        LIGHT: { name: "Light", body: "Keeps the transitions. Turns off the melt shader, the embers and the depth blur." },
+        OFF: { name: "Off", body: "Plain movement only: a straight wipe between chapters, no lean, bend or parallax, no shader effects." },
+      },
+      saved: (level: string) => `Effects set to ${level}.`,
+      failed: "Could not save the effects level. Please try again.",
+    },
     motion: {
       title: "Motion",
       body: "Animations follow your Mac's Reduce motion setting (System Settings › Accessibility › Display). With it on, things fade instead of moving.",

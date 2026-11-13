@@ -45,6 +45,8 @@ type SceneProps = {
   melt: () => number;
   /** Changes when a new game arrives: the card breaks into embers and reassembles. */
   burst: string;
+  /** Effects Full: the ember field behind the card and the ember dissolve. Off for Light and Off. */
+  embers: boolean;
   /** Fired once the card textures are painted and the first frame is drawn. */
   onReady: () => void;
   running: boolean;
@@ -237,7 +239,7 @@ type Motion = {
   dragging: boolean;
 };
 
-const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card({ artUrl, data, scrollTurn, melt, burst, onReady }, ref) {
+const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card({ artUrl, data, scrollTurn, melt, burst, embers, onReady }, ref) {
   const group = useRef<THREE.Group>(null);
   const light = useRef<THREE.PointLight>(null);
   const candle = useRef<THREE.PointLight>(null);
@@ -341,10 +343,13 @@ const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card
     }
     // Ember dissolve: the meshes hide while the cloud of embers stands in for the card.
     const ds = dissolve.current;
+    if (!embers) dissolveStart.current = null;
     if (dissolveStart.current !== null) {
       const k = (performance.now() / 1000 - dissolveStart.current) / DISSOLVE_S;
       if (k >= 1) dissolveStart.current = null;
       ds.d = k >= 1 ? 0 : dissolveCurve(k);
+    } else {
+      ds.d = 0;
     }
     ds.back = Math.cos(g.rotation.y) * Math.cos(g.rotation.x) < 0;
     if (meshes.current) meshes.current.visible = ds.d <= 0.001;
@@ -436,7 +441,7 @@ const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card
       <directionalLight position={[2, 3, 4]} intensity={1.1} color="#ffe7c2" />
       <pointLight ref={light} position={[0, 1, 3]} intensity={6} distance={9} color="#fff1d6" />
       <pointLight ref={candle} position={[-2.4, -1.6, -1.2]} intensity={9} distance={7} color="#ff9a3c" />
-      <Embers />
+      {embers && <Embers />}
       <group
         ref={group}
         onPointerDown={onPointerDown}

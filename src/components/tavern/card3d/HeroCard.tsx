@@ -8,6 +8,7 @@ import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { ArtCrop } from "../ArtCrop";
 import { useChapter } from "../journey/reveal";
+import { useEffects } from "../journey/effects";
 import type { CardBackData } from "./card-faces";
 import type { CardControls } from "./CardScene";
 
@@ -52,6 +53,7 @@ export function HeroCard({ cardId, data, className }: Props) {
   const { scrollY } = useScroll();
   // In the journey the hero stays in the layout while other chapters cover it: pause once it has fully left.
   const { offset } = useChapter();
+  const { rich } = useEffects();
   const [onStage, setOnStage] = useState(true);
   useMotionValueEvent(offset, "change", (o) => setOnStage(o > -0.999));
 
@@ -108,7 +110,8 @@ export function HeroCard({ cardId, data, className }: Props) {
             onReady={() => setReady(true)}
             scrollTurn={() => scrollY.get() * 0.0009}
             // The art melts during the first part of the strip transition, before its strip is gone.
-            melt={() => -offset.get() * 1.6}
+            melt={() => (rich ? -offset.get() * 1.6 : 0)}
+            embers={rich}
             // A new game changes the record: the card breaks into embers and reassembles.
             burst={`${data.games}|${data.wins}|${data.losses}`}
           />

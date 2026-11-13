@@ -4,11 +4,12 @@ import { Wind } from "lucide-react";
 import { PageHeader } from "@/components/layout/PageHeader";
 import { DemoDataCard } from "@/components/settings/DemoDataCard";
 import { ClassArtCard, type ClassArtRow } from "@/components/settings/ClassArtCard";
+import { EffectsCard } from "@/components/settings/EffectsCard";
 import { FramePanel } from "@/components/tavern/FramePanel";
 import { Stagger, StaggerItem } from "@/components/motion/Stagger";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getDemoCounts } from "@/lib/db/queries/demo";
-import { getClassArtChoices } from "@/lib/db/queries/preferences";
+import { getClassArtChoices, getEffectsLevel } from "@/lib/db/queries/preferences";
 import { loadClasses } from "@/lib/cards/classes";
 import { classArtOptions, effectiveClassArt } from "@/lib/cards/catalog";
 import { classLabel } from "@/lib/cards/class-colors";
@@ -27,6 +28,9 @@ async function Sections() {
     <>
       <StaggerItem>
         <ClassArtCard rows={rows} />
+      </StaggerItem>
+      <StaggerItem>
+        <EffectsCard level={getEffectsLevel()} />
       </StaggerItem>
       <StaggerItem>
         <DemoDataCard games={demo.games} decks={demo.decks} />

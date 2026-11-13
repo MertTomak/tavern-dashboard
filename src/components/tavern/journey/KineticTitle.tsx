@@ -4,6 +4,7 @@ import { motion, useTransform, type MotionValue } from "motion/react";
 import { SCENE, EASE_SNAP } from "@/components/motion/timing";
 import { useChapter } from "./reveal";
 import { useLean } from "./velocity";
+import { useEffects } from "./effects";
 
 /** How far the title bends while its panel is off centre: lift of the ends (em) and tilt of the outer letters (deg). */
 const BEND_LIFT = 0.32;
@@ -11,10 +12,10 @@ const BEND_TILT = 9;
 /** Delay between letters as the title reveals. */
 const LETTER_STEP = 0.028;
 
-function Letter({ char, u, offset, index, revealed }: { char: string; u: number; offset: MotionValue<number>; index: number; revealed: boolean }) {
+function Letter({ char, u, offset, index, revealed, bend }: { char: string; u: number; offset: MotionValue<number>; index: number; revealed: boolean; bend: number }) {
   // An arc through the letters: flat when the panel is centred (offset 0), bowed while it moves.
-  const y = useTransform(offset, (o) => `${Math.max(-1, Math.min(1, o)) * BEND_LIFT * (u * u - 0.35)}em`);
-  const rotate = useTransform(offset, (o) => Math.max(-1, Math.min(1, o)) * BEND_TILT * u);
+  const y = useTransform(offset, (o) => `${Math.max(-1, Math.min(1, o)) * bend * BEND_LIFT * (u * u - 0.35)}em`);
+  const rotate = useTransform(offset, (o) => Math.max(-1, Math.min(1, o)) * bend * BEND_TILT * u);
   return (
     <motion.span className="inline-block origin-bottom will-change-transform" style={{ y, rotate }}>
       <motion.span
@@ -38,6 +39,7 @@ function Letter({ char, u, offset, index, revealed }: { char: string; u: number;
 export function KineticTitle({ text }: { text: string }) {
   const { revealed, offset } = useChapter();
   const lean = useLean(0.7);
+  const bend = useEffects().motion ? 1 : 0;
   // Words stay unbroken; every letter keeps its index in the whole title for the arc and the stagger.
   const words = text.split(" ").reduce<{ chars: { c: string; i: number }[] }[]>((acc, word, w, all) => {
     const start = acc.reduce((sum, x) => sum + x.chars.length, 0);
@@ -55,7 +57,7 @@ export function KineticTitle({ text }: { text: string }) {
         {words.map((word, w) => (
           <span key={w} className="inline-block whitespace-nowrap">
             {word.chars.map(({ c, i }) => (
-              <Letter key={i} char={c} u={(i / last) * 2 - 1} offset={offset} index={i} revealed={revealed} />
+              <Letter key={i} char={c} u={(i / last) * 2 - 1} offset={offset} index={i} revealed={revealed} bend={bend} />
             ))}
           </span>
         ))}

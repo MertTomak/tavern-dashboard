@@ -7,6 +7,7 @@ import { t } from "@/i18n";
 import { VersusFace } from "./VersusCard";
 import { useChapter } from "./journey/reveal";
 import { useLean } from "./journey/velocity";
+import { useEffects } from "./journey/effects";
 import type { GameCard } from "./types";
 
 /**
@@ -50,9 +51,10 @@ function depthLook(z: number) {
  * turns that into depth parallax: near cards travel further and stay sharp, far
  * ones are smaller, dimmer and slightly blurred. Hover or focus brings a card forward.
  */
-export function DepthGallery({ games, fresh, blur = true }: { games: GameCard[]; fresh: ReadonlySet<string>; blur?: boolean }) {
+export function DepthGallery({ games, fresh }: { games: GameCard[]; fresh: ReadonlySet<string> }) {
   const { revealed, drift } = useChapter();
-  const worldX = useTransform(drift, (o) => o * TRAVEL);
+  const { motion: moving, rich: blur } = useEffects();
+  const worldX = useTransform(drift, (o) => (moving ? o * TRAVEL : 0));
   const lean = useLean(0.6);
   // The deal is staggered once; afterwards (hover out, live updates) cards move without delay.
   const [dealt, setDealt] = useState(false);
