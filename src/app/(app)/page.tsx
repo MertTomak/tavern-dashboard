@@ -66,6 +66,7 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
       id: "last-games",
       label: t.concepts.lastGames,
       art: d.recent[0]?.oppArt,
+      streakIn: true,
       children: (
         <ChapterFrame title={t.concepts.lastGames}>
           <FramePanel>

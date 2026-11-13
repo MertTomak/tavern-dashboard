@@ -30,6 +30,8 @@ type SceneProps = {
   data: CardBackData;
   /** 0 at rest, grows as the page scrolls on; turns the card slightly. */
   scrollTurn: () => number;
+  /** 0 … 1: how far the front art has melted into vertical streaks (the hero leaving the screen). */
+  melt: () => number;
   /** Fired once the card textures are painted and the first frame is drawn. */
   onReady: () => void;
   running: boolean;
@@ -103,6 +105,39 @@ const foilFragment = /* glsl */ `
     gl_FragColor = vec4(tint * a, 1.0);
   }
 `;
+
+/**
+ * Pixel-stretch melt for the front art: the image slides down column by column,
+ * each at its own pace, and the top row stretches after it into vertical streaks.
+ * Patched into the physical material so lighting and clearcoat stay intact.
+ */
+function withMelt(material: THREE.MeshPhysicalMaterial, uMelt: { value: number }) {
+  material.onBeforeCompile = (shader) => {
+    shader.uniforms.uMelt = uMelt;
+    shader.fragmentShader = shader.fragmentShader
+      .replace(
+        "#include <common>",
+        /* glsl */ `#include <common>
+        uniform float uMelt;
+        float meltHash(float n) { return fract(sin(n * 127.1 + 311.7) * 43758.5453); }`,
+      )
+      .replace(
+        "#include <map_fragment>",
+        /* glsl */ `
+        vec2 meltUv = vMapUv;
+        if (uMelt > 0.0) {
+          float cols = 72.0;
+          float col = floor(meltUv.x * cols);
+          float pace = 0.55 + 0.9 * meltHash(col);
+          meltUv.x = mix(meltUv.x, (col + 0.5) / cols, smoothstep(0.0, 0.15, uMelt));
+          meltUv.y = min(meltUv.y + uMelt * uMelt * pace * 1.6, 0.995);
+        }
+        vec4 sampledDiffuseColor = texture2D(map, meltUv);
+        diffuseColor *= sampledDiffuseColor;`,
+      );
+  };
+  material.needsUpdate = true;
+}
 
 /** Deterministic 0..1 noise, so the ember field is the same on every render. */
 function hash(n: number) {
@@ -189,7 +224,7 @@ type Motion = {
   dragging: boolean;
 };
 
-const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card({ artUrl, data, scrollTurn, onReady }, ref) {
+const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card({ artUrl, data, scrollTurn, melt, onReady }, ref) {
   const group = useRef<THREE.Group>(null);
   const light = useRef<THREE.PointLight>(null);
   const candle = useRef<THREE.PointLight>(null);
@@ -199,6 +234,11 @@ const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card
   const m = useRef<Motion>({ rx: 0, ry: -0.25, vx: 0, vy: 0.9, settle: null, tiltX: 0, tiltY: 0, hover: false, dragging: false });
   const foilMaterial = useRef<THREE.ShaderMaterial>(null);
   const [foil] = useState(() => ({ uLight: { value: new THREE.Vector2() }, uStrength: { value: 0.35 } }));
+  const meltUniform = useRef({ value: 0 });
+  const frontMaterial = useRef<THREE.MeshPhysicalMaterial>(null);
+  useEffect(() => {
+    if (frontMaterial.current) withMelt(frontMaterial.current, meltUniform.current);
+  }, [faces]);
 
   const shape = useMemo(() => roundedRect(W, H, W * CORNER), []);
   const body = useMemo(() => {
@@ -273,6 +313,7 @@ const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card
       (fu.uLight.value as THREE.Vector2).set(pointer.x, pointer.y);
       fu.uStrength.value += ((s.hover || s.dragging ? 1 : 0.35) - (fu.uStrength.value as number)) * k;
     }
+    meltUniform.current.value = Math.max(0, Math.min(1, melt()));
     if (candle.current) candle.current.intensity = 9 + Math.sin(state.clock.elapsedTime * 7.3) * 0.8 + Math.sin(state.clock.elapsedTime * 13.1) * 0.5;
 
     if (faces && !readyFired.current) {
@@ -376,7 +417,7 @@ const Card = forwardRef<CardControls, Omit<SceneProps, "running">>(function Card
         {faces && (
           <>
             <mesh geometry={face} position-z={FACE_Z}>
-              <meshPhysicalMaterial map={faces.front} roughness={0.42} metalness={0.08} clearcoat={1} clearcoatRoughness={0.25} />
+              <meshPhysicalMaterial ref={frontMaterial} map={faces.front} roughness={0.42} metalness={0.08} clearcoat={1} clearcoatRoughness={0.25} />
             </mesh>
             <mesh geometry={face} position-z={FACE_Z + 0.001}>
               <shaderMaterial ref={foilMaterial} uniforms={foil} vertexShader={foilVertex} fragmentShader={foilFragment} transparent depthWrite={false} blending={THREE.AdditiveBlending} />

@@ -8,6 +8,7 @@ import { t } from "@/i18n";
 import { ArtCrop } from "../ArtCrop";
 import { ChapterProvider, useJourneyEnabled } from "./reveal";
 import { ScrollVelocityProvider } from "./velocity";
+import { StreakArt } from "./StreakArt";
 import { clamp, held, HOLD, stripClip } from "./geometry";
 
 export type Chapter = {
@@ -15,6 +16,8 @@ export type Chapter = {
   label: string;
   /** Card art behind the chapter (dimmed, drifts with the scroll for depth). */
   art?: string | null;
+  /** The art forms back from vertical streaks as the chapter arrives (answers the hero card's melt). */
+  streakIn?: boolean;
   children: React.ReactNode;
 };
 
@@ -45,6 +48,9 @@ function useGeometry(outer: React.RefObject<HTMLDivElement | null>) {
   }, [outer]);
   return geo;
 }
+
+/** Chapter art is a dim, soft backdrop: it sets the scene without competing with the data. */
+const ART_LOOK = "scale-125 opacity-45 blur-[3px] brightness-[0.45] saturate-[0.85]";
 
 function ChapterPanel({
   chapter,
@@ -79,6 +85,8 @@ function ChapterPanel({
   const pointerEvents = useTransform(offset, (o) => (Math.abs(o) < 0.5 ? "auto" : "none"));
   const shade = useTransform(offset, (o) => (o > 0 ? o * 0.75 : 0));
   const artX = useTransform(drift, (o) => `${o * 14}%`);
+  // Streaked while the chapter waits underneath, whole by the time most strips have gone.
+  const artForm = useTransform(offset, (o) => clamp(o * 1.6 - 0.3, 0, 1));
 
   return (
     <motion.section
@@ -95,7 +103,11 @@ function ChapterPanel({
           className="absolute -inset-y-10 -inset-x-[18%] -z-10 [mask-image:linear-gradient(to_right,transparent_8%,black_32%,black_68%,transparent_92%)]"
           style={journey ? { x: artX } : undefined}
         >
-          <ArtCrop cardId={chapter.art} className="scale-125 opacity-45 blur-[3px] brightness-[0.45] saturate-[0.85]" />
+          {journey && chapter.streakIn ? (
+            <StreakArt cardId={chapter.art} form={artForm} className={ART_LOOK} />
+          ) : (
+            <ArtCrop cardId={chapter.art} className={ART_LOOK} />
+          )}
           <span className="absolute inset-0 bg-[radial-gradient(ellipse_70%_65%_at_50%_45%,#120d0a99,#120d0a_80%)]" />
         </motion.div>
       )}

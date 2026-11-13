@@ -2,11 +2,12 @@
 
 import { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import dynamic from "next/dynamic";
-import { useReducedMotion, useScroll } from "motion/react";
+import { useMotionValueEvent, useReducedMotion, useScroll } from "motion/react";
 import { artSrc } from "@/lib/cards/art";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { ArtCrop } from "../ArtCrop";
+import { useChapter } from "../journey/reveal";
 import type { CardBackData } from "./card-faces";
 import type { CardControls } from "./CardScene";
 
@@ -37,7 +38,8 @@ type Props = {
  * Today's featured card as an interactive 3D card (React Three Fiber). Drag to
  * turn it (with inertia), click to flip, arrow keys / Enter from the keyboard,
  * horizontal drag on touch (vertical drag still scrolls). Without WebGL or with
- * Reduce motion it stays the flat 2D art. The canvas pauses while off screen.
+ * Reduce motion it stays the flat 2D art. As the hero leaves in the journey, the
+ * front art melts into vertical streaks. The canvas pauses while off screen.
  */
 export function HeroCard({ cardId, data, className }: Props) {
   const reduce = useReducedMotion();
@@ -48,6 +50,10 @@ export function HeroCard({ cardId, data, className }: Props) {
   const [visible, setVisible] = useState(false);
   const [ready, setReady] = useState(false);
   const { scrollY } = useScroll();
+  // In the journey the hero stays in the layout while other chapters cover it: pause once it has fully left.
+  const { offset } = useChapter();
+  const [onStage, setOnStage] = useState(true);
+  useMotionValueEvent(offset, "change", (o) => setOnStage(o > -0.999));
 
   useEffect(() => {
     const el = wrap.current;
@@ -98,9 +104,11 @@ export function HeroCard({ cardId, data, className }: Props) {
             ref={controls}
             artUrl={artSrc("art", cardId)}
             data={data}
-            running={visible}
+            running={visible && onStage}
             onReady={() => setReady(true)}
             scrollTurn={() => scrollY.get() * 0.0009}
+            // The art melts during the first part of the strip transition, before its strip is gone.
+            melt={() => -offset.get() * 1.6}
           />
           <p className="stat pointer-events-none absolute inset-x-0 bottom-3 text-center text-xs tracking-[0.12em] text-brass-dim uppercase [text-shadow:0_1px_6px_#000]">
             {t.card3d.flipHint}
