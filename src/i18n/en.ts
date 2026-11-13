@@ -94,7 +94,7 @@ export const en = {
     },
     import: {
       title: "Import",
-      description: "Bring in games from a Hearthstone Power.log. CSV and JSON arrive with Phase 1.",
+      description: "Bring in games from a Hearthstone Power.log. Games you play live are picked up on their own.",
     },
     settings: {
       title: "Settings",

@@ -82,10 +82,9 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [ ] Hızlı maç ekleme formu (klavye kısayollarıyla)
 - [ ] Maç listesi: filtre, sıralama, sayfalama, satır içi düzenleme, silme (AlertDialog)
 - [ ] Deste yönetimi: deste kodu yapıştırarak ekle (`deckstrings` + kart önbelleği), kart listesi görünümü
-- [ ] CSV/JSON içe aktarma: şablon indir, önizleme, Zod doğrulama, satır bazlı hata raporu, tekrar kontrolü
 - [ ] İçe aktarma geçmişi ve batch'i tek tıkla geri alma
 
-**Kabul:** Kullanıcı Chrome'da 5 maç ekler, birini düzenler, birini siler, bir CSV yükler. Hepsi listede doğru görünür.
+**Kabul:** Kullanıcı Chrome'da 5 maç ekler, birini düzenler, birini siler. Hepsi listede doğru görünür. (CSV/JSON "Sonra"ya taşındı.)
 
 ## Faz 2 — Dashboard ve istatistikler
 
@@ -125,6 +124,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 
 ## Sonra / planlanmıyor
 
+- [ ] CSV/JSON içe aktarma: şablon indir, önizleme, Zod doğrulama, satır bazlı hata raporu, tekrar kontrolü. Kullanıcı kararı (2026-11-14): gerçek maçlar Power.log ve canlı izleyiciden geliyor, telefondaki maçlar Quick add ile; CSV/JSON şimdilik gerekmiyor. Batch altyapısı (`import_batches`, geri al) hazır.
 - [ ] Battlegrounds: parser'dan sıralama ve kahraman, manuel MMR girişi, BG sayfası. Kullanıcı BG oynamıyor (2026-11-13); menüden kaldırıldı. Parser BG oyunlarında hata vermez ve sıralamayı okur, `/battlegrounds` sayfası ve BG modları kodda duruyor.
 
 ## Kararlar
@@ -175,3 +175,4 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-14 — Yüklenen log sunucuda ayrıştırılır, sonuç onaya kadar 30 dk bellekte tutulur (tek kullanımlık jeton); dosya iki kez gönderilmez ve onay adımında veri değiştirilemez. Yazma uçları başka bir siteden gelen istekleri (farklı `Origin`) reddeder.
 - 2026-11-14 — Maç sürerken (izleyicinin bildirdiği) Full efektler Light çalışır; kayıtlı ayar değişmez. Durum yalnızca sunucu belleğinde, 45 dk sessizlikte kendiliğinden düşer.
 - 2026-11-14 — Destesi eşleşme: oyunda görülen farklı kartların en az %80'i kayıtlı (demo olmayan, aynı format) bir destede olmalı, en az 4 kart; yoksa `deck_id` boş. Şu an gerçek deste olmadığı için maçlar destesiz kaydediliyor (Faz 1'de deste kodu ile eklenecek).
+- 2026-11-14 — CSV/JSON içe aktarma "Sonra"ya taşındı (kullanıcı kararı); Faz 1 gerçek maçlara odaklandı (Games, Decks, rank girişi, Quick add).
