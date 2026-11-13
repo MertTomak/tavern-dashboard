@@ -45,6 +45,18 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [x] Hero'da etkileşimli 3B kart (React Three Fiber + drei): sürükle-döndür, tıkla-çevir, folyo parlaması, közler, klavye ve dokunmatik; WebGL yoksa veya Reduce motion açıksa 2B görsel
 - [x] 1440 / 800 / 390 px Chrome kontrolü, proje kuralları güncellendi, `docs/demos/design-v3.gif`
 
+### Faz 0.5d — Tasarım v4: kaydırma animasyonları (`docs/tasks/design-v4.md`)
+
+- [x] Kaydırma hızına tepki: kartlar, son maçlar ve başlıklar hızlı kaydırmada kayma yönüne hafifçe eğilip uzar, yavaşlayınca yaya gibi geri döner (sınırlı, tablo ve grafiklerde yok)
+- [x] Kinetik bölüm başlıkları: Fraunces'ta çok büyük, harf harf açılır; kayarken yay gibi bükülür, bölüm ortadayken düzleşir
+- [x] Şerit geçişi: bölümler üst üste durur, ortada kısa bir süre bekler, sonra giden bölüm 6 yatay şeride bölünüp farklı hızlarda kayarak sonrakini açar (kaydırmaya bağlı, geri alınabilir)
+- [x] Son maçlar derinlik galerisi (CSS 3B): yeni maçlar önde ve keskin, eskiler geride, küçük, hafif bulanık; kaydırınca derinliğe göre paralaks, üzerine gelince öne gelir
+- [x] Görsel erimesi: hero kartının görseli giderken aynı canvas'ta dikey çizgilere erir (shader); sonraki bölümün görseli çizgilerden yeniden oluşur
+- [x] "Your hand" için Fan / Wall seçimi: kavisli meyhane duvarında asılı desteler, kaydırınca duvar boyunca yürünür; varsayılan yelpaze
+- [x] Köz dağılması: 3B kart çevrilince veya yeni maç gelince közlere ayrılıp toplanır (aynı canvas)
+- [x] Ayarlar › Effects: Full / Light / Off (`preferences.effects`, `PUT /api/preferences/effects`)
+- [x] 1440 / 800 / 390 px Chrome kontrolü ve bölüm bölüm kare ölçümü, `ui.md` güncellendi, `docs/demos/design-v4.gif`
+
 **Sıradaki:** Faz 3 (Power.log) ve Faz 4 (canlı izleyici), Faz 1'den **önce** yapılır (kullanıcı kararı, 2026-11-13). Sonra Faz 1, Faz 2.
 
 ## Faz 3 — Power.log yükleme
@@ -148,3 +160,9 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-13 — Lenis vitrin sayfası listeyi tarayıcıda yüklediği için okunamadı; Lenis'in şablon sayfasından 6 site metin olarak incelendi (hareket görülemedi). Alınanlar: Fuel'den sürekli görünen bölüm dizini (bölüm göstergesi), Rep Republic ve Kora'dan numaralı adım/varışta açılan bölüm, Arpeggio'dan bölüm içi sıralı giriş, Gaspar'dan yavaş kayan görsel katmanı (paralaks), Mattis'ten "kaydır" ipucu fikri.
 - 2026-11-13 — 3B kart: React Three Fiber + drei (`PerformanceMonitor`: kare hızı düşerse çözünürlük 2x→1x). Kartın iki yüzü canvas'a token renkleri ve fontlarla çizilir; tek WebGL canvas, ekran dışındayken çizim durur. Telefonda kart yazının üstünde kendi alanında (yazının arkasında okunurluğu bozuyordu).
 - 2026-11-13 — three 0.182'ye sabitlendi: 0.183+ `THREE.Clock`'u eskimiş sayıp konsola uyarı basıyor ve React Three Fiber 9 (kararlı) hâlâ onu kullanıyor. R3F yeni saate geçince güncellenecek.
+- 2026-11-13 — Tasarım v4 Overview yolculuğu: paneller artık yan yana kayan bir şerit değil, üst üste duran sahneler. Her bölüm kaydırmanın %40'ında ortada bekler (okunsun diye), kalan kısımda 6 şeritle sonrakine geçer. Bölüm başına kaydırma 0,85 → 1 ekran. Bölüm, şeritler onu açmaya başlayınca "varmış" sayılır.
+- 2026-11-13 — Şerit geçişi tek bir `clip-path` çokgeniyle yapıldı (her şeridin sağ kenarı kendi hızında çekilir, panel bir miktar sola kayar). Her şerit için panelin kopyasını çizmek (grafik ve 3B canvas ile birlikte 6 kez) 60 fps'i bozacaktı.
+- 2026-11-13 — Görsel erimesi kartın kendi malzemesine yamalandı (`onBeforeCompile`), ışık ve cila korunuyor. Sonraki bölümün arka plan görseli canvas'ın dışında olduğu için çizgilerden oluşma DOM'da 16 sütunla (yalnızca `transform`) yapıldı. Sütunlarda bulanıklık/renk filtresi yok: filtreli hâli kare başına ~10 ms tutuyordu.
+- 2026-11-13 — Köz dağılması: kart yüzü 80×112 noktalık bulut (tek çizim çağrısı, renk görünen yüzden), sürüklenme dünya uzayında ve kameradan uzağa, canvas kenarına yaklaşan kıvılcımlar söner. 1,3 sn.
+- 2026-11-13 — Effects seviyeleri: Full = hepsi. Light = geçişler kalır; erime shader'ı, közler (dağılma ve arka plandaki köz alanı) ve derinlik bulanıklığı kapanır. Off = yalnızca sade hareket: düz silme geçişi, eğilme/bükülme/paralaks yok. Ayar veritabanında (`preferences`) duruyor ki ileride izleyici oyun sırasında Light'a geçirebilsin (not `phase-3-4.md` 4. adımda).
+- 2026-11-13 — GSAP yine eklenmedi: tüm kaydırma efektleri Motion motion value'ları ve Lenis hızıyla temiz yapıldı. Tam 3B dünya içinde uçuş yapılmadı (3B model ister, oyunun yanında ağır kalır).
