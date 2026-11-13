@@ -37,6 +37,34 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [x] Henüz yapılmamış sayfalar için dürüst "Opens in Phase N" sayfaları, hata ve 404 sayfaları
 - [x] Mobil desenler (alt çubuk + More, filtre alt sayfası), font yedeklerinde Arial/Roboto yok
 
+### Faz 0.5c — Tasarım v3 (`docs/tasks/design-v3.md`)
+
+- [x] Kaynaklar: Skiper UI, React Bits, ThreeUI incelendi (hiçbiri eklenmedi, bkz. Kararlar)
+- [x] Kenar çubuğu kaldırıldı: üstte oyun menüsü gibi pirinç sekmeler; sayfalar menü sırasıyla yan yana, yöne göre kayan geçiş (React `<ViewTransition>`), ← → tuşları, telefonda alt çubuk + sağa/sola kaydırma
+- [x] Lenis ile yumuşak kaydırma; Overview dikey kaydırmayla ilerleyen yatay bölüm yolculuğu (Scoreboard → Last games → Win rate → Your hand → Matchups → Ranked climb), bölüm göstergesi, paralaks, varışta animasyonlar; telefonda ve Reduce motion'da dikey sayfa
+- [x] Hero'da etkileşimli 3B kart (React Three Fiber + drei): sürükle-döndür, tıkla-çevir, folyo parlaması, közler, klavye ve dokunmatik; WebGL yoksa veya Reduce motion açıksa 2B görsel
+- [x] 1440 / 800 / 390 px Chrome kontrolü, proje kuralları güncellendi, `docs/demos/design-v3.gif`
+
+**Sıradaki:** Faz 3 (Power.log) ve Faz 4 (canlı izleyici), Faz 1'den **önce** yapılır (kullanıcı kararı, 2026-11-13). Sonra Faz 1, Faz 2.
+
+## Faz 3 — Power.log yükleme
+
+- [ ] Kullanıcıdan gerçek Power.log örnekleri iste, anonimleştirip fixture yap
+- [ ] Parser + fixture testleri
+- [ ] `/import` sayfasında Power.log sürükle-bırak → bulunan maçların önizlemesi → onay
+- [ ] Ayarlar: log.config durum kontrolü ve onaylı düzeltme
+
+**Kabul:** Gerçek bir oturum logu yüklenince maçlar doğru sonuç, sınıf ve sırayla gelir. Aynı log tekrar yüklenince 0 yeni, N atlandı.
+
+## Faz 4 — Otomatik takip (canlı)
+
+- [ ] `scripts/watch-logs.ts` (chokidar, byte offset, yeniden deneme kuyruğu)
+- [ ] `POST /api/import/watcher` + `GET /api/events` (SSE)
+- [ ] Dashboard'da canlı güncelleme + toast
+- [ ] Ayarlar'da izleyici durumu (çalışıyor mu, son okunan dosya, son maç)
+
+**Kabul:** `npm run dev:all` açıkken Hearthstone'da bir maç bitirilir. Birkaç saniye içinde dashboard kendiliğinden güncellenir.
+
 ## Faz 1 — Veri girişi
 
 - [ ] Hızlı maç ekleme formu (klavye kısayollarıyla)
@@ -57,24 +85,6 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [ ] URL tabanlı global filtreler, tüm grafiklere bağlı (Genel Bakış'ta tarih aralığı, mod ve format Faz 0.5'te bağlandı; deste, sınıf ve özel tarih kaldı)
 
 **Kabul:** Seed verisiyle tüm grafikler dolu. Filtre değişince her şey güncellenir. Yeni maç eklenince sayfa yenilemeden rakamlar değişir.
-
-## Faz 3 — Power.log yükleme
-
-- [ ] Kullanıcıdan gerçek Power.log örnekleri iste, anonimleştirip fixture yap
-- [ ] Parser + fixture testleri
-- [ ] `/import` sayfasında Power.log sürükle-bırak → bulunan maçların önizlemesi → onay
-- [ ] Ayarlar: log.config durum kontrolü ve onaylı düzeltme
-
-**Kabul:** Gerçek bir oturum logu yüklenince maçlar doğru sonuç, sınıf ve sırayla gelir. Aynı log tekrar yüklenince 0 yeni, N atlandı.
-
-## Faz 4 — Otomatik takip (canlı)
-
-- [ ] `scripts/watch-logs.ts` (chokidar, byte offset, yeniden deneme kuyruğu)
-- [ ] `POST /api/import/watcher` + `GET /api/events` (SSE)
-- [ ] Dashboard'da canlı güncelleme + toast
-- [ ] Ayarlar'da izleyici durumu (çalışıyor mu, son okunan dosya, son maç)
-
-**Kabul:** `npm run dev:all` açıkken Hearthstone'da bir maç bitirilir. Birkaç saniye içinde dashboard kendiliğinden güncellenir.
 
 ## Faz 5 — Fark yaratan analizler (HSTopDecks'ten daha iyi olduğumuz yer)
 
@@ -128,4 +138,13 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-13 — Sınıf görseli: kullanıcı seçimi (Ayarlar) → sınıfın en yeni setteki efsanevi minyonu → varsayılan kahraman. Seçim `preferences` tablosunda (`classArt:CLASS`).
 - 2026-11-13 — Seed üreteci gerçekçi yapıldı (tırmanış Silver'dan başlar, her ~60 maçta yeni deste, deste değişimi seyrek) ki grafikteki kilit anlar görünsün; demo verisi yeniden üretildi.
 - 2026-11-13 — Chrome doğrulaması faz sonunda bir kez yapılır (kullanıcı isteği); görsel bir şey bozulursa hemen.
-
+- 2026-11-13 — Faz sırası değişti: Faz 3 (Power.log) ve Faz 4 (canlı izleyici) Faz 1'den önce. Import sayfası Power.log yüklemesiyle açılacağı için kilidi "Opens in Phase 3" oldu.
+- 2026-11-13 — Kenar çubuğu kaldırıldı; navigasyon üstte oyun menüsü gibi pirinç sekmeler (etiketler ≥1280 px, altında ipuçlu madalyon). Sayfalar menü sırasıyla yan yana durur; geçiş React `<ViewTransition>` ile (Next 16'da yerleşik): ileri gidince yeni sayfa sağdan, geri gidince soldan kayar, eski sayfa hafifçe küçülüp kararır (500 ms). Tarayıcının geri/ileri tuşu yön taşımadığı için onda kayma yok.
+- 2026-11-13 — ← → tuşları sayfa değiştirir; metin alanında, açık diyalogda veya okları kendisi kullanan öğede (`data-own-arrows`, ör. 3B kart) devre dışı. Telefonda yatay kaydırma (≥70 px, dikeyden belirgin yatay) sayfa değiştirir; yatay kayan listelerde ve `data-swipe-ignore` öğelerde çalışmaz. `overscroll-behavior-x: none` ile Chrome'un iki parmak geri hareketi engellendi.
+- 2026-11-13 — Lenis tüm uygulamada (`ReactLenis root`, `respectReducedMotion`). shadcn/Base UI açılır pencereleri CLI'ya ait olduğu için `data-lenis-prevent` yerine Lenis `prevent` seçicisiyle (`data-slot=…`) doğal kaydırır.
+- 2026-11-13 — GSAP eklenmedi: yatay yolculuk Motion ile (yapışkan alan + `transform`) temiz yapılabildi; iki kütüphaneyi aynı öğede kullanma riski de yok. Vanta.js veya ikinci 3B motor yok.
+- 2026-11-13 — Yolculuk yalnızca ≥768 px genişlik, ≥600 px yükseklik ve Reduce motion kapalıyken çalışır (CSS `journey:` varyantı + `JOURNEY_QUERY`). Bölüm başına ~0,85 ekran dikey kaydırma, zorla oturtma (snap) yok. Bölüm animasyonları bölüm ortalanmadan önce (yolun ~%55'inde) tek sefer oynar; dikey düzende görününce oynar.
+- 2026-11-13 — Hazır bileşen kaynakları: React Bits ücretsiz (MIT + Commons Clause, kişisel kullanıma uygun) ama ihtiyacımız olan parçalar (sayfa kayması, yatay yolculuk, 3B kart) orada yok veya ek paket (gsap/ogl) getiriyor; eklenmedi. Skiper UI'ın ilgili bileşenleri ücretli (Premium), kullanılmadı. ThreeUI'ın "Community" lisansı ve kurulumu doğrulanamadı, kullanılmadı.
+- 2026-11-13 — Lenis vitrin sayfası listeyi tarayıcıda yüklediği için okunamadı; Lenis'in şablon sayfasından 6 site metin olarak incelendi (hareket görülemedi). Alınanlar: Fuel'den sürekli görünen bölüm dizini (bölüm göstergesi), Rep Republic ve Kora'dan numaralı adım/varışta açılan bölüm, Arpeggio'dan bölüm içi sıralı giriş, Gaspar'dan yavaş kayan görsel katmanı (paralaks), Mattis'ten "kaydır" ipucu fikri.
+- 2026-11-13 — 3B kart: React Three Fiber + drei (`PerformanceMonitor`: kare hızı düşerse çözünürlük 2x→1x). Kartın iki yüzü canvas'a token renkleri ve fontlarla çizilir; tek WebGL canvas, ekran dışındayken çizim durur. Telefonda kart yazının üstünde kendi alanında (yazının arkasında okunurluğu bozuyordu).
+- 2026-11-13 — three 0.182'ye sabitlendi: 0.183+ `THREE.Clock`'u eskimiş sayıp konsola uyarı basıyor ve React Three Fiber 9 (kararlı) hâlâ onu kullanıyor. R3F yeni saate geçince güncellenecek.
