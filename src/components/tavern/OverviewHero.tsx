@@ -9,6 +9,8 @@ import { t } from "@/i18n";
 import { ArtCrop } from "./ArtCrop";
 import type { OverviewData, RankState } from "./types";
 import { useChapter } from "./journey/reveal";
+import { HeroCard } from "./card3d/HeroCard";
+import type { CardBackData } from "./card3d/card-faces";
 import { SCENE } from "@/components/motion/timing";
 
 /** Plaques rise in one after another. */
@@ -81,6 +83,25 @@ function LadderBar({ rank }: { rank: RankState }) {
   );
 }
 
+/** What the 3D card shows: its name on the front, my record on the back. */
+function cardData(d: OverviewData, f: NonNullable<OverviewData["featured"]>): CardBackData {
+  return {
+    name: f.name,
+    set: t.concepts.featuredFrom(f.set),
+    featuredLabel: t.concepts.featured,
+    backTitle: t.card3d.back,
+    rateLabel: `${t.overview.winRate} · ${d.rangeLabel}`,
+    rate: formatPercent(d.winRate),
+    wins: formatNumber(d.wins),
+    losses: formatNumber(d.losses),
+    games: t.concepts.games(formatNumber(d.games)),
+    streakLabel: t.concepts.streak,
+    streak: d.streak ? (d.streak.result === "WIN" ? t.overview.streakWins(d.streak.length) : t.overview.streakLosses(d.streak.length)) : t.overview.noStreak,
+    streakResult: d.streak?.result ?? null,
+    appName: t.app.name,
+  };
+}
+
 /**
  * The featured legendary as the scene: a blurred, colour-graded copy fills the
  * width, the sharp art (512 px, the largest HearthstoneJSON offers) stands on the
@@ -105,22 +126,19 @@ export function OverviewHero({ data }: { data: OverviewData }) {
             aria-hidden
             className="absolute inset-0 -z-10 bg-[radial-gradient(ellipse_80%_70%_at_70%_30%,transparent,#120d0a_75%),linear-gradient(180deg,#e0782a22,#120d0a)] mix-blend-multiply"
           />
-          <motion.div
-            className="absolute top-0 right-0 bottom-0 -z-10 w-[min(560px,62%)] [mask-image:linear-gradient(to_right,transparent,black_30%),linear-gradient(to_top,transparent,black_30%)] [mask-composite:intersect]"
-            style={{ x: artX }}
-          >
-            <ArtCrop cardId={f.id} alt={f.name} priority />
+          <motion.div className="absolute top-0 right-0 -z-10 h-[58%] w-[72%] md:bottom-0 md:h-auto md:w-[min(600px,50%)]" style={{ x: artX }}>
+            <HeroCard cardId={f.id} data={cardData(data, f)} className="size-full" />
           </motion.div>
         </>
       )}
 
-      <div className="mx-auto flex min-h-[min(72vh,600px)] max-w-[1180px] flex-col justify-end gap-5 px-4 pt-14 pb-12 md:px-8 journey:h-full journey:min-h-0 journey:pb-24">
+      <div className="pointer-events-none mx-auto flex min-h-[min(72vh,600px)] max-w-[1180px] flex-col [&>*]:pointer-events-auto justify-end gap-5 px-4 pt-14 pb-12 md:px-8 journey:h-full journey:min-h-0 journey:pb-24">
         {f && (
-          <p className="stat max-w-[60ch] text-sm tracking-[0.14em] text-brass-dim uppercase [text-shadow:0_1px_8px_#000]">
+          <p className="stat max-w-[60ch] self-start text-sm tracking-[0.14em] text-brass-dim uppercase [text-shadow:0_1px_8px_#000]">
             {t.concepts.featured} · {f.name} · {t.concepts.featuredFrom(f.set)}
           </p>
         )}
-        <div>
+        <div className="self-start">
           <p className="text-sm text-brass-dim">
             {t.overview.winRate} · {data.rangeLabel}
           </p>
@@ -139,7 +157,7 @@ export function OverviewHero({ data }: { data: OverviewData }) {
             <span className="ml-3 text-base text-ink-muted">{t.concepts.games(formatNumber(data.games))}</span>
           </p>
         </div>
-        <div className="grid max-w-[760px] gap-3">
+        <div className="grid w-full max-w-[760px] gap-3">
           <div className="grid grid-cols-3 gap-3">
             <Rise index={0}>
               <Plaque label={t.concepts.today}>
