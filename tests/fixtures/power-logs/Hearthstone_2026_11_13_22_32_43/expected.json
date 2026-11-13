@@ -1,0 +1,494 @@
+{
+  "games": [
+    {
+      "sourceHash": "6f7712763778c084fbd4341c8800d77fde5cd81f9404295c942678a7764f827a",
+      "session": "Hearthstone_2026_11_13_22_32_43",
+      "startedAt": "2026-11-13T19:33:33.961Z",
+      "endedAt": "2026-11-13T19:38:10.776Z",
+      "durationSec": 277,
+      "mode": "RANKED",
+      "format": "STANDARD",
+      "gameType": "GT_RANKED",
+      "formatType": "FT_STANDARD",
+      "result": "LOSS",
+      "conceded": "FRIENDLY",
+      "playerClass": "WARLOCK",
+      "opponentClass": "WARLOCK",
+      "playerHeroCardId": "HERO_07",
+      "opponentHeroCardId": "HERO_07ax",
+      "wentFirst": false,
+      "turns": 7,
+      "gameTurns": 14,
+      "placement": null,
+      "cardEvents": [
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130281,
+          "event": "MULLIGAN_KEPT",
+          "turn": 0
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129805,
+          "event": "MULLIGAN_KEPT",
+          "turn": 0
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 117719,
+          "event": "MULLIGAN_KEPT",
+          "turn": 0
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129824,
+          "event": "MULLIGAN_KEPT",
+          "turn": 0
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 126125,
+          "event": "REVEALED",
+          "turn": 1
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130285,
+          "event": "DRAWN",
+          "turn": 1
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 117719,
+          "event": "PLAYED",
+          "turn": 1
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 123126,
+          "event": "REVEALED",
+          "turn": 1
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 123126,
+          "event": "PLAYED",
+          "turn": 1
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129793,
+          "event": "DRAWN",
+          "turn": 2
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129793,
+          "event": "PLAYED",
+          "turn": 2
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130283,
+          "event": "DRAWN",
+          "turn": 3
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130283,
+          "event": "PLAYED",
+          "turn": 3
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 122720,
+          "event": "PLAYED",
+          "turn": 4
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 122720,
+          "event": "REVEALED",
+          "turn": 4
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 69735,
+          "event": "PLAYED",
+          "turn": 4
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 69735,
+          "event": "REVEALED",
+          "turn": 4
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120488,
+          "event": "DRAWN",
+          "turn": 4
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130285,
+          "event": "PLAYED",
+          "turn": 4
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 118494,
+          "event": "PLAYED",
+          "turn": 5
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 118494,
+          "event": "REVEALED",
+          "turn": 5
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129793,
+          "event": "DRAWN",
+          "turn": 5
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129805,
+          "event": "PLAYED",
+          "turn": 5
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129793,
+          "event": "PLAYED",
+          "turn": 5
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 118238,
+          "event": "REVEALED",
+          "turn": 6
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 102224,
+          "event": "DRAWN",
+          "turn": 6
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129824,
+          "event": "PLAYED",
+          "turn": 6
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 102224,
+          "event": "PLAYED",
+          "turn": 6
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130281,
+          "event": "DRAWN",
+          "turn": 7
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130281,
+          "event": "PLAYED",
+          "turn": 7
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130281,
+          "event": "PLAYED",
+          "turn": 7
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 117892,
+          "event": "DRAWN",
+          "turn": 7
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 117892,
+          "event": "PLAYED",
+          "turn": 7
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120482,
+          "event": "DRAWN",
+          "turn": 7
+        }
+      ]
+    },
+    {
+      "sourceHash": "a3981771feac8403a5e12cb289668f76a7edec2ec0c51e0183c7446f14543597",
+      "session": "Hearthstone_2026_11_13_22_32_43",
+      "startedAt": "2026-11-13T19:38:48.644Z",
+      "endedAt": "2026-11-13T19:42:14.502Z",
+      "durationSec": 206,
+      "mode": "RANKED",
+      "format": "STANDARD",
+      "gameType": "GT_RANKED",
+      "formatType": "FT_STANDARD",
+      "result": "WIN",
+      "conceded": "OPPOSING",
+      "playerClass": "WARLOCK",
+      "opponentClass": "DRUID",
+      "playerHeroCardId": "HERO_07",
+      "opponentHeroCardId": "HERO_06",
+      "wentFirst": true,
+      "turns": 5,
+      "gameTurns": 10,
+      "placement": null,
+      "cardEvents": [
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120488,
+          "event": "MULLIGAN_REPLACED",
+          "turn": 0
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130283,
+          "event": "MULLIGAN_KEPT",
+          "turn": 0
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120485,
+          "event": "MULLIGAN_REPLACED",
+          "turn": 0
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 117719,
+          "event": "DRAWN",
+          "turn": 1
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 117719,
+          "event": "PLAYED",
+          "turn": 1
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 102224,
+          "event": "DRAWN",
+          "turn": 1
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130285,
+          "event": "DRAWN",
+          "turn": 2
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 102224,
+          "event": "PLAYED",
+          "turn": 2
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129805,
+          "event": "DRAWN",
+          "turn": 3
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130283,
+          "event": "PLAYED",
+          "turn": 3
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129802,
+          "event": "DRAWN",
+          "turn": 4
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 130285,
+          "event": "PLAYED",
+          "turn": 4
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 123481,
+          "event": "PLAYED",
+          "turn": 4
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 123481,
+          "event": "REVEALED",
+          "turn": 4
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120484,
+          "event": "DRAWN",
+          "turn": 5
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120485,
+          "event": "DRAWN",
+          "turn": 5
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120484,
+          "event": "PLAYED",
+          "turn": 5
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 120748,
+          "event": "REVEALED",
+          "turn": 5
+        }
+      ]
+    },
+    {
+      "sourceHash": "ef90d4679a946a194c3cae97c3c91b1d5755e8ef4072794ca10bad5588c0bccf",
+      "session": "Hearthstone_2026_11_13_22_32_43",
+      "startedAt": "2026-11-13T19:43:04.235Z",
+      "endedAt": "2026-11-13T19:45:56.453Z",
+      "durationSec": 172,
+      "mode": "RANKED",
+      "format": "STANDARD",
+      "gameType": "GT_RANKED",
+      "formatType": "FT_STANDARD",
+      "result": "WIN",
+      "conceded": "OPPOSING",
+      "playerClass": "WARLOCK",
+      "opponentClass": "WARLOCK",
+      "playerHeroCardId": "HERO_07",
+      "opponentHeroCardId": "HERO_07cg",
+      "wentFirst": false,
+      "turns": 4,
+      "gameTurns": 8,
+      "placement": null,
+      "cardEvents": [
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129802,
+          "event": "MULLIGAN_REPLACED",
+          "turn": 0
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129805,
+          "event": "MULLIGAN_KEPT",
+          "turn": 0
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120488,
+          "event": "MULLIGAN_REPLACED",
+          "turn": 0
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 102224,
+          "event": "MULLIGAN_KEPT",
+          "turn": 0
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 126125,
+          "event": "REVEALED",
+          "turn": 1
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120482,
+          "event": "DRAWN",
+          "turn": 1
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120482,
+          "event": "PLAYED",
+          "turn": 1
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129793,
+          "event": "DRAWN",
+          "turn": 2
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 102224,
+          "event": "PLAYED",
+          "turn": 2
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 127067,
+          "event": "PLAYED",
+          "turn": 3
+        },
+        {
+          "side": "OPPOSING",
+          "dbfId": 127067,
+          "event": "REVEALED",
+          "turn": 3
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120485,
+          "event": "DRAWN",
+          "turn": 3
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 117892,
+          "event": "PLAYED",
+          "turn": 3
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120482,
+          "event": "DRAWN",
+          "turn": 3
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 129805,
+          "event": "PLAYED",
+          "turn": 3
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120482,
+          "event": "PLAYED",
+          "turn": 3
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120484,
+          "event": "DRAWN",
+          "turn": 4
+        },
+        {
+          "side": "FRIENDLY",
+          "dbfId": 120485,
+          "event": "PLAYED",
+          "turn": 4
+        }
+      ]
+    }
+  ],
+  "skipped": []
+}
