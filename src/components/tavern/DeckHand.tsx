@@ -18,7 +18,7 @@ const CARD_W = 160;
  * A deck as a card. The win-rate gem, name and record stack in the card's
  * left part, which stays visible however tightly the fan overlaps (`visible` px).
  */
-function DeckCardFace({ deck, visible = CARD_W }: { deck: DeckStanding; visible?: number }) {
+export function DeckCardFace({ deck, visible = CARD_W }: { deck: DeckStanding; visible?: number }) {
   const good = deck.rate >= 0.5;
   return (
     <div className="brass-frame relative aspect-[5/7] w-full overflow-hidden rounded-[14px] [--frame-fill:#1c1410]">
@@ -44,7 +44,7 @@ function DeckCardFace({ deck, visible = CARD_W }: { deck: DeckStanding; visible?
   );
 }
 
-function withPreview(deck: DeckStanding, node: React.ReactElement) {
+export function withPreview(deck: DeckStanding, node: React.ReactElement) {
   return deck.cardName ? (
     <CardPreview cardId={deck.art} name={deck.cardName}>
       {node}

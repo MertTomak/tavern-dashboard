@@ -6,7 +6,7 @@ import { FramePanel } from "@/components/tavern/FramePanel";
 import { OverviewHero } from "@/components/tavern/OverviewHero";
 import { LastGames } from "@/components/tavern/LastGames";
 import { AnnotatedChart } from "@/components/tavern/AnnotatedChart";
-import { DeckHand } from "@/components/tavern/DeckHand";
+import { DeckShowcase } from "@/components/tavern/DeckShowcase";
 import { OverviewJourney, type Chapter } from "@/components/tavern/journey/OverviewJourney";
 import { HeroSelect } from "@/components/tavern/HeroSelect";
 import { KineticTitle } from "@/components/tavern/journey/KineticTitle";
@@ -94,7 +94,7 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
       children: (
         <ChapterFrame title={t.concepts.hand}>
           <FramePanel hint={t.concepts.handHint}>
-            <DeckHand decks={d.decks} />
+            <DeckShowcase decks={d.decks} />
           </FramePanel>
         </ChapterFrame>
       ),
