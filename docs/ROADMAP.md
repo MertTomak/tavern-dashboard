@@ -61,8 +61,8 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 
 ## Faz 3 — Power.log yükleme
 
-- [ ] Kullanıcıdan gerçek Power.log örnekleri iste, anonimleştirip fixture yap
-- [ ] Parser + fixture testleri
+- [x] Kullanıcıdan gerçek Power.log örnekleri iste, anonimleştirip fixture yap (3 ranked maç, `scripts/anonymise-log.ts`)
+- [x] Parser + fixture testleri (`src/lib/parser/`, `scripts/parse-log.ts`)
 - [ ] `/import` sayfasında Power.log sürükle-bırak → bulunan maçların önizlemesi → onay
 - [ ] Ayarlar: log.config durum kontrolü ve onaylı düzeltme
 
@@ -110,9 +110,8 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 
 **Kabul:** Gerçek loglarla en az bir destenin kart istatistikleri ve rakip arketip matrisi dolu. İçgörüler yanlış veya abartılı bir şey söylemiyor (az veride susuyor).
 
-## Faz 6 — Battlegrounds ve Arena
+## Faz 6 — Arena
 
-- [ ] BG: parser'dan sıralama ve kahraman, manuel MMR girişi, BG sayfası
 - [ ] Arena: run takibi (parser + manuel), Arena sayfası
 
 ## Faz 7 — Cilalama
@@ -123,6 +122,10 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [ ] Ayarlar'dan tek tıkla veritabanı yedeği ve geri yükleme
 - [ ] Erişilebilirlik ve performans geçişi (Lighthouse), E2E testleri ana akışları kapsar
 - [ ] `README.md`: kurulum, kullanım, sık sorunlar (İngilizce)
+
+## Sonra / planlanmıyor
+
+- [ ] Battlegrounds: parser'dan sıralama ve kahraman, manuel MMR girişi, BG sayfası. Kullanıcı BG oynamıyor (2026-11-13); menüden kaldırıldı. Parser BG oyunlarında hata vermez ve sıralamayı okur, `/battlegrounds` sayfası ve BG modları kodda duruyor.
 
 ## Kararlar
 
@@ -166,3 +169,5 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-13 — Köz dağılması: kart yüzü 80×112 noktalık bulut (tek çizim çağrısı, renk görünen yüzden), sürüklenme dünya uzayında ve kameradan uzağa, canvas kenarına yaklaşan kıvılcımlar söner. 1,3 sn.
 - 2026-11-13 — Effects seviyeleri: Full = hepsi. Light = geçişler kalır; erime shader'ı, közler (dağılma ve arka plandaki köz alanı) ve derinlik bulanıklığı kapanır. Off = yalnızca sade hareket: düz silme geçişi, eğilme/bükülme/paralaks yok. Ayar veritabanında (`preferences`) duruyor ki ileride izleyici oyun sırasında Light'a geçirebilsin (not `phase-3-4.md` 4. adımda).
 - 2026-11-13 — GSAP yine eklenmedi: tüm kaydırma efektleri Motion motion value'ları ve Lenis hızıyla temiz yapıldı. Tam 3B dünya içinde uçuş yapılmadı (3B model ister, oyunun yanında ağır kalır).
+- 2026-11-13 — Parser: istemci her olayı iki kez yazıyor (`GameState` ve `PowerTaskList`); yalnızca `GameState` satırları okunur. "Sen" olan taraf mulligan'dan önce elindeki kartları `SHOW_ENTITY` ile açılan oyuncudur (The Coin `FULL_ENTITY` ile açık oluşturulduğu için sayılmaz); yedek yol logda adı yazılan tek oyuncu. Sınıf kahraman varlığının `CLASS` etiketinden okunur (skin'lerde de çalışır). Tur sayısı = oyun sayacının yarısı yukarı yuvarlanmış (her oyuncunun kendi turu); ham sayaç `gameTurns` olarak duruyor. Süre `CREATE_GAME` ile oyunun `COMPLETE` olması arası. Kart olayları yalnızca kurulumda destede/elde başlayan koleksiyon kartları için (üretilen kartlar, The Coin, kahraman güçleri hariç).
+- 2026-11-13 — Battlegrounds menüden kaldırıldı (kullanıcı oynamıyor); iş "Sonra / planlanmıyor" altında. Kod ve parser desteği duruyor.

@@ -8,7 +8,6 @@ export const OPENS_IN: Record<string, number> = {
   "/import": 3,
   "/matchups": 2,
   "/sessions": 5,
-  "/battlegrounds": 6,
   "/arena": 6,
 };
 
