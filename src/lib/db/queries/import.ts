@@ -96,7 +96,7 @@ export type ImportBatchRow = { id: number; source: string; fileName: string | nu
 
 /** Past imports, newest first (the demo seed batch is managed in Settings, not here). */
 export function listImportBatches(limit = 20): ImportBatchRow[] {
-  return db
+  const batches = db
     .select({
       id: importBatches.id,
       source: importBatches.source,
@@ -104,13 +104,22 @@ export function listImportBatches(limit = 20): ImportBatchRow[] {
       imported: importBatches.imported,
       skipped: importBatches.skipped,
       createdAt: importBatches.createdAt,
-      remaining: sql<number>`(select count(*) from ${games} where ${games.importBatchId} = ${importBatches.id})`,
     })
     .from(importBatches)
     .where(ne(importBatches.fileName, SEED_BATCH_NAME))
     .orderBy(desc(importBatches.id))
     .limit(limit)
     .all();
+  if (!batches.length) return [];
+  // Games still there per batch (some may have been deleted one by one later).
+  const counts = db
+    .select({ batchId: games.importBatchId, n: sql<number>`count(*)` })
+    .from(games)
+    .where(inArray(games.importBatchId, batches.map((b) => b.id)))
+    .groupBy(games.importBatchId)
+    .all();
+  const remaining = new Map(counts.map((c) => [c.batchId, c.n]));
+  return batches.map((b) => ({ ...b, remaining: remaining.get(b.id) ?? 0 }));
 }
 
 /** Undoes an import: removes its games (their card events go with them) and the batch. Returns games removed, or null if not found. */
