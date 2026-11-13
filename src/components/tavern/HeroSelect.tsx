@@ -46,7 +46,7 @@ export function HeroSelect({ classes, totalGames }: { classes: ClassStanding[]; 
 
   return (
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,420px)]">
-      <ul className="grid grid-cols-3 content-start gap-x-3 gap-y-5 sm:grid-cols-4 xl:grid-cols-6" aria-label={t.concepts.matchups}>
+      <ul className="grid grid-cols-3 content-start gap-x-3 gap-y-5 sm:grid-cols-4 lg:grid-cols-6" aria-label={t.concepts.matchups}>
         {classes.map((c, i) => {
           const active = c.cls === sel.cls;
           return (

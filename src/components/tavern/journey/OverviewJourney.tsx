@@ -68,7 +68,7 @@ function ChapterPanel({
       ref={ref}
       id={`chapter-${chapter.id}`}
       aria-label={chapter.label}
-      className="relative isolate overflow-hidden journey:h-full journey:w-[calc(100%/var(--n))] journey:shrink-0"
+      className="relative isolate overflow-clip journey:h-full journey:w-[calc(100%/var(--n))] journey:shrink-0"
     >
       {chapter.art && (
         <motion.div
@@ -127,7 +127,7 @@ export function OverviewJourney({ chapters }: { chapters: Chapter[] }) {
       className="relative journey:h-[calc((var(--n)-1)*var(--per)*100dvh+100dvh)]"
       style={{ ["--n" as string]: n, ["--per" as string]: SCROLL_PER_CHAPTER }}
     >
-      <div className="journey:sticky journey:top-(--chrome-h) journey:h-[calc(100dvh-var(--chrome-h))] journey:overflow-hidden">
+      <div className="journey:sticky journey:top-(--chrome-h) journey:h-[calc(100dvh-var(--chrome-h))] journey:overflow-clip">
         <motion.div className="flex flex-col gap-10 journey:h-full journey:w-[calc(var(--n)*100%)] journey:flex-row journey:gap-0" style={journey ? { x } : undefined}>
           {chapters.map((c, i) => (
             <ChapterPanel key={c.id} chapter={c} index={i} progress={progress} count={n} journey={journey} arrived={i <= arrived} />
