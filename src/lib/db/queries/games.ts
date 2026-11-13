@@ -150,3 +150,36 @@ export function updateGame(id: string, patch: GamePatch): boolean {
 export function deleteGame(id: string): boolean {
   return db.delete(games).where(eq(games.id, id)).run().changes > 0;
 }
+
+export type RankPromptGame = {
+  id: string;
+  result: GameRow["result"];
+  opponentClass: string;
+  playedAt: string;
+  /** The rank entered most recently, so its league can be open already. */
+  lastRank: { rankAfter: number; legendRank: number | null } | null;
+};
+
+/** The newest ranked game, if it has no rank yet and the prompt for it was not skipped. */
+export function rankPromptGame(skippedId: string | null): RankPromptGame | null {
+  const g = db
+    .select({ id: games.id, result: games.result, opponentClass: games.opponentClass, playedAt: games.playedAt, rankAfter: games.rankAfter })
+    .from(games)
+    .where(eq(games.mode, "RANKED"))
+    .orderBy(desc(games.playedAt))
+    .get();
+  if (!g || g.rankAfter !== null || g.id === skippedId) return null;
+  const last = db
+    .select({ rankAfter: games.rankAfter, legendRank: games.legendRank })
+    .from(games)
+    .where(and(eq(games.mode, "RANKED"), sql`${games.rankAfter} is not null`))
+    .orderBy(desc(games.playedAt))
+    .get();
+  return {
+    id: g.id,
+    result: g.result,
+    opponentClass: g.opponentClass,
+    playedAt: g.playedAt,
+    lastRank: last && last.rankAfter !== null ? { rankAfter: last.rankAfter, legendRank: last.legendRank } : null,
+  };
+}

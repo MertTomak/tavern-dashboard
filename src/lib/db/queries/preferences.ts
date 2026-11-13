@@ -39,3 +39,17 @@ export function setEffectsLevel(level: EffectsLevel): void {
     .onConflictDoUpdate({ target: preferences.key, set: { value: level, updatedAt: new Date().toISOString() } })
     .run();
 }
+
+const RANK_PROMPT_SKIP = "rankPrompt:skipped";
+
+/** The ranked game whose rank prompt the user dismissed (only the newest one matters). */
+export function getSkippedRankPrompt(): string | null {
+  return db.select().from(preferences).where(eq(preferences.key, RANK_PROMPT_SKIP)).get()?.value ?? null;
+}
+
+export function skipRankPrompt(gameId: string): void {
+  db.insert(preferences)
+    .values({ key: RANK_PROMPT_SKIP, value: gameId })
+    .onConflictDoUpdate({ target: preferences.key, set: { value: gameId, updatedAt: new Date().toISOString() } })
+    .run();
+}

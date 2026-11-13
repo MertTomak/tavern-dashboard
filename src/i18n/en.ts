@@ -362,6 +362,13 @@ export const en = {
     legendNumber: "Legend number (optional)",
     clear: "No rank",
     current: (label: string) => `Now ${label}`,
+    promptTitle: "Your rank after this game?",
+    promptGame: (result: string, opponent: string, when: string) => `${result} vs ${opponent} · ${when}`,
+    promptHint: "Pick the league, then the rank. It fills your ranked climb.",
+    skip: "Skip",
+    skipLabel: "Skip this game's rank",
+    saved: (label: string) => `Rank saved: ${label}.`,
+    failed: "Could not save the rank. Please try again.",
   },
   cards: {
     legendary: "Legendary",

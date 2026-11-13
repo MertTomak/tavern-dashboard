@@ -12,7 +12,10 @@ import { HeroSelect } from "@/components/tavern/HeroSelect";
 import { KineticTitle } from "@/components/tavern/journey/KineticTitle";
 import { Skeleton } from "@/components/ui/skeleton";
 import { hasAnyGames } from "@/lib/db/queries/overview";
-import { getEffectsLevel } from "@/lib/db/queries/preferences";
+import { rankPromptGame } from "@/lib/db/queries/games";
+import { RankPrompt } from "@/components/dashboard/RankPrompt";
+import { formatShortDateTime } from "@/lib/format";
+import { getEffectsLevel, getSkippedRankPrompt } from "@/lib/db/queries/preferences";
 import { effectiveEffects, isInGame } from "@/lib/live/game-state";
 import { parseFilters } from "@/lib/filters";
 import { t } from "@/i18n";
@@ -59,8 +62,18 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
       </Shell>
     );
   }
+  const ask = rankPromptGame(getSkippedRankPrompt());
+  const prompt = ask && (
+    <RankPrompt key={ask.id} gameId={ask.id} result={ask.result} opponentClass={ask.opponentClass} when={formatShortDateTime(ask.playedAt)} lastRank={ask.lastRank} />
+  );
   const d = loadOverview(parseFilters(await searchParams), new Date());
-  if (!d) return <NoMatch />;
+  if (!d)
+    return (
+      <>
+        <NoMatch />
+        {prompt}
+      </>
+    );
 
   const chapters: Chapter[] = [
     { id: "scoreboard", label: t.journey.scoreboard, children: <OverviewHero data={d} /> },
@@ -141,6 +154,7 @@ async function Overview({ searchParams }: { searchParams: PageProps<"/">["search
     <>
       <h1 className="sr-only">{t.pages.overview.title}</h1>
       <OverviewJourney chapters={chapters} effects={effectiveEffects(getEffectsLevel(), isInGame())} />
+      {prompt}
     </>
   );
 }
