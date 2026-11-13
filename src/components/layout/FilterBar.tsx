@@ -107,7 +107,7 @@ export function FilterBar() {
     <div
       role="group"
       aria-label={t.a11y.filters}
-      className="sticky top-14 z-30 flex items-center gap-2 border-b border-brass/15 bg-oak-deep/80 px-4 py-2.5 backdrop-blur-md md:top-0 md:px-8"
+      className="flex items-center gap-2 border-b border-brass/15 bg-oak-deep/80 px-4 py-2.5 backdrop-blur-md md:px-8"
     >
       <div className="hidden flex-wrap items-center gap-2 md:flex">
         {selects}

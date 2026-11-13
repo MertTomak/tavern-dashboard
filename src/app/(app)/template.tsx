@@ -1,15 +1,17 @@
-import * as motion from "motion/react-client";
-import { DURATION, EASE_SNAP } from "@/components/motion/timing";
+import { ViewTransition } from "react";
 
-/** Page transition: a template re-mounts on every navigation, so each page fades and lifts in. */
+const SLIDE = { "nav-forward": "nav-forward", "nav-back": "nav-back", default: "none" } as const;
+
+/**
+ * Page transition. Pages sit side by side in menu order: moving forward slides the
+ * new page in from the right, moving back from the left, with a slight step back in
+ * depth (CSS in globals.css). Untyped transitions (filters, refresh, browser back)
+ * swap without a slide. A template re-mounts on every navigation, so enter/exit fire.
+ */
 export default function PageTransition({ children }: { children: React.ReactNode }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: DURATION.slow, ease: EASE_SNAP }}
-    >
-      {children}
-    </motion.div>
+    <ViewTransition enter={SLIDE} exit={SLIDE} default="none">
+      <div>{children}</div>
+    </ViewTransition>
   );
 }

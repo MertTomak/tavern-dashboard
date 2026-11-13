@@ -84,6 +84,11 @@
 
 :root {
   --radius: 0.75rem;
+  /* Page slides: longer than UI motion (pages are big), mirrored in components/motion/timing.ts. */
+  --page-slide-duration: 500ms;
+  --page-slide-ease: cubic-bezier(0.65, 0, 0.2, 1);
+  /* Height of the sticky top chrome; AppChrome measures and overwrites it. */
+  --chrome-h: 109px;
 
   --background: #f4ecdc;
   --foreground: #2b2017;
@@ -308,4 +313,81 @@
   --chart-2: #4fd1b3;
   --glow: #ffb54740;
   background: radial-gradient(ellipse 70% 50% at 80% -10%, #ff7a5922, transparent), #0a0c11;
+}
+
+/* ---------- Page slides (React <ViewTransition>, types set by nav links, keys and swipes) ---------- */
+html {
+  /* No accidental two-finger back/forward in Chrome. */
+  overscroll-behavior-x: none;
+}
+::view-transition {
+  pointer-events: none;
+}
+::view-transition-group(app-chrome),
+::view-transition-group(mobile-coin-bar) {
+  animation: none;
+  z-index: 100;
+}
+::view-transition-old(app-chrome),
+::view-transition-old(mobile-coin-bar) {
+  display: none;
+}
+::view-transition-new(app-chrome),
+::view-transition-new(mobile-coin-bar) {
+  animation: none;
+}
+::view-transition-old(.nav-forward),
+::view-transition-old(.nav-back),
+::view-transition-new(.nav-forward),
+::view-transition-new(.nav-back) {
+  animation-duration: var(--page-slide-duration);
+  animation-timing-function: var(--page-slide-ease);
+  animation-fill-mode: both;
+}
+::view-transition-old(.nav-forward) {
+  animation-name: page-out-left;
+}
+::view-transition-new(.nav-forward) {
+  animation-name: page-in-right;
+}
+::view-transition-old(.nav-back) {
+  animation-name: page-out-right;
+}
+::view-transition-new(.nav-back) {
+  animation-name: page-in-left;
+}
+/* The leaving page steps back (smaller, dimmer) as it slides off; the new one arrives from the side. */
+@keyframes page-out-left {
+  to {
+    transform: translateX(-28%) scale(0.92);
+    opacity: 0;
+    filter: brightness(0.6);
+  }
+}
+@keyframes page-out-right {
+  to {
+    transform: translateX(28%) scale(0.92);
+    opacity: 0;
+    filter: brightness(0.6);
+  }
+}
+@keyframes page-in-right {
+  from {
+    transform: translateX(40%) scale(0.96);
+    opacity: 0;
+  }
+}
+@keyframes page-in-left {
+  from {
+    transform: translateX(-40%) scale(0.96);
+    opacity: 0;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-old(*),
+  ::view-transition-new(*),
+  ::view-transition-group(*) {
+    animation-duration: 0s !important;
+    animation-delay: 0s !important;
+  }
 }

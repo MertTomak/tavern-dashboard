@@ -1,19 +1,24 @@
 import { Suspense } from "react";
-import { MedallionNav } from "@/components/tavern/MedallionNav";
+import { GameMenuBar, MobileCoinBar } from "@/components/tavern/GameMenu";
+import { AppChrome } from "@/components/layout/AppChrome";
 import { FilterBar } from "@/components/layout/FilterBar";
+import { PageNavigator } from "@/components/layout/PageNavigator";
 import { t } from "@/i18n";
 
 export default function AppShellLayout({ children }: LayoutProps<"/">) {
   return (
-    <div className="min-h-screen text-parchment md:flex">
-      <MedallionNav />
-      <div className="flex min-w-0 flex-1 flex-col pb-24 md:pb-0">
-        <Suspense fallback={<div className="h-[53px] border-b border-brass/15" />}>
+    <div className="flex min-h-screen flex-col text-parchment">
+      <AppChrome>
+        <GameMenuBar />
+        <Suspense fallback={<div className="h-[53px] border-b border-brass/15 bg-oak-deep/80" />}>
           <FilterBar />
         </Suspense>
-        <main className="flex-1">{children}</main>
-        <footer className="mx-auto w-full max-w-[1180px] px-4 py-6 text-xs text-ink-muted md:px-8">{t.legal.trademark}</footer>
-      </div>
+      </AppChrome>
+      <PageNavigator>
+        <main className="min-w-0 flex-1 overflow-x-clip pb-24 md:pb-0">{children}</main>
+      </PageNavigator>
+      <footer className="mx-auto w-full max-w-[1180px] px-4 pt-6 pb-28 text-xs text-ink-muted md:px-8 md:pb-6">{t.legal.trademark}</footer>
+      <MobileCoinBar />
     </div>
   );
 }

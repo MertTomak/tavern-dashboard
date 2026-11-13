@@ -9,6 +9,8 @@ export const en = {
     mainNav: "Main menu",
     mobileNav: "Mobile menu",
     filters: "Filters",
+    keysHint: "← → to switch pages",
+    locked: (label: string, phase: number) => `${label}, opens in Phase ${phase}`,
   },
   nav: {
     overview: "Overview",

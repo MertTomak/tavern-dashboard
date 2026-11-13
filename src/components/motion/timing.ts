@@ -19,3 +19,16 @@ export const snap: Transition = { duration: DURATION.base, ease: EASE_SNAP };
 export const layoutSpring: Transition = { type: "spring", bounce: 0, visualDuration: DURATION.slow };
 
 export const STAGGER = 0.045;
+
+/**
+ * Scene motion: page slides and Overview chapter reveals. Longer than UI motion
+ * because whole pages and panels move. CSS mirror: --page-slide-* in globals.css.
+ */
+export const SCENE = {
+  pageSlide: 0.5,
+  reveal: 0.55,
+  /** Delay between items revealed in sequence (dealt cards, lit portraits). */
+  step: 0.07,
+} as const;
+
+export const EASE_SCENE = [0.65, 0, 0.2, 1] as const;
