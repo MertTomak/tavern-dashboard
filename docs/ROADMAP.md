@@ -1,6 +1,6 @@
 # Yol Haritası
 
-Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz sonunda: testler geçer, arayüz Chrome'da gösterilir, `docs/demos/faz-N.gif` kaydedilir, kullanıcıya kısa özet verilir.
+Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz sonunda: testler geçer, arayüz Chrome'da gösterilir, `docs/demos/phase-N.gif` kaydedilir, kullanıcıya kısa özet verilir.
 
 ## Faz 0 — İskelet
 
@@ -57,7 +57,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [x] Ayarlar › Effects: Full / Light / Off (`preferences.effects`, `PUT /api/preferences/effects`)
 - [x] 1440 / 800 / 390 px Chrome kontrolü ve bölüm bölüm kare ölçümü, `ui.md` güncellendi, `docs/demos/design-v4.gif`
 
-**Sıradaki:** Faz 3 (Power.log) ve Faz 4 (canlı izleyici), Faz 1'den **önce** yapılır (kullanıcı kararı, 2026-11-13). Sonra Faz 1, Faz 2.
+**Durum (2026-11-14):** Faz 0–0.5d, Faz 1 ve Faz 3–4'ün ana işleri bitti. Açık kalanlar: Faz 3/4'ün Ayarlar maddeleri (log.config durumu, izleyici durumu) ve Faz 2. Sıradaki büyük iş kullanıcının vereceği brief ile belirlenir (masaüstü uygulama + deste izleyici, Faz 8). Eski "Faz 3-4 önce" sırası tamamlandı.
 
 ## Faz 3 — Power.log yükleme
 
@@ -124,6 +124,14 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [ ] Erişilebilirlik ve performans geçişi (Lighthouse), E2E testleri ana akışları kapsar
 - [ ] `README.md`: kurulum, kullanım, sık sorunlar (İngilizce)
 
+## Faz 8 — Mac masaüstü uygulaması ve oyun içi deste izleyici
+
+Planlandı, henüz başlamadı. Ayrıntılı brief gelince `docs/tasks/` altına kontrol listesi olarak kaydedilir.
+
+- [ ] Electron kabuğu: uygulama tek pencerede açılır, yerel sunucuyu ve log izleyiciyi kendisi başlatır (aynı anda tek izleyici)
+- [ ] Oyun içi deste izleyici (overlay): kendi destem ve çekilen/kalan kartlar, rakibin açtığı kartlar. Yalnızca oyunda görünen bilgi (adil oyun), yalnızca log dosyaları, oyun belleği okunmaz
+- [ ] Paketleme ve kurulum (kişisel kullanım, imzalama/dağıtım yok)
+
 ## Sonra / planlanmıyor
 
 - [ ] CSV/JSON içe aktarma: şablon indir, önizleme, Zod doğrulama, satır bazlı hata raporu, tekrar kontrolü. Kullanıcı kararı (2026-11-14): gerçek maçlar Power.log ve canlı izleyiciden geliyor, telefondaki maçlar Quick add ile; CSV/JSON şimdilik gerekmiyor. Batch altyapısı (`import_batches`, geri al) hazır.
@@ -183,3 +191,4 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-14 — Quick add maçı "şimdi oynandı" olarak kaydeder; varsayılanlar en yeni maçtan (sınıf, deste, mod, format) gelir, tarayıcı deposu kullanılmaz. Tekrar anahtarı yeni maç id'sinden türetilir.
 - 2026-11-14 — Yedekleme `VACUUM INTO` ile: düz dosya kopyası WAL'daki son yazmaları kaçırıyordu (eski yedekler eksik olabilir).
 - 2026-11-14 — Kimlikli sayfalar (`/games/[id]`, `/decks/[id]`) yolu çalışma anında bilir; menü, telefon çubuğu ve ← → gezgini bu yüzden Suspense içinde. `PageNavigator` artık children sarmalamıyor, pencereyi dinliyor.
+- 2026-11-14 — Proje iCloud'dan `~/Developer/tavern-dashboard`'a taşındı; `.next` içindeki iCloud " 2" kopyaları silindi. Yön: kişisel Mac masaüstü uygulaması (Electron) + oyun içi deste izleyici (Faz 8). Kurallar: yalnızca log dosyaları, adil oyun (yalnızca oyunda görünen bilgi), oyun belleği okunmaz, aynı anda tek izleyici. Proje kuralları bu doğrultuda yeniden yazıldı.
