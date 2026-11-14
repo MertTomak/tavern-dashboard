@@ -2,7 +2,7 @@ import { randomUUID } from "node:crypto";
 import { desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { db } from "../client";
 import { gameCardEvents, games, importBatches, watcherState } from "../schema";
-import { deckCandidates } from "./decks";
+import { deckCandidates, type DeckRef } from "./decks";
 import { SEED_BATCH_NAME } from "./demo";
 import { bestDeckMatch } from "@/lib/import/deck-match";
 import type { GameRecord } from "@/lib/parser/record";
@@ -22,7 +22,10 @@ export type SaveResult = { imported: number; skipped: number; batchId: number | 
  * exists is skipped (counted, not an error). With `batch`, an import batch is
  * recorded so the whole import can be undone in one click.
  */
-export function saveParsedGames(records: readonly GameRecord[], opts: { source: "POWER_LOG" | "WATCHER"; batch?: { fileName: string; errors: string[] } }): SaveResult {
+export function saveParsedGames(
+  records: readonly GameRecord[],
+  opts: { source: "POWER_LOG" | "WATCHER"; batch?: { fileName: string; errors: string[] }; decks?: ReadonlyMap<string, DeckRef> },
+): SaveResult {
   return db.transaction((tx) => {
     const batchId = opts.batch
       ? (tx.insert(importBatches).values({ source: opts.source, fileName: opts.batch.fileName, errors: opts.batch.errors }).returning({ id: importBatches.id }).get()?.id ?? null)
@@ -31,11 +34,13 @@ export function saveParsedGames(records: readonly GameRecord[], opts: { source: 
     const saved: SavedGame[] = [];
     let skipped = 0;
     for (const r of records) {
-      const deck = bestDeckMatch(
-        r.format,
-        r.cardEvents.filter((e) => e.side === "FRIENDLY").map((e) => e.dbfId),
-        deckCandidates(r.playerClass, tx),
-      );
+      const deck =
+        opts.decks?.get(r.sourceHash) ??
+        bestDeckMatch(
+          r.format,
+          r.cardEvents.filter((e) => e.side === "FRIENDLY").map((e) => e.dbfId),
+          deckCandidates(r.playerClass, tx),
+        );
       const id = randomUUID();
       const inserted = tx
         .insert(games)

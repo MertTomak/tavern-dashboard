@@ -248,3 +248,22 @@ export function getDeck(id: number): DeckDetail | null {
     recent,
   };
 }
+
+export type DeckRef = { deckId: number; versionId: number };
+
+/** The deck version that holds exactly this list, if any. */
+export function deckVersionByDeckstring(deckstring: string): DeckRef | null {
+  return db.select({ deckId: deckVersions.deckId, versionId: deckVersions.id }).from(deckVersions).where(eq(deckVersions.deckstring, deckstring)).get() ?? null;
+}
+
+/** A real (non-demo) deck of this class with this name, the newest if several. */
+export function deckIdByName(name: string, playerClass: string): number | null {
+  return (
+    db
+      .select({ id: decks.id })
+      .from(decks)
+      .where(and(eq(decks.name, name), eq(decks.playerClass, playerClass), eq(decks.isDemo, false)))
+      .orderBy(desc(decks.id))
+      .get()?.id ?? null
+  );
+}

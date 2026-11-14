@@ -4,6 +4,8 @@ import { watch, type FSWatcher } from "chokidar";
 import { TIME_ZONE } from "@/i18n";
 import { PowerLogParser, type DbfLookup } from "@/lib/parser/game-state";
 import { cardDbfLookup, sessionOf } from "@/lib/parser/read-file";
+import { LogClock } from "@/lib/parser/time";
+import { DecksLogReader } from "@/lib/tracker/decks-log";
 import type { GameRecord } from "@/lib/parser/record";
 import { TailReader } from "./tail";
 
@@ -37,7 +39,15 @@ export type WatcherHooks = {
   onLive?: (inGame: boolean) => void;
   /** Hearthstone was launched: a new session folder appeared. */
   onHearthstoneStarted?: () => void;
+  /** Decks.log named the deck of the game being started (`live` as for onPowerLine). */
+  onDeckQueued?: (deck: QueuedGameDeck, live: boolean) => void;
 };
+
+/** A deck from Decks.log, with the moment (UTC ms) it was queued. */
+export type QueuedGameDeck = { at: number; name: string | null; code: string };
+
+/** A game uses the newest deck queued before it started, if that was recent. */
+const DECK_MAX_AGE_MS = 30 * 60_000;
 
 /** `owner` names this watcher in Settings › Log watcher ("Mac app", "npm run watch:logs"). */
 export type WatcherOptions = { owner: string; logRoot: string; appUrl: string; hooks: WatcherHooks; dbfOf?: DbfLookup };
@@ -60,6 +70,8 @@ export class LogWatcher {
 
   private file: string | null = null;
   private tail: TailReader | null = null;
+  private decksTail: TailReader | null = null;
+  private queuedDecks: QueuedGameDeck[] = [];
   private parser: PowerLogParser | null = null;
   /** Live updates only once we have caught up with what was already written. */
   private caughtUp = false;
@@ -143,6 +155,7 @@ export class LogWatcher {
       this.parser = this.freshParser(file);
       this.caughtUp = false;
       this.tail = new TailReader(file, start, (line, end) => this.onLine(line, end), () => (this.parser = this.freshParser(file)));
+      this.followDecks(file);
       this.opts.hooks.onSessionFile?.(file);
       void this.reportStatus(true);
       await this.readTail();
@@ -151,8 +164,41 @@ export class LogWatcher {
     }
   }
 
+  /** Decks.log sits next to Power.log; read from the start (it is small) to know each game's deck. */
+  private followDecks(powerLog: string) {
+    this.queuedDecks = [];
+    const file = path.join(path.dirname(powerLog), "Decks.log");
+    const { start } = sessionOf(powerLog, TIME_ZONE);
+    let reader = new DecksLogReader();
+    let clock = new LogClock(start, TIME_ZONE);
+    this.decksTail = new TailReader(
+      file,
+      0,
+      (line) => {
+        const deck = reader.feed(line);
+        if (!deck) return;
+        const queued = { at: clock.at(deck.clock), name: deck.name, code: deck.code };
+        this.queuedDecks = [...this.queuedDecks.slice(-9), queued];
+        this.opts.hooks.onDeckQueued?.(queued, this.caughtUp);
+      },
+      () => {
+        reader = new DecksLogReader();
+        clock = new LogClock(start, TIME_ZONE);
+        this.queuedDecks = [];
+      },
+    );
+  }
+
+  private deckFor(game: GameRecord): QueuedGameDeck | null {
+    const started = Date.parse(game.startedAt);
+    const before = this.queuedDecks.filter((d) => d.at <= started + 1000 && started - d.at < DECK_MAX_AGE_MS);
+    return before[before.length - 1] ?? null;
+  }
+
   private async readTail() {
     if (!this.tail) return;
+    // Decks.log first: the deck is written before the game starts.
+    if (this.decksTail && fs.existsSync(this.decksTail.file)) await this.decksTail.read().catch(() => undefined);
     try {
       await this.tail.read();
       if (!this.caughtUp) {
@@ -175,7 +221,14 @@ export class LogWatcher {
   private send(file: string, games: GameRecord[], byteOffset: number) {
     this.enqueue({
       path: "/api/import/watcher",
-      body: { filePath: file, byteOffset, records: games },
+      body: {
+        filePath: file,
+        byteOffset,
+        records: games.map((g) => {
+          const deck = this.deckFor(g);
+          return deck ? { ...g, deck: { name: deck.name, code: deck.code } } : g;
+        }),
+      },
       done: (res) => {
         const { imported } = res as { imported: number };
         this.opts.hooks.say(games.map((g) => (imported ? `✓ New game saved: ${describeGame(g)}` : `· Already saved: ${describeGame(g)}`)).join("\n"));

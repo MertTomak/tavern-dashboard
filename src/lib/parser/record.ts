@@ -78,5 +78,7 @@ export const gameRecordSchema = z.object({
   /** Battlegrounds only: final placement 1–8. */
   placement: z.number().int().min(1).max(8).nullable(),
   cardEvents: z.array(cardEventSchema),
+  /** The deck Hearthstone said it queued with (Decks.log; the live watcher only). */
+  deck: z.object({ name: z.string().max(100).nullable(), code: z.string().max(400) }).nullable().optional(),
 });
 export type GameRecord = z.infer<typeof gameRecordSchema>;
