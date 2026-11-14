@@ -74,7 +74,7 @@ export const en = {
     },
     decks: {
       title: "Decks",
-      description: "Add a deck by code, then track its versions and performance.",
+      description: "Every deck you play is saved from Hearthstone on its own, with its full list. Older decks can be added by code.",
     },
     matchups: {
       title: "Matchups",
@@ -445,7 +445,7 @@ export const en = {
   },
   decks: {
     addTitle: "Add a deck",
-    addHint: "In Hearthstone, open the deck and choose Copy Deck Code, then paste it here. The name comes along.",
+    addHint: "Only needed for decks from older games. In Hearthstone, open the deck and choose Copy Deck Code, then paste it here. The name comes along.",
     pasteLabel: "Deck code",
     pastePlaceholder: "### My deck\n# Class: Warrior\n# Format: Standard\nAAECAQcG…",
     read: "Read deck",
@@ -465,7 +465,13 @@ export const en = {
     defaultName: (format: string, cls: string) => `${format} ${cls}`,
     listTitle: "Your decks",
     empty: "No decks yet",
-    emptyBody: "Paste a deck code above. Games you have played with it are matched to it automatically.",
+    emptyBody: "Play a game and its deck appears here on its own. For older games, paste the deck's code below: games played with it are matched to it.",
+    autoHint: "Decks are saved when you play them (from Hearthstone's Decks.log). The same list is reused; a changed list becomes a new version.",
+    cardList: (cards: number) => `Card list · ${cards} cards`,
+    winRate: "Win rate",
+    withoutDeck: (n: number) =>
+      `${n === 1 ? "1 game has" : `${n} games have`} no deck (played before deck codes were logged, or added by hand). Paste that deck's code below and games that showed its cards are matched to it, or set the deck by hand in Games.`,
+    showWithoutDeck: "Show these games",
     record: (w: number, l: number) => `${w}–${l}`,
     games: (n: number) => (n === 1 ? "1 game" : `${n} games`),
     noGames: "No games yet",

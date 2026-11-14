@@ -1,4 +1,4 @@
-import { and, asc, desc, eq, inArray, sql } from "drizzle-orm";
+import { and, asc, desc, eq, inArray, isNull, sql } from "drizzle-orm";
 import { db } from "../client";
 import { deckCards, decks, deckVersions, gameCardEvents, games } from "../schema";
 import { bestDeckMatch, MIN_CARDS, type DeckCandidate } from "@/lib/import/deck-match";
@@ -170,7 +170,7 @@ export type DeckSummary = {
   lastPlayed: string | null;
 };
 
-/** Real decks with their newest list and every game result, newest deck first. */
+/** Real decks with their newest list and every game result, most recently played first. */
 export function listDecks(): DeckSummary[] {
   const rows = db
     .select({ id: decks.id, name: decks.name, playerClass: decks.playerClass, format: decks.format, createdAt: decks.createdAt })
@@ -201,7 +201,7 @@ export function listDecks(): DeckSummary[] {
     .where(inArray(games.deckId, ids))
     .orderBy(asc(games.playedAt))
     .all();
-  return rows.map((r) => {
+  const out = rows.map((r) => {
     const v = latest.get(r.id);
     const played = gameRows.filter((g) => g.deckId === r.id);
     return {
@@ -212,6 +212,19 @@ export function listDecks(): DeckSummary[] {
       lastPlayed: played.at(-1)?.playedAt ?? null,
     };
   });
+  // The deck played most recently first; decks never played keep newest-first order below them.
+  return out.sort((a, b) => (b.lastPlayed ?? "").localeCompare(a.lastPlayed ?? "") || b.id - a.id);
+}
+
+/** Constructed games (not demo data) that have no deck: played before Decks.log was on, or added by hand. */
+export function countGamesWithoutDeck(): number {
+  return (
+    db
+      .select({ n: sql<number>`count(*)` })
+      .from(games)
+      .where(and(isNull(games.deckId), inArray(games.mode, ["RANKED", "CASUAL", "FRIENDLY"])))
+      .get()?.n ?? 0
+  );
 }
 
 export type DeckDetail = DeckSummary & {

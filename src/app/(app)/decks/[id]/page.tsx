@@ -8,6 +8,7 @@ import { ClassPortrait } from "@/components/cards/ClassPortrait";
 import { ResultChip } from "@/components/dashboard/ResultMark";
 import { DeckActions } from "@/components/decks/DeckActions";
 import { deckView } from "@/components/decks/deck-view";
+import { ManaCurve } from "@/components/decks/ManaCurve";
 import { ArtCrop } from "@/components/tavern/ArtCrop";
 import { FramePanel } from "@/components/tavern/FramePanel";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -22,27 +23,6 @@ import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 
 const copy = t.decks.detail;
-
-function Curve({ curve }: { curve: number[] }) {
-  const max = Math.max(1, ...curve);
-  return (
-    <div>
-      <h3 className="mb-3 text-sm font-medium text-parchment">{copy.curve}</h3>
-      <ol className="grid h-28 grid-cols-8 items-end gap-1.5">
-        {curve.map((n, cost) => {
-          const label = cost === 7 ? "7+" : String(cost);
-          return (
-            <li key={cost} className="flex h-full flex-col items-center justify-end gap-1" aria-label={copy.curveLabel(label, n)}>
-              <span className="stat text-xs text-ink-muted">{n || ""}</span>
-              <span className="w-full rounded-t-xs bg-linear-to-t from-brass/50 to-brass-light/90" style={{ height: `${(n / max) * 70}%`, minHeight: n ? 4 : 0 }} />
-              <span className="stat flex size-6 items-center justify-center rounded-full border border-brass/40 bg-oak-deep text-xs font-semibold text-brass-light">{label}</span>
-            </li>
-          );
-        })}
-      </ol>
-    </div>
-  );
-}
 
 async function DeckDetail({ params }: { params: PageProps<"/decks/[id]">["params"] }) {
   // The DB is local and changes at any time: read it per request, never at build time.
@@ -114,7 +94,8 @@ async function DeckDetail({ params }: { params: PageProps<"/decks/[id]">["params
 
         <div className="grid content-start gap-6">
           <FramePanel>
-            <Curve curve={manaCurve(cards.map((c) => ({ cost: c.card.cost, count: c.count })))} />
+            <h3 className="mb-3 text-sm font-medium text-parchment">{copy.curve}</h3>
+            <ManaCurve curve={manaCurve(cards.map((c) => ({ cost: c.card.cost, count: c.count })))} />
           </FramePanel>
 
           <FramePanel title={copy.recent} hint={t.decks.matchHint}>
