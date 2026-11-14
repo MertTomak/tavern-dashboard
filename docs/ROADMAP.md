@@ -57,7 +57,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [x] Ayarlar › Effects: Full / Light / Off (`preferences.effects`, `PUT /api/preferences/effects`)
 - [x] 1440 / 800 / 390 px Chrome kontrolü ve bölüm bölüm kare ölçümü, `ui.md` güncellendi, `docs/demos/design-v4.gif`
 
-**Durum (2026-11-14):** Faz 0–0.5d, Faz 1, Faz 3–4 ve Faz 8 (Mac uygulaması + deste izleyici) bitti; Faz 8'de yalnızca kullanıcının canlı maç denemesi kaldı. Sıradaki: Faz 2.
+**Durum (2026-11-14):** Faz 0–0.5d, Faz 1, Faz 3–4 ve Faz 8 bitti; izleyici v2 (iki panel), otomatik desteli Decks sayfası, Matchups ve Sessions sayfaları eklendi (`docs/tasks/tracker-v2-and-pages.md`). Bekleyen: izleyici v2'nin canlı maç denemesi. Sıradaki: Faz 2'nin kalanı.
 
 ## Faz 3 — Power.log yükleme
 
@@ -93,7 +93,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [ ] `src/lib/stats/` metrikleri + birim testleri
 - [ ] Genel Bakış: KPI kartları, kayan WR, sınıf/deste WR, son maçlar
 - [ ] Rank ilerleme grafiği
-- [ ] Eşleşme ısı haritası sayfası
+- [x] Eşleşme ısı haritası sayfası (`/matchups`: deste/sınıf × rakip sınıf ısı haritası + tablo, üst çubuk filtreleri; `docs/tasks/tracker-v2-and-pages.md`)
 - [ ] İlk oynayan / coin, saat × gün ısı haritası, maç süresi dağılımı
 - [ ] URL tabanlı global filtreler, tüm grafiklere bağlı (Genel Bakış'ta tarih aralığı, mod ve format Faz 0.5'te bağlandı; deste, sınıf ve özel tarih kaldı)
 
@@ -106,7 +106,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [ ] **Deste sürümleri:** sürümler arası kart farkı (+/−) ve WR karşılaştırması ("v3 → v4: %48 → %56")
 - [ ] **Maç dökümü** (`/games/[id]`): tur tur kim ne oynadı. Basit hâli Faz 1'de yapıldı; burada kart istatistikleri ve arketip bilgisiyle zenginleşir
 - [ ] **İçgörüler paneli:** Genel Bakış'ın üstünde 3-5 otomatik İngilizce içgörü
-- [ ] **Seans ve tilt analizi:** seans içi maç sırasına göre WR, art arda kayıp uyarısı
+- [ ] **Seans ve tilt analizi:** seans içi maç sırasına göre WR, art arda kayıp uyarısı (`/sessions` sayfası, seans listesi ve maç sırasına göre WR grafiği 2026-11-14'te yapıldı; tilt uyarısı kaldı)
 - [ ] **Legend tahmini:** mevcut WR ve rank'la tahmini kalan maç sayısı
 
 **Kabul:** Gerçek loglarla en az bir destenin kart istatistikleri ve rakip arketip matrisi dolu. İçgörüler yanlış veya abartılı bir şey söylemiyor (az veride susuyor).
@@ -134,7 +134,9 @@ Brief: `docs/tasks/app-and-tracker.md` (adım adım notlarla).
 - [x] Deste otomatik: Decks.log'daki deste kodu → yeni deste kaydı ve maça bağlama; kod yoksa kayıtlı desteyle eşleşme veya görülen kartlar
 - [x] Oyun içi deste izleyici (overlay): kendi destem (kalan kopyalar, sonraki çekiş şansı, hover'da kart), rakibin eli (kart arkası, tur, Coin, üretilmiş), oynadıkları, deste sayıları. Adil oyun `view.ts`'te; 1 sn altı güncelleme (ölçülen ~65 ms)
 - [x] Paketleme ve kurulum: `npm run app:build` → `/Applications/Tavern Dashboard.app` (imzasız, ad-hoc codesign)
-- [ ] Canlı deneme: gerçek bir maçta overlay (tam ekran davranışı, sürükle/boyutla/⌥⌘T), menü çubuğu, bildirim ve Decks.log biçimi doğrulanacak
+- [x] Canlı deneme (2026-11-14): overlay maç başında açıldı, anında güncellendi, maç sonunda söndü; Decks.log biçimi doğrulandı (deste otomatik kaydedildi)
+- [x] İzleyici v2 (`docs/tasks/tracker-v2-and-pages.md`): iki ayrı panel (kendi destem sağda tam yükseklik, S/M/L satır boyu; rakip sol üstte kompakt köz rengi şerit, son 2 tur açık), her biri ayrı taşınır/boyutlanır/gizlenir; Decks sayfası otomatik kaydedilen destelerle
+- [ ] İzleyici v2 canlı deneme: iki panelin gerçek oyun görüntüsündeki yeri (pencereli ve tam ekran), sürükleme/boyutlama/gizleme, menü çubuğundaki panel seçenekleri
 
 ## Sonra / planlanmıyor
 
@@ -202,3 +204,10 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-14 — Deste izleyici overlay'i sağ kenarda; ilk açılışta Hearthstone penceresinin sağ kenarına yerleşir (CoreGraphics ile yalnızca pencere konumu okunur, ek izin gerekmez), kullanıcı taşıyınca o konum hatırlanır. Pencere panelden 216 px geniş: soldaki şeffaf ve tıklamayı oyuna geçiren boşlukta hover'daki kart görseli açılır. Rakip paneli üstte (rakibin tahta tarafı), kendi destem altta. "Sonraki çekiş" şansı kart başına değil, kalan kopya sayısına göre (×1 / ×2) tek satırda gösterilir.
 - 2026-11-14 — Rakibin elindeki kart, log kimliğini verse bile hiçbir zaman gösterilmez; daha önce oynanıp ele dönen kart da dahil (en sıkı adil oyun yorumu). The Coin ve üretilmiş kart işaretleri gösterilir (brief istedi; oyunda da görülür).
 - 2026-11-14 — Kart verisine tüm kartlar eklendi (`cards.all.json`, 36 bin kart, yalnızca gerekli alanlar): rakibin oynadığı jeton ve üretilmiş kartların adı için.
+- 2026-11-14 — İzleyici iki ayrı pencere oldu: kendi destem sağ kenarda (pirinç), rakip sol üstte rakip adının altında (köz rengi). Rakip paneli geniş ve kısa bir şerit: Hearthstone'un sol kenardaki oynanan kartlar geçmişinin üstünde, rakibin elinin solunda biter. Oyun penceresi küçükse (geçmiş çok yukarıda başlıyorsa) geçmiş ile rakibin eli arasına geçer. Bölge ölçüleri Hearthstone'un sabit düzeninden tahmindir (`src/lib/tracker/layout.ts`), canlı maçta doğrulanacak; kullanıcı paneli sürükleyince o yer geçerli olur.
+- 2026-11-14 — Panelin hatırlanan yeri ekran koordinatı değil, oyun penceresinin köşesine göre tutulur (deste: sağ üst, rakip: sol üst; yükseklik pencere yüksekliğiyle ölçeklenir). Böylece pencereli ↔ tam ekran geçişinde panel oyunla birlikte taşınır; maç sürerken 5 sn'de bir oyun penceresi yeniden okunur.
+- 2026-11-14 — Rakip panelinde "son 2 tur" = rakibin kart oynadığı son iki tur. Rakip panelinin yüksekliği içeriğine göre; yalnızca genişliği boyutlanır. ⌥⌘T tüm izleyiciyi gizler/gösterir; tek tek gizlenen panel menü çubuğundan geri açılır (ikisi de kapalıyken ⌥⌘T ikisini de açar).
+- 2026-11-14 — Deste satır boyu S / M / L bir üst sınırdır: satırlar panel yüksekliğini paylaşır, seçilen boyun sınırları içinde büyür veya küçülür (20–30 / 22–38 / 24–48 px).
+- 2026-11-14 — Decks.log'dan gelen deste: aynı liste (deckstring) varsa o sürüm kullanılır; aynı ad + sınıfta farklı liste yeni sürümdür; adı da değişmişse yeni deste sayılır (Hearthstone'un Deck ID'si şimdilik saklanmıyor, şema değişikliği gerektirir).
+- 2026-11-14 — Seans sınırı: bir maçın bitişi ile sonrakinin başlangıcı arasında 30 dakikadan uzun boşluk (süre bilinmiyorsa başlangıçtan sayılır). Matchups ve Sessions Battlegrounds maçlarını saymaz (rakip sınıf yok). Matchups'ta destesiz maçlar "Warlock, no deck" satırında toplanır.
+- 2026-11-14 — `TAVERN_DATA_DIR` verilince Electron'un kendi klasörü (pencere yerleri, tek-örnek kilidi) de oraya taşınır; kurulu uygulama açıkken geçici klasörlerle deneme yapılabilir.
