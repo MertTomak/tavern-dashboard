@@ -16,11 +16,11 @@ import type { GameRecord } from "@/lib/parser/record";
 import { openDashboard } from "./dashboard-window";
 import { startServer, type DashboardServer } from "./server";
 import { listenToServer } from "./live-events";
-import { setupOverlay, teardownOverlay, toggleOverlay, updateOverlay } from "./overlay";
+import { setupOverlay, teardownOverlay, toggleOverlay, trackerMenu, updateOverlay } from "./overlay";
 import { openedAtLogin, registerSettingsIpc } from "./settings";
 import { TrackerSession } from "./tracker";
 import { flushState, readState } from "./store";
-import { createTray, refreshTray } from "./tray";
+import { createTray, rebuildTrayMenu, refreshTray } from "./tray";
 
 let server: DashboardServer | null = null;
 let watcher: LogWatcher | null = null;
@@ -32,7 +32,7 @@ function showDashboard() {
   if (server) openDashboard(server.url);
 }
 
-const trayActions = { openDashboard: showDashboard, toggleTracker: toggleOverlay };
+const trayActions = { openDashboard: showDashboard, toggleTracker: toggleOverlay, trackerMenu };
 /** Today's record also changes at midnight, with no event: refresh now and then. */
 const TRAY_REFRESH_MS = 5 * 60_000;
 
@@ -85,7 +85,7 @@ if (!app.requestSingleInstanceLock()) {
     registerSettingsIpc();
     if (!openedAtLogin()) showDashboard();
     createTray(trayActions);
-    setupOverlay(url);
+    setupOverlay(url, () => rebuildTrayMenu(trayActions));
     void refreshTray(url, trayActions);
     listenToServer(url, (event) => {
       if (event.type === "games:changed") void refreshTray(url, trayActions);

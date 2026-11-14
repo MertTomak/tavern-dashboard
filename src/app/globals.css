@@ -63,6 +63,9 @@
   --color-parchment: #f3e6cc;
   --color-ink-muted: #bfae90;
   --color-brass: #e0a84a;
+  /* Ember: the opponent's accent in the deck tracker. */
+  --color-ember: #e8683f;
+  --color-ember-light: #ffb59a;
   --color-brass-light: #fbe3a4;
   --color-brass-dim: #d9b877;
   --color-title-gold: #f6d896;

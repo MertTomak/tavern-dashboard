@@ -2,15 +2,25 @@ import fs from "node:fs";
 import path from "node:path";
 import { app, screen, type Rectangle } from "electron";
 import { z } from "zod";
+import { DECK_SIZES } from "@/lib/tracker/layout";
 
 /**
  * The Mac app's own small settings (window places, app switches), kept in
  * app-state.json next to Electron's files. Game data never lives here.
  */
 const rect = z.object({ x: z.number(), y: z.number(), width: z.number(), height: z.number() });
+const place = z.object({ dx: z.number(), dy: z.number(), width: z.number(), height: z.number(), areaHeight: z.number() });
 const stateSchema = z.object({
   window: rect.extend({ maximized: z.boolean().default(false) }).optional(),
-  overlay: rect.optional(),
+  /** Deck tracker: each panel's place relative to the game window, which panels are switched off, and the deck row size. */
+  tracker: z
+    .object({
+      deck: place.optional(),
+      opponent: place.optional(),
+      hidden: z.object({ deck: z.boolean().default(false), opponent: z.boolean().default(false) }).default({ deck: false, opponent: false }),
+      deckSize: z.enum(DECK_SIZES).default("M"),
+    })
+    .default({ hidden: { deck: false, opponent: false }, deckSize: "M" }),
   openWithHearthstone: z.boolean().default(true),
 });
 export type AppState = z.infer<typeof stateSchema>;

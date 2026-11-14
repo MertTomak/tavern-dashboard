@@ -4,15 +4,15 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 import { ART_KINDS, artSrc } from "@/lib/cards/art";
 import { ArtFallback, ArtImage } from "./CardArt";
 
-type Props = { cardId: string; name: string; children: React.ReactElement };
+type Props = { cardId: string; name: string; children: React.ReactElement; /** Which side of the row the card opens on. */ side?: "left" | "right" | "bottom" };
 
 /** Shows the full card render on hover or keyboard focus. The image loads only when opened. */
-export function CardPreview({ cardId, name, children }: Props) {
+export function CardPreview({ cardId, name, children, side = "left" }: Props) {
   const { width, height } = ART_KINDS.render;
   return (
     <Tooltip>
       <TooltipTrigger render={children} />
-      <TooltipContent side="left" className="border-0 bg-transparent p-0 shadow-none [&>[data-side]]:hidden">
+      <TooltipContent side={side} className="border-0 bg-transparent p-0 shadow-none [&>[data-side]]:hidden">
         <ArtImage
           src={artSrc("render", cardId)}
           alt={name}

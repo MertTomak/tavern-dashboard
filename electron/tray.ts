@@ -1,5 +1,5 @@
 import path from "node:path";
-import { app, Menu, nativeImage, Tray } from "electron";
+import { app, Menu, nativeImage, Tray, type MenuItemConstructorOptions } from "electron";
 import { z } from "zod";
 import { t } from "@/i18n";
 
@@ -7,8 +7,9 @@ import { t } from "@/i18n";
 const todaySchema = z.object({ wins: z.number(), losses: z.number(), ties: z.number() });
 
 let tray: Tray | null = null;
+let todayLabel: string | null = null;
 
-export type TrayActions = { openDashboard: () => void; toggleTracker: () => void };
+export type TrayActions = { openDashboard: () => void; toggleTracker: () => void; trackerMenu: () => MenuItemConstructorOptions[] };
 
 function iconPath(): string {
   const base = app.isPackaged ? process.resourcesPath : path.join(app.getAppPath(), "assets", "app-icon");
@@ -20,15 +21,18 @@ export function createTray(actions: TrayActions): void {
   image.setTemplateImage(true);
   tray = new Tray(image);
   tray.setToolTip(t.desktop.trayTooltip);
-  setMenu(actions, null);
+  rebuildTrayMenu(actions);
 }
 
-function setMenu(actions: TrayActions, label: string | null) {
+/** Builds the menu again (today's record or a tracker setting changed). */
+export function rebuildTrayMenu(actions: TrayActions): void {
   tray?.setContextMenu(
     Menu.buildFromTemplate([
-      ...(label ? [{ label, enabled: false }, { type: "separator" as const }] : []),
+      ...(todayLabel ? [{ label: todayLabel, enabled: false }, { type: "separator" as const }] : []),
       { label: t.desktop.openDashboard, click: actions.openDashboard },
+      { type: "separator" },
       { label: t.desktop.toggleTracker, accelerator: "Alt+Command+T", click: actions.toggleTracker },
+      ...actions.trackerMenu(),
       { type: "separator" },
       { label: t.desktop.quit, role: "quit" },
     ]),
@@ -42,7 +46,8 @@ export async function refreshTray(url: string, actions: TrayActions): Promise<vo
     const res = await fetch(`${url}/api/games/today`);
     const today = todaySchema.parse(await res.json());
     tray.setTitle(` ${t.desktop.trayToday(today.wins, today.losses)}`, { fontType: "monospacedDigit" });
-    setMenu(actions, t.desktop.trayTodayLabel(today.wins, today.losses, today.ties));
+    todayLabel = t.desktop.trayTodayLabel(today.wins, today.losses, today.ties);
+    rebuildTrayMenu(actions);
   } catch {
     // Server not reachable right now; the next refresh fixes it.
   }

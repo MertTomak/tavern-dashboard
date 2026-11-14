@@ -1,30 +1,49 @@
-import type { TrackerView } from "@/lib/tracker/view";
+import type { DeckRow, TrackerView } from "@/lib/tracker/view";
 
 /**
- * A made-up mid-game view for checking the overlay's look in a browser
- * (/overlay?demo=1) and in the design lab. Never shown in a real game.
+ * A made-up mid-game view for checking the tracker's look in a browser
+ * (/overlay?demo=1). Never shown in a real game. Names and costs are replaced
+ * from the local card data, so only the card ids matter here.
  */
+const DECK: [cardId: string, total: number, left: number, legendary?: boolean][] = [
+  ["TLC_603", 2, 1],
+  ["CATA_210", 2, 0],
+  ["EDR_485", 2, 2],
+  ["EDR_469", 1, 1],
+  ["BE_085", 2, 1],
+  ["CORE_SCH_713", 2, 2],
+  ["EDR_482", 2, 1],
+  ["EDR_488", 2, 2],
+  ["BE_729", 2, 2],
+  ["JAIL_509", 1, 1, true],
+  ["DINO_410", 1, 0, true],
+  ["BE_728", 1, 0, true],
+  ["EDR_654", 2, 2],
+  ["DINO_131", 2, 2],
+  ["EDR_490", 1, 1],
+  ["BE_090", 1, 1, true],
+  ["EDR_487", 1, 1, true],
+  ["CATA_496", 2, 2],
+  ["EDR_489", 1, 1, true],
+];
+const DECK_COUNT = DECK.reduce((n, [, , left]) => n + left, 0);
+
+const rows: DeckRow[] = DECK.map(([cardId, total, left, legendary]) => ({
+  cardId,
+  name: cardId,
+  cost: null,
+  rarity: legendary ? "LEGENDARY" : "COMMON",
+  total,
+  left,
+  seen: total - left,
+  drawChance: left / DECK_COUNT,
+}));
+
 export const DEMO_VIEW: TrackerView = {
   status: "playing",
   turn: 5,
   deck: { name: "Ritual Warlock", source: "code" },
-  me: {
-    deckCount: 19,
-    rows: [
-      { cardId: "TLC_603", name: "Platysaur", cost: 1, rarity: "COMMON", total: 2, left: 1, seen: 1, drawChance: 1 / 19 },
-      { cardId: "CATA_210", name: "Twilight Egg", cost: 1, rarity: "RARE", total: 2, left: 0, seen: 2, drawChance: 0 },
-      { cardId: "TIME_025", name: "Floating Lessons", cost: 1, rarity: "COMMON", total: 2, left: 2, seen: 0, drawChance: 2 / 19 },
-      { cardId: "BE_085", name: "Ritual of Summoning", cost: 2, rarity: "EPIC", total: 2, left: 1, seen: 1, drawChance: 1 / 19 },
-      { cardId: "CORE_SCH_713", name: "Cult Neophyte", cost: 2, rarity: "RARE", total: 2, left: 2, seen: 0, drawChance: 2 / 19 },
-      { cardId: "TIME_026", name: "Mawman Cultist", cost: 3, rarity: "COMMON", total: 2, left: 2, seen: 0, drawChance: 2 / 19 },
-      { cardId: "JAIL_509", name: "Prison Breaker", cost: 3, rarity: "RARE", total: 1, left: 1, seen: 0, drawChance: 1 / 19 },
-      { cardId: "TLC_451", name: "Zakajz the Corruptor", cost: 4, rarity: "LEGENDARY", total: 1, left: 0, seen: 1, drawChance: 0 },
-      { cardId: "BE_090", name: "Abyssal Bargain", cost: 4, rarity: "COMMON", total: 2, left: 2, seen: 0, drawChance: 2 / 19 },
-      { cardId: "DINO_131", name: "Bramblemaw", cost: 5, rarity: "EPIC", total: 2, left: 2, seen: 0, drawChance: 2 / 19 },
-      { cardId: "TIME_702", name: "Kith'ix", cost: 6, rarity: "LEGENDARY", total: 1, left: 1, seen: 0, drawChance: 1 / 19 },
-      { cardId: "CATA_496", name: "Deathwing's Shadow", cost: 8, rarity: "EPIC", total: 2, left: 2, seen: 0, drawChance: 2 / 19 },
-    ],
-  },
+  me: { deckCount: DECK_COUNT, rows },
   opponent: {
     deckCount: 21,
     hand: [
@@ -36,11 +55,15 @@ export const DEMO_VIEW: TrackerView = {
       { slot: 6, turn: 5, coin: false, created: false },
     ],
     played: [
-      { key: 41, turn: 2, cardId: "BE_726", name: "Lifebinder's Gift", cost: 2 },
-      { key: 52, turn: 3, cardId: "BE_728", name: "Embrace of Nature", cost: 3 },
+      { key: 30, turn: 1, cardId: "EDR_469", name: null, cost: null },
+      { key: 41, turn: 2, cardId: "BE_726", name: null, cost: null },
+      { key: 42, turn: 2, cardId: "EDR_105", name: null, cost: null },
+      { key: 52, turn: 3, cardId: "EDR_001", name: null, cost: null },
       { key: 60, turn: 4, cardId: null, name: null, cost: null },
-      { key: 61, turn: 4, cardId: "MEND_043", name: "Healing Grove", cost: 1 },
-      { key: 70, turn: 5, cardId: "BE_729", name: "Grove Keeper", cost: 4 },
+      { key: 61, turn: 4, cardId: "MEND_043", name: null, cost: null },
+      { key: 62, turn: 4, cardId: "EDR_470", name: null, cost: null },
+      { key: 70, turn: 5, cardId: "EDR_102", name: null, cost: null },
+      { key: 71, turn: 5, cardId: "EDR_469", name: null, cost: null },
     ],
   },
 };
