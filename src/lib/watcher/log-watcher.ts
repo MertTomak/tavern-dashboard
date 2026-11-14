@@ -72,6 +72,7 @@ export class LogWatcher {
   private tail: TailReader | null = null;
   private decksTail: TailReader | null = null;
   private queuedDecks: QueuedGameDeck[] = [];
+  private reading: Promise<void> = Promise.resolve();
   private parser: PowerLogParser | null = null;
   /** Live updates only once we have caught up with what was already written. */
   private caughtUp = false;
@@ -195,7 +196,19 @@ export class LogWatcher {
     return before[before.length - 1] ?? null;
   }
 
-  private async readTail() {
+  /**
+   * Reads what is new in both logs. Calls are strictly one after another: a
+   * second caller waits for the first instead of running beside it. Otherwise
+   * it could read Power.log (the game starting) while the first caller is
+   * still reading Decks.log, and the tracker would start the game without its deck.
+   */
+  private readTail(): Promise<void> {
+    const next = this.reading.then(() => this.readBoth());
+    this.reading = next.catch(() => undefined);
+    return next;
+  }
+
+  private async readBoth() {
     if (!this.tail) return;
     // Decks.log first: the deck is written before the game starts.
     if (this.decksTail && fs.existsSync(this.decksTail.file)) await this.decksTail.read().catch(() => undefined);

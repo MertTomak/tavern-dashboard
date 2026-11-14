@@ -6,6 +6,7 @@
  * - drives the in-game deck tracker overlay from the same log lines.
  */
 import "./env";
+import fs from "node:fs";
 import path from "node:path";
 import { app, Notification } from "electron";
 import { t } from "@/i18n";
@@ -26,7 +27,18 @@ let server: DashboardServer | null = null;
 let watcher: LogWatcher | null = null;
 let lock: WatcherLock | null = null;
 
-const say = (msg: string) => console.log(msg);
+/** Status lines go to the console and to app.log in the app's own folder (kept small), so a problem in a live game can be traced afterwards. */
+const LOG_MAX_BYTES = 512_000;
+function say(msg: string) {
+  console.log(msg);
+  try {
+    const file = path.join(app.getPath("userData"), "app.log");
+    if (fs.existsSync(file) && fs.statSync(file).size > LOG_MAX_BYTES) fs.renameSync(file, `${file}.old`);
+    fs.appendFileSync(file, `${new Date().toISOString()} ${msg}\n`);
+  } catch {
+    // The log is a convenience; never let it stop the app.
+  }
+}
 
 function showDashboard() {
   if (server) openDashboard(server.url);
@@ -52,7 +64,7 @@ async function startWatcher(url: string) {
   lock = await waitForWatcherLock("Tavern Dashboard app", (holder) =>
     say(`… Another log watcher is running (${holder.owner}, pid ${holder.pid}). Waiting until it stops.`),
   );
-  const tracker = new TrackerSession(url, updateOverlay);
+  const tracker = new TrackerSession(url, updateOverlay, say);
   watcher = new LogWatcher({
     owner: "Mac app",
     logRoot: LOG_ROOT,
@@ -61,7 +73,10 @@ async function startWatcher(url: string) {
       say,
       onGamesSent: notifySaved,
       onHearthstoneStarted,
-      onSessionFile: () => tracker.reset(),
+      onSessionFile: (file) => {
+        say(`… Tracker: new log file ${path.basename(path.dirname(file))}`);
+        tracker.reset();
+      },
       onDeckQueued: (deck) => tracker.deckQueued(deck),
       onPowerLine: (line, live) => tracker.line(line, live),
       onLive: () => tracker.catchUp(),

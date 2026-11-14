@@ -26,6 +26,8 @@ export class TrackerSession {
   constructor(
     private readonly appUrl: string,
     private readonly onView: (view: TrackerView) => void,
+    /** Short status lines for the app's log. */
+    private readonly say: (msg: string) => void = () => undefined,
   ) {}
 
   /** A new Hearthstone session: start clean (card data may have been refreshed meanwhile). */
@@ -38,6 +40,19 @@ export class TrackerSession {
   }
 
   deckQueued(deck: QueuedGameDeck): void {
+    const game = this.log.game;
+    // A deck is only ever queued between games. If it arrives while a game without a code deck is
+    // running, its line was simply read after the game's first lines: it is this game's deck.
+    if (game && !game.complete && this.deck?.source !== "code") {
+      const late = deckFromCode(deck.code, deck.name);
+      if (late) {
+        this.say(`… Tracker: deck "${deck.name ?? "?"}" arrived after the game started; using it`);
+        this.deck = late;
+        this.schedule();
+        return;
+      }
+    }
+    this.say(`… Tracker: deck queued "${deck.name ?? "?"}"`);
     this.queued = deck;
   }
 
@@ -66,6 +81,7 @@ export class TrackerSession {
     const queued = this.queued;
     this.queued = null;
     this.deck = queued ? deckFromCode(queued.code, queued.name) : null;
+    this.say(`▶ Tracker: game started, ${this.deck ? `deck "${this.deck.name ?? "?"}" from Decks.log` : queued ? "deck code could not be read" : "no deck queued"}`);
     this.matchKey = "";
   }
 
