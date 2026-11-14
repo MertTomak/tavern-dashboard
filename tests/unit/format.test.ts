@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatDateTime, formatDuration, formatNumber, formatPercent, formatPointsDelta } from "@/lib/format";
+import { formatDateTime, formatDuration, formatLength, formatNumber, formatPercent, formatPointsDelta, formatTime } from "@/lib/format";
 import { rankLabel } from "@/lib/stats/rank";
 
 describe("en-GB formatting", () => {
@@ -34,5 +34,12 @@ describe("extra formatting", () => {
     expect(rankLabel(49)).toBe("Diamond 1");
     expect(rankLabel(42.6)).toBe("Diamond 8");
     expect(rankLabel(75)).toBe("Legend");
+  });
+
+  it("formats a time of day in Istanbul and the length of a sitting", () => {
+    expect(formatTime("2026-11-14T21:30:00.000Z")).toBe("00:30");
+    expect(formatLength(2880)).toBe("48m");
+    expect(formatLength(4320)).toBe("1h 12m");
+    expect(formatLength(20)).toBe("1m");
   });
 });

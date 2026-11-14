@@ -1,4 +1,4 @@
-import { and, asc, eq, gte, type SQL } from "drizzle-orm";
+import { and, asc, eq, gte, notInArray, type SQL } from "drizzle-orm";
 import { db } from "../client";
 import { decks, games } from "../schema";
 import type { OverviewGame } from "@/lib/stats/overview";
@@ -27,6 +27,41 @@ export function getOverviewGames(q: OverviewQuery = { from: null }): OverviewGam
     .from(games)
     .leftJoin(decks, eq(games.deckId, decks.id))
     .where(where.length ? and(...where) : undefined)
+    .orderBy(asc(games.playedAt))
+    .all();
+}
+
+export type StatGame = {
+  id: string;
+  playedAt: string;
+  result: OverviewGame["result"];
+  playerClass: string;
+  opponentClass: string;
+  deckId: number | null;
+  deckName: string | null;
+  durationSec: number | null;
+};
+
+/** One-on-one games matching the filters (Battlegrounds has no opponent class), oldest first, for Matchups and Sessions. */
+export function getStatGames(q: OverviewQuery = { from: null }): StatGame[] {
+  const where: SQL[] = [notInArray(games.mode, ["BATTLEGROUNDS", "BATTLEGROUNDS_DUOS"])];
+  if (q.from) where.push(gte(games.playedAt, q.from));
+  if (q.mode) where.push(eq(games.mode, q.mode));
+  if (q.format) where.push(eq(games.format, q.format));
+  return db
+    .select({
+      id: games.id,
+      playedAt: games.playedAt,
+      result: games.result,
+      playerClass: games.playerClass,
+      opponentClass: games.opponentClass,
+      deckId: games.deckId,
+      deckName: decks.name,
+      durationSec: games.durationSec,
+    })
+    .from(games)
+    .leftJoin(decks, eq(games.deckId, decks.id))
+    .where(and(...where))
     .orderBy(asc(games.playedAt))
     .all();
 }

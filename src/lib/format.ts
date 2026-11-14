@@ -46,6 +46,17 @@ const shortDateTimeFmt = new Intl.DateTimeFormat(LOCALE, {
 /** UTC ISO string -> "12 Nov, 21:40" (Europe/Istanbul) */
 export const formatShortDateTime = (iso: string): string => shortDateTimeFmt.format(new Date(iso));
 
+const timeFmt = new Intl.DateTimeFormat(LOCALE, { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: TIME_ZONE });
+
+/** UTC ISO string -> "21:40" (Europe/Istanbul) */
+export const formatTime = (iso: string): string => timeFmt.format(new Date(iso));
+
+/** Length of a sitting: 2880 -> "48m", 4320 -> "1h 12m" */
+export const formatLength = (sec: number): string => {
+  const min = Math.max(1, Math.round(sec / 60));
+  return min < 60 ? `${min}m` : `${Math.floor(min / 60)}h ${min % 60}m`;
+};
+
 /** 432 -> "7m 12s" */
 export const formatDuration = (sec: number): string => {
   const m = Math.floor(sec / 60);

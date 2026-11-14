@@ -26,7 +26,7 @@ test("overview shows the hero, last games, hand and matchups", async ({ page }) 
 });
 
 test("unbuilt pages say when they open and link back", async ({ page }) => {
-  await page.goto("/sessions");
-  await expect(page.getByText("Opens in Phase 5").first()).toBeVisible();
+  await page.goto("/arena");
+  await expect(page.getByText("Opens in Phase 6").first()).toBeVisible();
   await expect(page.getByRole("link", { name: "Back to Overview" })).toBeVisible();
 });

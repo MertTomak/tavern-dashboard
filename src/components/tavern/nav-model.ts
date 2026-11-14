@@ -3,8 +3,6 @@ import { t } from "@/i18n";
 
 /** Phase in which each not-yet-built page opens (docs/ROADMAP.md). Built pages are absent. */
 export const OPENS_IN: Record<string, number> = {
-  "/matchups": 2,
-  "/sessions": 5,
   "/arena": 6,
 };
 
