@@ -23,7 +23,9 @@
     "art:sync": "tsx scripts/sync-art.ts",
     "app:bundle": "tsx scripts/build-electron.ts",
     "preapp:dev": "node scripts/check-node.mjs",
-    "app:dev": "npm run app:bundle && concurrently -k -n web,app -c yellow,magenta \"npm:dev\" \"TAVERN_DEV_URL=http://localhost:3000 electron .\""
+    "app:dev": "npm run app:bundle && concurrently -k -n web,app -c yellow,magenta \"npm:dev\" \"TAVERN_DEV_URL=http://localhost:3000 electron .\"",
+    "preapp:build": "node scripts/check-node.mjs",
+    "app:build": "tsx scripts/app-build.ts"
   },
   "dependencies": {
     "@base-ui/react": "^1.9.0",
@@ -72,5 +74,45 @@
   "engines": {
     "node": ">=22"
   },
-  "main": "dist-electron/main.cjs"
+  "main": "dist-electron/main.cjs",
+  "build": {
+    "appId": "local.tavern-dashboard",
+    "productName": "Tavern Dashboard",
+    "copyright": "Personal, non-commercial fan tool",
+    "directories": {
+      "output": "dist-app/release",
+      "buildResources": "assets/app-icon"
+    },
+    "files": [
+      "package.json",
+      "dist-electron/main.cjs",
+      "dist-electron/preload.cjs",
+      "!node_modules/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "dist-app/server",
+        "to": "server",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "assets/app-icon",
+        "to": ".",
+        "filter": [
+          "trayTemplate*.png"
+        ]
+      }
+    ],
+    "npmRebuild": false,
+    "asar": true,
+    "mac": {
+      "target": "dir",
+      "icon": "assets/app-icon/icon.icns",
+      "category": "public.app-category.games",
+      "identity": null,
+      "darkModeSupport": true
+    }
+  }
 }
