@@ -57,14 +57,14 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [x] Ayarlar › Effects: Full / Light / Off (`preferences.effects`, `PUT /api/preferences/effects`)
 - [x] 1440 / 800 / 390 px Chrome kontrolü ve bölüm bölüm kare ölçümü, `ui.md` güncellendi, `docs/demos/design-v4.gif`
 
-**Durum (2026-11-14):** Faz 0–0.5d, Faz 1 ve Faz 3–4'ün ana işleri bitti. Açık kalanlar: Faz 3/4'ün Ayarlar maddeleri (log.config durumu, izleyici durumu) ve Faz 2. Sıradaki büyük iş kullanıcının vereceği brief ile belirlenir (masaüstü uygulama + deste izleyici, Faz 8). Eski "Faz 3-4 önce" sırası tamamlandı.
+**Durum (2026-11-14):** Faz 0–0.5d, Faz 1, Faz 3–4 ve Faz 8 (Mac uygulaması + deste izleyici) bitti; Faz 8'de yalnızca kullanıcının canlı maç denemesi kaldı. Sıradaki: Faz 2.
 
 ## Faz 3 — Power.log yükleme
 
 - [x] Kullanıcıdan gerçek Power.log örnekleri iste, anonimleştirip fixture yap (3 ranked maç, `scripts/anonymise-log.ts`)
 - [x] Parser + fixture testleri (`src/lib/parser/`, `scripts/parse-log.ts`)
 - [x] `/import` sayfasında Power.log sürükle-bırak → bulunan maçların önizlemesi → onay (geçmiş içe aktarmalar + geri al)
-- [ ] Ayarlar: log.config durum kontrolü ve onaylı düzeltme
+- [x] Ayarlar: log.config durum kontrolü ve onaylı düzeltme (Faz 8'de, A4)
 
 **Kabul:** Gerçek bir oturum logu yüklenince maçlar doğru sonuç, sınıf ve sırayla gelir. Aynı log tekrar yüklenince 0 yeni, N atlandı.
 
@@ -73,7 +73,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [x] `scripts/watch-logs.ts` (chokidar, byte offset, yeniden deneme kuyruğu)
 - [x] `POST /api/import/watcher` + `GET /api/events` (SSE)
 - [x] Dashboard'da canlı güncelleme + toast (maç sürerken efektler otomatik Light)
-- [ ] Ayarlar'da izleyici durumu (çalışıyor mu, son okunan dosya, son maç)
+- [x] Ayarlar'da izleyici durumu (çalışıyor mu, son okunan dosya, son maç) (Faz 8'de, A4)
 
 **Kabul:** `npm run dev:all` açıkken Hearthstone'da bir maç bitirilir. Birkaç saniye içinde dashboard kendiliğinden güncellenir.
 
@@ -126,11 +126,15 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 
 ## Faz 8 — Mac masaüstü uygulaması ve oyun içi deste izleyici
 
-Planlandı, henüz başlamadı. Ayrıntılı brief gelince `docs/tasks/` altına kontrol listesi olarak kaydedilir.
+Brief: `docs/tasks/app-and-tracker.md` (adım adım notlarla).
 
-- [ ] Electron kabuğu: uygulama tek pencerede açılır, yerel sunucuyu ve log izleyiciyi kendisi başlatır (aynı anda tek izleyici)
-- [ ] Oyun içi deste izleyici (overlay): kendi destem ve çekilen/kalan kartlar, rakibin açtığı kartlar. Yalnızca oyunda görünen bilgi (adil oyun), yalnızca log dosyaları, oyun belleği okunmaz
-- [ ] Paketleme ve kurulum (kişisel kullanım, imzalama/dağıtım yok)
+- [x] Electron kabuğu: uygulama kendi penceresinde açılır (boyut/konum hatırlanır), yerel sunucuyu ve log izleyiciyi kendisi başlatır; tek izleyici kilidi; özgün meyhane simgesi
+- [x] Menü çubuğunda bugünün W–L'si, maç kaydedilince bildirim; Ayarlar: girişte başlat, Hearthstone açılınca aç, izleyici durumu, log.config denetimi ve onaylı düzeltme ([Power] + [Decks])
+- [x] Tek veri klasörü `~/Library/Application Support/TavernDashboard` (dev + uygulama)
+- [x] Deste otomatik: Decks.log'daki deste kodu → yeni deste kaydı ve maça bağlama; kod yoksa kayıtlı desteyle eşleşme veya görülen kartlar
+- [x] Oyun içi deste izleyici (overlay): kendi destem (kalan kopyalar, sonraki çekiş şansı, hover'da kart), rakibin eli (kart arkası, tur, Coin, üretilmiş), oynadıkları, deste sayıları. Adil oyun `view.ts`'te; 1 sn altı güncelleme (ölçülen ~65 ms)
+- [x] Paketleme ve kurulum: `npm run app:build` → `/Applications/Tavern Dashboard.app` (imzasız, ad-hoc codesign)
+- [ ] Canlı deneme: gerçek bir maçta overlay (tam ekran davranışı, sürükle/boyutla/⌥⌘T), menü çubuğu, bildirim ve Decks.log biçimi doğrulanacak
 
 ## Sonra / planlanmıyor
 
@@ -195,3 +199,6 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-14 — Mac uygulaması (Faz 8, `docs/tasks/app-and-tracker.md`): Electron 45 + electron-builder + esbuild (kullanıcı onayladı). Next standalone sunucusu uygulamanın içinde ayrı bir süreçte (127.0.0.1:47110), izleyici ana süreçte; tek izleyici kilidi `watcher.lock` (pid + kalp atışı), ikincisi bekler ve devralır.
 - 2026-11-14 — Veri klasörü `~/Library/Application Support/TavernDashboard` oldu (dev ve uygulama ortak). Veritabanı `VACUUM INTO` ile kopyalandı, sayılar doğrulandı; eski `data/` klasörü silinmedi, kullanıcı uygulama çalışınca isterse silebilir. Kart verisi ve görseller de kopyalandı.
 - 2026-11-14 — log.config düzeltmesi Ayarlar'dan, onay penceresinde tam satırlar gösterilerek yapılır; eski dosyanın kopyası yedek klasörüne alınır. [Decks] bölümü `Verbose=false` ile eklenir.
+- 2026-11-14 — Deste izleyici overlay'i sağ kenarda; ilk açılışta Hearthstone penceresinin sağ kenarına yerleşir (CoreGraphics ile yalnızca pencere konumu okunur, ek izin gerekmez), kullanıcı taşıyınca o konum hatırlanır. Pencere panelden 216 px geniş: soldaki şeffaf ve tıklamayı oyuna geçiren boşlukta hover'daki kart görseli açılır. Rakip paneli üstte (rakibin tahta tarafı), kendi destem altta. "Sonraki çekiş" şansı kart başına değil, kalan kopya sayısına göre (×1 / ×2) tek satırda gösterilir.
+- 2026-11-14 — Rakibin elindeki kart, log kimliğini verse bile hiçbir zaman gösterilmez; daha önce oynanıp ele dönen kart da dahil (en sıkı adil oyun yorumu). The Coin ve üretilmiş kart işaretleri gösterilir (brief istedi; oyunda da görülür).
+- 2026-11-14 — Kart verisine tüm kartlar eklendi (`cards.all.json`, 36 bin kart, yalnızca gerekli alanlar): rakibin oynadığı jeton ve üretilmiş kartların adı için.
