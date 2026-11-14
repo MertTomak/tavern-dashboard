@@ -22,3 +22,5 @@ export const WATCHER_LOCK_FILE = process.env.TAVERN_LOCK_FILE ?? path.join(APP_S
 /** Hearthstone's log folder; read-only. */
 export const DEFAULT_LOG_ROOT = "/Applications/Hearthstone/Logs";
 export const LOG_ROOT = process.env.HS_LOG_DIR ?? DEFAULT_LOG_ROOT;
+/** Hearthstone's log settings; changed only after the user approves (Settings › Game logs). */
+export const LOG_CONFIG_FILE = process.env.HS_LOG_CONFIG ?? path.join(os.homedir(), "Library", "Preferences", "Blizzard", "Hearthstone", "log.config");

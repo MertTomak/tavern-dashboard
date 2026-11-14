@@ -15,7 +15,7 @@ async function main() {
   const lock = await waitForWatcherLock("npm run watch:logs", (holder) =>
     say(`… Another log watcher is running (${holder.owner}, pid ${holder.pid}). Waiting until it stops.`),
   );
-  const watcher = new LogWatcher({ logRoot: LOG_ROOT, appUrl: APP_URL, hooks: { say } });
+  const watcher = new LogWatcher({ owner: "npm run watch:logs", logRoot: LOG_ROOT, appUrl: APP_URL, hooks: { say } });
   const shutdown = async () => {
     await watcher.stop();
     lock.release();

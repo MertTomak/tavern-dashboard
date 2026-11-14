@@ -5,6 +5,11 @@ import { PageHeader } from "@/components/layout/PageHeader";
 import { DemoDataCard } from "@/components/settings/DemoDataCard";
 import { ClassArtCard, type ClassArtRow } from "@/components/settings/ClassArtCard";
 import { EffectsCard } from "@/components/settings/EffectsCard";
+import { DesktopAppCard } from "@/components/settings/DesktopAppCard";
+import { LogConfigCard } from "@/components/settings/LogConfigCard";
+import { WatcherCard } from "@/components/settings/WatcherCard";
+import { logConfigStatus } from "@/lib/logs/log-config-file";
+import { currentWatcherStatus } from "@/lib/watcher/status";
 import { FramePanel } from "@/components/tavern/FramePanel";
 import { Stagger, StaggerItem } from "@/components/motion/Stagger";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -26,6 +31,15 @@ async function Sections() {
   });
   return (
     <>
+      <StaggerItem>
+        <DesktopAppCard />
+      </StaggerItem>
+      <StaggerItem>
+        <WatcherCard initial={currentWatcherStatus()} />
+      </StaggerItem>
+      <StaggerItem>
+        <LogConfigCard initial={logConfigStatus()} />
+      </StaggerItem>
       <StaggerItem>
         <ClassArtCard rows={rows} />
       </StaggerItem>

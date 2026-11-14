@@ -11,3 +11,10 @@ export const watcherImportSchema = z.object({
 });
 
 export const watcherLiveSchema = z.object({ inGame: z.boolean() });
+/** Heartbeat from whichever log watcher is running (the Mac app or npm run watch:logs). */
+export const watcherStatusSchema = z.object({
+  owner: z.string().max(80),
+  logRoot: z.string().max(1024),
+  file: z.string().max(1024).nullable(),
+  running: z.boolean(),
+});

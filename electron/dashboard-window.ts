@@ -1,3 +1,4 @@
+import path from "node:path";
 import { BrowserWindow, shell } from "electron";
 import { onScreen, readState, updateState } from "./store";
 
@@ -8,10 +9,10 @@ export function dashboardWindow(): BrowserWindow | null {
   return win;
 }
 
-export function openDashboard(url: string, path = "/"): BrowserWindow {
+export function openDashboard(url: string, page = "/"): BrowserWindow {
   if (win) {
     if (win.isMinimized()) win.restore();
-    if (path !== "/") void win.loadURL(new URL(path, url).href);
+    if (page !== "/") void win.loadURL(new URL(page, url).href);
     win.show();
     win.focus();
     return win;
@@ -24,7 +25,7 @@ export function openDashboard(url: string, path = "/"): BrowserWindow {
     show: false,
     backgroundColor: "#1c1612",
     title: "Tavern Dashboard",
-    webPreferences: { sandbox: true, contextIsolation: true },
+    webPreferences: { sandbox: true, contextIsolation: true, preload: path.join(__dirname, "preload.cjs") },
   });
   if (saved?.maximized) w.maximize();
 
@@ -54,7 +55,7 @@ export function openDashboard(url: string, path = "/"): BrowserWindow {
   w.on("unmaximize", remember);
   w.once("ready-to-show", () => w.show());
   w.on("closed", () => (win = null));
-  void w.loadURL(new URL(path, url).href);
+  void w.loadURL(new URL(page, url).href);
   win = w;
   return w;
 }

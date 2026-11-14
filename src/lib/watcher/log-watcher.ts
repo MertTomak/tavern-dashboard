@@ -21,6 +21,8 @@ import { TailReader } from "./tail";
 /** Safety net next to file events: Hearthstone writes in bursts and some writes don't fire an event. */
 const POLL_MS = 1000;
 const MAX_BACKOFF_S = 30;
+/** Settings shows the watcher as running while these keep coming. */
+const STATUS_MS = 15_000;
 
 export type WatcherHooks = {
   /** Short English status lines (`✓ New game saved: …`). */
@@ -33,9 +35,12 @@ export type WatcherHooks = {
   onGamesSent?: (games: GameRecord[], imported: number) => void;
   /** A game started or ended (live only). */
   onLive?: (inGame: boolean) => void;
+  /** Hearthstone was launched: a new session folder appeared. */
+  onHearthstoneStarted?: () => void;
 };
 
-export type WatcherOptions = { logRoot: string; appUrl: string; hooks: WatcherHooks; dbfOf?: DbfLookup };
+/** `owner` names this watcher in Settings › Log watcher ("Mac app", "npm run watch:logs"). */
+export type WatcherOptions = { owner: string; logRoot: string; appUrl: string; hooks: WatcherHooks; dbfOf?: DbfLookup };
 
 type Job = { path: string; body: unknown; done?: (res: unknown) => void };
 
@@ -49,6 +54,7 @@ export class LogWatcher {
   private readonly dbfOf: DbfLookup;
   private fsWatcher: FSWatcher | null = null;
   private timer: NodeJS.Timeout | null = null;
+  private statusTimer: NodeJS.Timeout | null = null;
   private switching = false;
   private stopped = false;
 
@@ -72,8 +78,13 @@ export class LogWatcher {
     hooks.say(`… Watching ${logRoot}/`);
     if (!fs.existsSync(logRoot)) hooks.say("✗ Log folder not found. Is Hearthstone installed in /Applications? (set HS_LOG_DIR to change it)");
     this.fsWatcher = watch(logRoot, { depth: 1, ignoreInitial: true, ignored: (p, stats) => !!stats?.isFile() && path.basename(p) !== "Power.log" });
-    this.fsWatcher.on("all", () => void this.tick().catch((err: unknown) => hooks.say(`✗ ${err instanceof Error ? err.message : String(err)}`)));
+    this.fsWatcher.on("all", (event, p) => {
+      if (event === "addDir" && path.dirname(p) === logRoot && path.basename(p).startsWith("Hearthstone_")) hooks.onHearthstoneStarted?.();
+      void this.tick().catch((err: unknown) => hooks.say(`✗ ${err instanceof Error ? err.message : String(err)}`));
+    });
     this.timer = setInterval(() => void this.tick().catch(() => undefined), POLL_MS);
+    this.statusTimer = setInterval(() => void this.reportStatus(true), STATUS_MS);
+    void this.reportStatus(true);
     await this.tick();
     if (!this.file) hooks.say("… No Power.log yet. Start a game and it will appear here.");
   }
@@ -82,6 +93,8 @@ export class LogWatcher {
   async stop(): Promise<void> {
     this.stopped = true;
     if (this.timer) clearInterval(this.timer);
+    if (this.statusTimer) clearInterval(this.statusTimer);
+    await this.reportStatus(false);
     await this.fsWatcher?.close();
     if (this.inGame) this.enqueue({ path: "/api/watcher/live", body: { inGame: false } });
     await this.drain(true);
@@ -131,6 +144,7 @@ export class LogWatcher {
       this.caughtUp = false;
       this.tail = new TailReader(file, start, (line, end) => this.onLine(line, end), () => (this.parser = this.freshParser(file)));
       this.opts.hooks.onSessionFile?.(file);
+      void this.reportStatus(true);
       await this.readTail();
     } finally {
       this.switching = false;
@@ -186,6 +200,12 @@ export class LogWatcher {
   }
 
   // ---- talking to the app, with a retry queue ----
+
+  /** Heartbeat for Settings; not queued, the next one replaces a lost one. */
+  private async reportStatus(running: boolean) {
+    const body = { owner: this.opts.owner, logRoot: this.opts.logRoot, file: this.file, running };
+    await this.post("/api/watcher/status", body).catch(() => undefined);
+  }
 
   private async post(urlPath: string, body: unknown): Promise<unknown> {
     const res = await fetch(`${this.opts.appUrl}${urlPath}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });

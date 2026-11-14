@@ -127,3 +127,16 @@ export function setWatcherOffset(filePath: string, byteOffset: number): void {
     .onConflictDoUpdate({ target: watcherState.filePath, set: { byteOffset, updatedAt: new Date().toISOString() } })
     .run();
 }
+
+/** The newest game the log watcher saved, for Settings › Log watcher. */
+export function lastWatcherGame(): { savedAt: string; playerClass: string; opponentClass: string; result: "WIN" | "LOSS" | "TIE" } | null {
+  return (
+    db
+      .select({ savedAt: games.createdAt, playerClass: games.playerClass, opponentClass: games.opponentClass, result: games.result })
+      .from(games)
+      .where(eq(games.source, "WATCHER"))
+      .orderBy(desc(games.createdAt))
+      .limit(1)
+      .get() ?? null
+  );
+}

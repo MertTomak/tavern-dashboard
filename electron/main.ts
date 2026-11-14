@@ -15,7 +15,8 @@ import type { GameRecord } from "@/lib/parser/record";
 import { openDashboard } from "./dashboard-window";
 import { startServer, type DashboardServer } from "./server";
 import { listenToServer } from "./live-events";
-import { flushState } from "./store";
+import { openedAtLogin, registerSettingsIpc } from "./settings";
+import { flushState, readState } from "./store";
 import { createTray, refreshTray } from "./tray";
 
 let server: DashboardServer | null = null;
@@ -32,6 +33,11 @@ const trayActions = { openDashboard: showDashboard };
 /** Today's record also changes at midnight, with no event: refresh now and then. */
 const TRAY_REFRESH_MS = 5 * 60_000;
 
+function onHearthstoneStarted() {
+  say("▶ Hearthstone started");
+  if (readState().openWithHearthstone) showDashboard();
+}
+
 function notifySaved(games: GameRecord[], imported: number) {
   if (!imported || !Notification.isSupported()) return;
   const n = new Notification({ title: t.desktop.gameSaved, body: games.map(describeGame).join("\n"), silent: true });
@@ -43,7 +49,7 @@ async function startWatcher(url: string) {
   lock = await waitForWatcherLock("Tavern Dashboard app", (holder) =>
     say(`… Another log watcher is running (${holder.owner}, pid ${holder.pid}). Waiting until it stops.`),
   );
-  watcher = new LogWatcher({ logRoot: LOG_ROOT, appUrl: url, hooks: { say, onGamesSent: notifySaved } });
+  watcher = new LogWatcher({ owner: "Mac app", logRoot: LOG_ROOT, appUrl: url, hooks: { say, onGamesSent: notifySaved, onHearthstoneStarted } });
   await watcher.start();
 }
 
@@ -59,7 +65,8 @@ if (!app.requestSingleInstanceLock()) {
     if (!app.isPackaged) app.dock?.setIcon(path.join(app.getAppPath(), "assets", "app-icon", "icon.png"));
     server = await startServer(DATA_DIR);
     const url = server.url;
-    showDashboard();
+    registerSettingsIpc();
+    if (!openedAtLogin()) showDashboard();
     createTray(trayActions);
     void refreshTray(url, trayActions);
     listenToServer(url, (event) => {
