@@ -9,6 +9,7 @@ const common = { bundle: true, platform: "node", target: "node22", format: "cjs"
 void Promise.all([
   build({ ...common, entryPoints: { main: "electron/main.ts" }, outdir: "dist-electron", outExtension: { ".js": ".cjs" }, external: ["electron"] }),
   // The dashboard window's preload: sandboxed, so one file that needs nothing but electron.
+  build({ ...common, entryPoints: { "overlay-preload": "electron/overlay-preload.ts" }, outdir: "dist-electron", outExtension: { ".js": ".cjs" }, external: ["electron"] }),
   build({ ...common, entryPoints: { preload: "electron/preload.ts" }, outdir: "dist-electron", outExtension: { ".js": ".cjs" }, external: ["electron"] }),
   // Runs inside the bundled standalone server folder, where better-sqlite3 is installed (built for Electron).
   build({ ...common, entryPoints: { "server-entry": "electron/server-entry.ts" }, outdir: "dist-electron", outExtension: { ".js": ".cjs" }, external: ["better-sqlite3"] }),

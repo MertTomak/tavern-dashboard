@@ -8,7 +8,7 @@ const todaySchema = z.object({ wins: z.number(), losses: z.number(), ties: z.num
 
 let tray: Tray | null = null;
 
-export type TrayActions = { openDashboard: () => void };
+export type TrayActions = { openDashboard: () => void; toggleTracker: () => void };
 
 function iconPath(): string {
   const base = app.isPackaged ? process.resourcesPath : path.join(app.getAppPath(), "assets", "app-icon");
@@ -28,6 +28,7 @@ function setMenu(actions: TrayActions, label: string | null) {
     Menu.buildFromTemplate([
       ...(label ? [{ label, enabled: false }, { type: "separator" as const }] : []),
       { label: t.desktop.openDashboard, click: actions.openDashboard },
+      { label: t.desktop.toggleTracker, accelerator: "Alt+Command+T", click: actions.toggleTracker },
       { type: "separator" },
       { label: t.desktop.quit, role: "quit" },
     ]),

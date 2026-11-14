@@ -129,6 +129,9 @@
   --loss: #a83a1b;
   --tie: #6a5843;
   --brass-bright: #855810;
+  /* Mana gem (deck tracker cost crystal). */
+  --mana-light: #4f8fd8;
+  --mana-deep: #10264a;
   --sunken: #eadfc8;
   --hairline: #2b201714;
   --glow: #8f5f1233;
@@ -173,6 +176,8 @@
   --loss: #ee7b52;
   --tie: #bfae90;
   --brass-bright: #f6d896;
+  --mana-light: #5b9be6;
+  --mana-deep: #0e2244;
   --sunken: #17120f;
   --hairline: #f3e6cc12;
   --glow: #e0a84a59;
@@ -393,4 +398,11 @@ html {
     animation-duration: 0s !important;
     animation-delay: 0s !important;
   }
+}
+
+/* Deck tracker overlay: a transparent window over the game, so no page backdrop. */
+html:has([data-tracker-overlay]),
+html:has([data-tracker-overlay]) body {
+  background: transparent;
+  overflow: hidden;
 }

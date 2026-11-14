@@ -2,7 +2,8 @@
  * Tavern Dashboard, the Mac app. The main process:
  * - starts the dashboard server (Next.js) and opens it in a window,
  * - reads the Hearthstone logs (the one log watcher, see src/lib/watcher/lock.ts),
- * - shows today's record in the menu bar and a notification when a game is saved.
+ * - shows today's record in the menu bar and a notification when a game is saved,
+ * - drives the in-game deck tracker overlay from the same log lines.
  */
 import "./env";
 import path from "node:path";
@@ -15,7 +16,9 @@ import type { GameRecord } from "@/lib/parser/record";
 import { openDashboard } from "./dashboard-window";
 import { startServer, type DashboardServer } from "./server";
 import { listenToServer } from "./live-events";
+import { setupOverlay, teardownOverlay, toggleOverlay, updateOverlay } from "./overlay";
 import { openedAtLogin, registerSettingsIpc } from "./settings";
+import { TrackerSession } from "./tracker";
 import { flushState, readState } from "./store";
 import { createTray, refreshTray } from "./tray";
 
@@ -29,7 +32,7 @@ function showDashboard() {
   if (server) openDashboard(server.url);
 }
 
-const trayActions = { openDashboard: showDashboard };
+const trayActions = { openDashboard: showDashboard, toggleTracker: toggleOverlay };
 /** Today's record also changes at midnight, with no event: refresh now and then. */
 const TRAY_REFRESH_MS = 5 * 60_000;
 
@@ -49,7 +52,21 @@ async function startWatcher(url: string) {
   lock = await waitForWatcherLock("Tavern Dashboard app", (holder) =>
     say(`… Another log watcher is running (${holder.owner}, pid ${holder.pid}). Waiting until it stops.`),
   );
-  watcher = new LogWatcher({ owner: "Mac app", logRoot: LOG_ROOT, appUrl: url, hooks: { say, onGamesSent: notifySaved, onHearthstoneStarted } });
+  const tracker = new TrackerSession(url, updateOverlay);
+  watcher = new LogWatcher({
+    owner: "Mac app",
+    logRoot: LOG_ROOT,
+    appUrl: url,
+    hooks: {
+      say,
+      onGamesSent: notifySaved,
+      onHearthstoneStarted,
+      onSessionFile: () => tracker.reset(),
+      onDeckQueued: (deck) => tracker.deckQueued(deck),
+      onPowerLine: (line, live) => tracker.line(line, live),
+      onLive: () => tracker.catchUp(),
+    },
+  });
   await watcher.start();
 }
 
@@ -68,6 +85,7 @@ if (!app.requestSingleInstanceLock()) {
     registerSettingsIpc();
     if (!openedAtLogin()) showDashboard();
     createTray(trayActions);
+    setupOverlay(url);
     void refreshTray(url, trayActions);
     listenToServer(url, (event) => {
       if (event.type === "games:changed") void refreshTray(url, trayActions);
@@ -91,6 +109,7 @@ if (!app.requestSingleInstanceLock()) {
       await watcher?.stop().catch(() => undefined);
       lock?.release();
       flushState();
+      teardownOverlay();
       server?.stop();
       app.exit(0);
     })();

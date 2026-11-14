@@ -87,6 +87,7 @@
       "package.json",
       "dist-electron/main.cjs",
       "dist-electron/preload.cjs",
+      "dist-electron/overlay-preload.cjs",
       "!node_modules/**/*"
     ],
     "extraResources": [

@@ -32,3 +32,11 @@ export const SCENE = {
 } as const;
 
 export const EASE_SCENE = [0.65, 0, 0.2, 1] as const;
+
+/** Deck tracker overlay: fades in when a game starts, lingers after it ends, then fades away. */
+export const TRACKER = {
+  fadeIn: 0.3,
+  fadeOut: 0.6,
+  /** How long the final state stays readable after the game ends. */
+  lingerAfterGame: 5,
+} as const;

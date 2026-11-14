@@ -267,3 +267,12 @@ export function deckIdByName(name: string, playerClass: string): number | null {
       .get()?.id ?? null
   );
 }
+
+/** The deck list the tracker counts down when Decks.log gave no code: the saved deck that best fits the cards seen. */
+export function trackerDeckMatch(playerClass: string, seen: readonly number[]): { name: string; cards: { dbfId: number; count: number }[] } | null {
+  const best = bestDeckMatch(null, seen, deckCandidates(playerClass));
+  if (!best) return null;
+  const name = db.select({ name: decks.name }).from(decks).where(eq(decks.id, best.deckId)).get()?.name ?? null;
+  const cards = db.select({ dbfId: deckCards.dbfId, count: deckCards.count }).from(deckCards).where(eq(deckCards.deckVersionId, best.versionId)).all();
+  return name ? { name, cards } : null;
+}
