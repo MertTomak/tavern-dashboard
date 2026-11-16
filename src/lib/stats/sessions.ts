@@ -65,3 +65,41 @@ export function winRateByGameNumber(sessions: readonly Session[]): { gameNumber:
   for (const s of sessions) s.games.forEach((g, i) => (byNumber[i] ??= []).push(g.result));
   return byNumber.map((results, i) => ({ gameNumber: i + 1, wr: winRate(results) }));
 }
+
+/** Losses in a row in one session that start a tilt warning. */
+export const TILT_LOSSES = 3;
+/** Session win rate at least this far below the overall one (0.10 = 10 points). */
+export const TILT_GAP = 0.1;
+
+export type Tilt = {
+  /** Longest run of losses in the session: index of its first game and its length. */
+  run: { start: number; length: number };
+  /** Overall win rate minus the session's (0–1). */
+  gap: number;
+};
+
+/** Longest run of losses in a row (ties break a run), with where it starts. */
+export function longestLossRun(results: readonly GameResult[]): { start: number; length: number } {
+  let best = { start: 0, length: 0 };
+  let start = 0;
+  results.forEach((r, i) => {
+    if (r !== "LOSS") {
+      start = i + 1;
+      return;
+    }
+    if (i - start + 1 > best.length) best = { start, length: i - start + 1 };
+  });
+  return best;
+}
+
+/**
+ * Tilt warning for one session: 3+ losses in a row and a session win rate at
+ * least 10 points below the overall one. Silent when the overall win rate rests
+ * on too few games to be an average worth comparing with (low sample).
+ */
+export function sessionTilt(session: Session, overall: WinRate): Tilt | null {
+  if (overall.lowSample || !session.wr.n) return null;
+  const run = longestLossRun(session.games.map((g) => g.result));
+  const gap = overall.rate - session.wr.rate;
+  return run.length >= TILT_LOSSES && gap >= TILT_GAP - 1e-9 ? { run, gap } : null;
+}

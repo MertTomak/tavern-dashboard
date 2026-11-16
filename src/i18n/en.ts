@@ -321,6 +321,12 @@ export const en = {
     deckGames: (name: string, n: number) => `${name} ×${n}`,
     noDeck: "No deck",
     results: "Results in order",
+    tilt: {
+      label: "Tilt warning",
+      note: (losses: number, pts: number, overall: string) => `${losses} losses in a row, and this session's win rate is ${pts} points below your average (${overall}).`,
+      now: "This session looks like tilt. A short break often helps.",
+      rule: (losses: number, pts: number) => `Tilt: ${losses}+ losses in a row and ${pts}+ points below your average`,
+    },
     noMatch: "No games match these filters",
     noMatchBody: "Try a longer date range or another mode.",
   },

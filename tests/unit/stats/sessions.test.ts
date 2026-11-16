@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { buildSessions, winRateByGameNumber, type SessionGame } from "@/lib/stats/sessions";
+import { buildSessions, longestLossRun, sessionTilt, winRateByGameNumber, type SessionGame } from "@/lib/stats/sessions";
+import { winRate } from "@/lib/stats/winrate";
 
 const game = (playedAt: string, result: SessionGame["result"], durationSec: number | null = 600, deckName: string | null = "Yogg Warrior"): SessionGame => ({
   id: playedAt,
@@ -73,5 +74,32 @@ describe("winRateByGameNumber", () => {
     expect(byNumber[0].wr).toMatchObject({ wins: 2, losses: 0, rate: 1 });
     expect(byNumber[1].wr).toMatchObject({ wins: 1, losses: 1, rate: 0.5 });
     expect(byNumber[2].wr).toMatchObject({ wins: 0, losses: 1, n: 1, lowSample: true });
+  });
+});
+
+describe("tilt", () => {
+  const session = (results: ("WIN" | "LOSS" | "TIE")[]) =>
+    buildSessions(results.map((result, i) => ({ id: String(i), playedAt: new Date(Date.UTC(2026, 10, 17, 18, i * 10)).toISOString(), result, durationSec: 300, deckName: null, playerClass: "MAGE", opponentClass: "PRIEST" })))[0];
+  const overall = (wins: number, losses: number) => winRate([...Array<"WIN">(wins).fill("WIN"), ...Array<"LOSS">(losses).fill("LOSS")]);
+
+  it("finds the longest run of losses; ties break it", () => {
+    expect(longestLossRun([])).toEqual({ start: 0, length: 0 });
+    expect(longestLossRun(["LOSS", "WIN", "LOSS", "LOSS", "TIE", "LOSS"])).toEqual({ start: 2, length: 2 });
+    expect(longestLossRun(["WIN", "LOSS", "LOSS", "LOSS"])).toEqual({ start: 1, length: 3 });
+  });
+
+  it("warns on 3 losses in a row and 10+ points below the overall win rate", () => {
+    // Session 2-3 = 40%; overall 55% → 15 points below.
+    expect(sessionTilt(session(["WIN", "WIN", "LOSS", "LOSS", "LOSS"]), overall(55, 45))).toMatchObject({ run: { start: 2, length: 3 } });
+    expect(sessionTilt(session(["WIN", "WIN", "LOSS", "LOSS", "LOSS"]), overall(55, 45))?.gap).toBeCloseTo(0.15);
+  });
+
+  it("stays quiet on 2 losses in a row, on a gap under 10 points, and on a thin overall record", () => {
+    expect(sessionTilt(session(["LOSS", "LOSS", "WIN", "LOSS"]), overall(60, 40))).toBeNull();
+    // 1-3 = 25% vs overall 34%: 9 points.
+    expect(sessionTilt(session(["WIN", "LOSS", "LOSS", "LOSS"]), overall(34, 66))).toBeNull();
+    // Exactly 10 points counts.
+    expect(sessionTilt(session(["WIN", "LOSS", "LOSS", "LOSS"]), overall(35, 65))).not.toBeNull();
+    expect(sessionTilt(session(["LOSS", "LOSS", "LOSS"]), overall(5, 4))).toBeNull();
   });
 });
