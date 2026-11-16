@@ -33,7 +33,7 @@ describe("deck tracker on a recorded game", () => {
     expect(view.status).toBe("over");
     expect(log.game?.friendlyPlayerId).toBe(1);
     expect(view.me.rows.length).toBeGreaterThan(5);
-    expect(view.opponent.played.length).toBeGreaterThan(3);
+    expect(view.opponent.rows.length).toBeGreaterThan(3);
     expect(view.me.rows.some((r) => r.cardId === "GAME_005")).toBe(false);
   });
 
@@ -57,24 +57,34 @@ describe("deck tracker on a recorded game", () => {
   it("starts a fresh game on the next CREATE_GAME", () => {
     const second = lines.findIndex((l, i) => i > firstGameEnd && l.includes("CREATE_GAME"));
     const { view } = replay(lines.slice(0, second + 40), null);
-    expect(view.opponent.played).toEqual([]);
+    expect(view.opponent.rows).toEqual([]);
+    expect(view.opponent.unrevealed).toBe(0);
   });
 });
 
 describe("fair play", () => {
-  it("never puts an identity on an opponent's hand card, at any moment of the session", () => {
+  it("says nothing about the opponent's hand but its size, at any moment of the session", () => {
     replay(lines, null, (view) => {
-      for (const card of view.opponent.hand) expect(Object.keys(card).sort()).toEqual(["coin", "created", "slot", "turn"]);
+      expect(Object.keys(view.opponent).sort()).toEqual(["cls", "deckCount", "handCount", "rows", "unrevealed"]);
+      expect(typeof view.opponent.handCount).toBe("number");
     });
   });
 
-  it("shows an opponent's card only after it has been seen on the board", () => {
+  it("lists an opponent's card only after its face has been seen, and never while it is in their hand unseen", () => {
     replay(lines, null, (view, log) => {
-      for (const p of view.opponent.played) {
-        if (!p.cardId) continue;
-        expect(log.game?.entities.get(p.key)?.wasPublic).toBe(true);
+      for (const row of view.opponent.rows) {
+        expect(row.count).toBe(row.keys.length);
+        for (const key of row.keys) expect(log.game?.entities.get(key)?.wasPublic).toBe(true);
       }
     });
+  });
+
+  it("groups copies and sorts by mana cost like my deck", () => {
+    const { view } = replay(lines.slice(0, firstGameEnd + 1), null);
+    const costs = view.opponent.rows.map((r) => r.cost ?? 99);
+    expect(costs).toEqual([...costs].sort((a, b) => a - b));
+    expect(new Set(view.opponent.rows.map((r) => r.cardId)).size).toBe(view.opponent.rows.length);
+    expect(view.opponent.rows.reduce((n, r) => n + r.count, 0)).toBeGreaterThanOrEqual(view.opponent.rows.length);
   });
 
   it("keeps a secret hidden even if the log names it, until it is revealed", () => {
@@ -87,30 +97,28 @@ describe("fair play", () => {
       `${at("01")}TAG_CHANGE Entity=[entityName=UNKNOWN ENTITY [cardType=INVALID] id=40 zone=HAND zonePos=1 cardId= player=2] tag=ZONE value=SECRET`,
     ];
     const { view: hidden } = replay([...setup, ...leak], null);
-    expect(hidden.opponent.played.at(-1)).toMatchObject({ cardId: null, name: null });
+    expect(hidden.opponent.rows.some((r) => r.cardId === "TIME_029")).toBe(false);
+    expect(hidden.opponent.unrevealed).toBe(1);
     const reveal = `${at("09")}TAG_CHANGE Entity=[entityName=UNKNOWN ENTITY [cardType=INVALID] id=40 zone=SECRET zonePos=1 cardId= player=2] tag=ZONE value=GRAVEYARD`;
     const { view: shown } = replay([...setup, ...leak, reveal], null);
-    expect(shown.opponent.played.at(-1)?.cardId).toBe("TIME_029");
+    expect(shown.opponent.rows.find((r) => r.cardId === "TIME_029")).toMatchObject({ count: 1, keys: [40] });
+    expect(shown.opponent.unrevealed).toBe(0);
   });
 
-  it("marks The Coin and created cards in the opponent's hand", () => {
+  it("counts cards in the opponent's hand without listing them, even when the log names one", () => {
     const setup = lines.slice(0, lines.findIndex((l) => l.includes("value=MAIN_READY")) + 1);
     const at = "D 23:00:00.0000000 GameState.DebugPrintPower() - ";
+    const { view: before } = replay(setup, null);
     const extra = [
-      `${at}FULL_ENTITY - Creating ID=900 CardID=GAME_005`,
+      `${at}FULL_ENTITY - Creating ID=900 CardID=TIME_029`,
       `${at}    tag=ZONE value=HAND`,
       `${at}    tag=CONTROLLER value=2`,
-      `${at}    tag=COIN_CARD value=1`,
-      `${at}    tag=ZONE_POSITION value=9`,
       `${at}FULL_ENTITY - Creating ID=901 CardID=`,
       `${at}    tag=ZONE value=HAND`,
       `${at}    tag=CONTROLLER value=2`,
-      `${at}    tag=ZONE_POSITION value=10`,
     ];
     const { view } = replay([...setup, ...extra], null);
-    const [coin, created] = view.opponent.hand.slice(-2);
-    expect(coin).toMatchObject({ coin: true, created: false });
-    expect(created).toMatchObject({ coin: false, created: true });
-    expect(view.opponent.hand.slice(0, -2).every((c) => !c.created && c.turn === 0)).toBe(true);
+    expect(view.opponent.handCount).toBe(before.opponent.handCount + 2);
+    expect(view.opponent.rows).toEqual(before.opponent.rows);
   });
 });

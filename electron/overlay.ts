@@ -9,14 +9,20 @@ import { EMPTY_VIEW, type TrackerView } from "@/lib/tracker/view";
 import { readState, updateState } from "./store";
 
 /**
- * The in-game deck tracker: two slim, transparent, always-on-top panels.
- * My deck sits on the right edge; the opponent panel sits top-left, below the
- * opponent's name. Clicks pass through to the game except over a panel.
+ * The in-game deck tracker: two slim, transparent, always-on-top panels of the
+ * same look. My deck sits on the right edge; the opponent's played and revealed
+ * cards sit in a column on the far left edge, between the two names.
+ * Clicks pass through to the game except over a panel.
  * Each panel is its own window: it can be dragged, resized and switched off
  * on its own, and remembers its place relative to the game window.
  * They appear when a game starts and fade out after it ends; ⌥⌘T hides both.
  * They only ever show the fair-play view built in src/lib/tracker/view.ts.
  */
+/**
+ * Version of the panel layout. 3 = the opponent panel became a column on the left
+ * edge: a place (and an "off" switch) saved for the earlier wide box no longer fits.
+ */
+const TRACKER_LAYOUT = 3;
 /** After the game ends the page fades out; then the windows are hidden. */
 const HIDE_AFTER_GAME_MS = 9_000;
 /** While a game is on, follow the game window if it moves or changes size (windowed ↔ full screen). */
@@ -60,10 +66,13 @@ async function gameArea(): Promise<{ area: Rect; titleBar: number }> {
   return { area: hs, titleBar: fillsScreen ? 0 : TITLE_BAR };
 }
 
-/** The window is wider than the deck panel: clear, click-through space on its left shows the hovered card. */
-const gutter = (panel: PanelId) => (panel === "deck" ? PREVIEW_GUTTER : 0);
-const toWindow = (panel: PanelId, r: Rect): Rect => ({ x: r.x - gutter(panel), y: r.y, width: r.width + gutter(panel), height: r.height });
-const toPanel = (panel: PanelId, r: Rect): Rect => ({ x: r.x + gutter(panel), y: r.y, width: r.width - gutter(panel), height: r.height });
+/**
+ * Each window is wider than its panel: clear, click-through space on the panel's
+ * board side (left of my deck, right of the opponent column) shows the hovered card.
+ */
+const gutterLeft = (panel: PanelId) => (panel === "deck" ? PREVIEW_GUTTER : 0);
+const toWindow = (panel: PanelId, r: Rect): Rect => ({ x: r.x - gutterLeft(panel), y: r.y, width: r.width + PREVIEW_GUTTER, height: r.height });
+const toPanel = (panel: PanelId, r: Rect): Rect => ({ x: r.x + gutterLeft(panel), y: r.y, width: r.width - PREVIEW_GUTTER, height: r.height });
 
 /** Keeps a panel reachable: at least part of it on a connected screen. */
 function reachable(r: Rect): boolean {
@@ -77,8 +86,10 @@ function reachable(r: Rect): boolean {
 function place(panel: PanelId, where: { area: Rect; titleBar: number }) {
   const win = windows.get(panel);
   if (!win) return;
-  let rect = placePanel(panel, where.area, where.titleBar, readState().tracker[panel]);
-  if (!reachable(rect)) rect = placePanel(panel, where.area, where.titleBar, undefined);
+  // The opponent column starts as wide as my deck panel is now.
+  const width = panel === "opponent" ? placePanel("deck", where.area, where.titleBar, readState().tracker.deck).width : undefined;
+  let rect = placePanel(panel, where.area, where.titleBar, readState().tracker[panel], width);
+  if (!reachable(rect)) rect = placePanel(panel, where.area, where.titleBar, undefined, width);
   win.setBounds(toWindow(panel, rect));
 }
 
@@ -215,6 +226,10 @@ export const pickedDecks = {
 export function setupOverlay(url: string, onChange: () => void, pickDeck: (deckId: number) => void): void {
   onSettingsChanged = onChange;
   onPickDeck = pickDeck;
+  if (readState().tracker.layout !== TRACKER_LAYOUT) {
+    const state = readState().tracker;
+    updateState({ tracker: { ...state, opponent: undefined, hidden: { ...state.hidden, opponent: false }, layout: TRACKER_LAYOUT } });
+  }
   for (const panel of PANEL_IDS) windows.set(panel, create(panel, url));
   globalShortcut.register(SHORTCUT, toggleOverlay);
 
@@ -261,13 +276,11 @@ export function setupOverlay(url: string, onChange: () => void, pickDeck: (deckI
     const limits = PANEL_LIMITS[panel];
     let next: Rect;
     if (kind === "drag") next = { ...b, x: b.x + dx, y: b.y + dy };
-    else if (panel === "deck") {
-      // The grip sits bottom-left: dragging left widens toward the board, down makes it taller.
-      const width = Math.min(limits.maxWidth, Math.max(limits.minWidth, b.width - dx));
-      next = { x: b.x + b.width - width, y: b.y, width, height: Math.max(limits.minHeight, b.height + dy) };
-    } else {
-      // The opponent panel is as tall as what it shows; its right edge sets the width.
-      next = { ...b, width: Math.min(limits.maxWidth, Math.max(limits.minWidth, b.width + dx)) };
+    else {
+      // The grip sits on the panel's board-side bottom corner: my deck widens to the left, the opponent column to the right.
+      const grow = panel === "deck" ? -dx : dx;
+      const width = Math.min(limits.maxWidth, Math.max(limits.minWidth, b.width + grow));
+      next = { x: panel === "deck" ? b.x + b.width - width : b.x, y: b.y, width, height: Math.max(limits.minHeight, b.height + dy) };
     }
     win.setBounds(toWindow(panel, next));
     if (phase === "end") {

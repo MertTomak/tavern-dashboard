@@ -1,6 +1,5 @@
 import { describe, expect, it } from "vitest";
 import {
-  OPPONENT_STRIP_HEIGHT,
   PANEL_LIMITS,
   TITLE_BAR,
   defaultPlace,
@@ -28,7 +27,6 @@ describe.each(SCREENS)("tracker panels on %s", (_name, area, titleBar) => {
   const zones = gameZones(picture);
   const deck = defaultPlace("deck", area, titleBar);
   const opponent = defaultPlace("opponent", area, titleBar);
-  const strip = { ...opponent, height: OPPONENT_STRIP_HEIGHT };
   const inside = (r: Rect) => r.x >= picture.x && r.y >= picture.y && r.x + r.width <= picture.x + picture.width && r.y + r.height <= picture.y + picture.height;
 
   it("puts my deck on the right edge at almost full height", () => {
@@ -39,15 +37,19 @@ describe.each(SCREENS)("tracker panels on %s", (_name, area, titleBar) => {
     expect(deck.width).toBeLessThanOrEqual(270);
   });
 
-  it("puts the opponent strip top-left, below the name and clear of the history and the opponent's hand", () => {
+  it("puts the opponent column on the far left edge, between the two names, as wide as my deck panel", () => {
     expect(inside(opponent)).toBe(true);
-    expect(opponent.x + opponent.width).toBeLessThanOrEqual(zones.opponentHand.x);
-    expect(opponent.y - picture.y).toBeLessThanOrEqual(picture.height * 0.06);
-    expect(opponent.width).toBeGreaterThanOrEqual(PANEL_LIMITS.opponent.minWidth);
+    expect(opponent.x - picture.x).toBeLessThanOrEqual(10);
+    expect(opponent.width).toBe(deck.width);
     expect(opponent.y).toBeGreaterThanOrEqual(zones.opponentName.y + zones.opponentName.height);
-    expect(intersects(strip, zones.history)).toBe(false);
-    expect(intersects(strip, zones.opponentHand)).toBe(false);
-    expect(intersects(strip, deck)).toBe(false);
+    expect(opponent.y + opponent.height).toBeLessThanOrEqual(zones.myName.y);
+    expect(opponent.height).toBeGreaterThanOrEqual(picture.height * 0.85);
+    expect(intersects(opponent, deck)).toBe(false);
+  });
+
+  it("matches my deck panel's width after I resize it", () => {
+    expect(defaultPlace("opponent", area, titleBar, 223).width).toBe(223);
+    expect(defaultPlace("opponent", area, titleBar, 900).width).toBe(PANEL_LIMITS.opponent.maxWidth);
   });
 });
 
@@ -69,10 +71,10 @@ describe("remembered places", () => {
     expect(moved.height).toBe(Math.round((810 * 748) / 900));
     expect(moved.y + moved.height).toBeLessThanOrEqual(windowed.y + windowed.height);
 
-    const opponent = { x: 30, y: 50, width: 400, height: 500 };
+    const opponent = { x: 30, y: 50, width: 300, height: 500 };
     const movedOpponent = fromSaved("opponent", toSaved("opponent", opponent, full), windowed);
     expect(movedOpponent.x).toBe(windowed.x + 30);
-    expect(movedOpponent.width).toBe(400);
+    expect(movedOpponent.width).toBe(300);
   });
 
   it("uses the default place until the user moves a panel", () => {

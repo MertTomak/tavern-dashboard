@@ -1,156 +1,97 @@
 "use client";
 
-import { useState } from "react";
-import { ChevronDown, Hand, Layers, Sparkles } from "lucide-react";
-import { CardPreview } from "@/components/cards/CardPreview";
-import type { HandCard, PlayedRow } from "@/lib/tracker/view";
-import { cn } from "@/lib/utils";
+import { Hand, Layers } from "lucide-react";
+import { classLabel } from "@/lib/cards/class-colors";
 import { t } from "@/i18n";
 import { PanelShell } from "./PanelShell";
-import { ManaGem } from "./TrackerRows";
-import type { TrackerState } from "./use-tracker";
+import { DeckCardRow, ManaGem } from "./TrackerRows";
+import { useFitRows, type TrackerState } from "./use-tracker";
 
-/** Turns of plays shown in full; older ones fold into one summary line. */
-const OPEN_TURNS = 2;
-
-/** A face-down card in the opponent's hand: never its identity, only when it arrived and how. */
-function CardBack({ card }: { card: HandCard }) {
-  const copy = t.tracker;
-  const turn = card.turn ? String(card.turn) : copy.mulliganShort;
-  return (
-    <li
-      className={cn(
-        "relative h-[36px] w-[26px] shrink-0 rounded-[4px] border bg-[radial-gradient(circle_at_50%_35%,var(--oak-panel),var(--oak-deep))] shadow-[0_1px_3px_rgb(0_0_0/0.5)]",
-        card.coin ? "border-brass-light" : "border-ember/50",
-      )}
-      aria-label={copy.handCard(card.slot, copy.drawnOnTurn(card.turn), card.coin, card.created)}
-    >
-      <span aria-hidden className="absolute inset-[3px] rounded-[2px] border border-ember/25" />
-      {card.coin ? (
-        <span aria-hidden className="absolute top-[42%] left-1/2 grid size-4 -translate-1/2 place-items-center rounded-full border border-brass-bright/80 bg-[radial-gradient(circle_at_35%_30%,var(--color-brass-light),var(--color-brass))] shadow-[0_0_6px_var(--glow)]">
-          <span className="size-2 rounded-full border border-oak-deep/40" />
-        </span>
-      ) : (
-        <span aria-hidden className="absolute top-[42%] left-1/2 size-1.5 -translate-1/2 rotate-45 bg-ember/55" />
-      )}
-      {card.created && <Sparkles aria-hidden className="absolute -top-1.5 -left-1.5 size-3.5 rounded-full bg-oak-deep text-brass-light" />}
-      <span aria-hidden className="stat absolute -right-1.5 -bottom-1.5 grid h-[17px] min-w-[17px] place-items-center rounded-full border border-ember/60 bg-oak-deep px-0.5 text-[11.5px] leading-none font-bold text-parchment">
-        {turn}
-      </span>
-    </li>
-  );
-}
-
-/** One small line for a card the opponent played: mana, name, turn. */
-function PlayedLine({ row }: { row: PlayedRow }) {
-  const copy = t.tracker;
-  const line = (name: string, known: boolean) => (
-    <li
-      tabIndex={known ? 0 : undefined}
-      aria-label={copy.playedOn(name, row.turn)}
-      className={cn(
-        "flex h-5 min-w-0 items-center gap-1 rounded-[3px] border pr-1 text-[11.5px] leading-none outline-none focus-visible:ring-2 focus-visible:ring-ring",
-        known ? "border-ember/25 bg-sunken/85 text-parchment" : "border-dashed border-ember/30 bg-sunken/60 text-ink-muted",
-      )}
-    >
-      <ManaGem cost={row.cost} className="size-[18px] text-[11px]" />
-      <span className="min-w-0 flex-1 truncate">{name}</span>
-      <span aria-hidden className="stat shrink-0 text-[10.5px] font-bold text-ember-light">{copy.turnShort(row.turn)}</span>
-    </li>
-  );
-  if (!row.cardId || !row.name) return line(copy.unknownCard, false);
-  return (
-    <CardPreview cardId={row.cardId} name={row.name} side="bottom">
-      {line(row.name, true)}
-    </CardPreview>
-  );
-}
-
-const GRID = "grid grid-cols-[repeat(auto-fill,minmax(128px,1fr))] gap-[2px]";
+/** Height of the panel's header and padding: the part of the column that is not rows. */
+const HEADER_PX = 64;
 
 /**
- * The opponent, as the game shows them, in a compact ember strip top-left:
- * card backs in hand (turn each arrived, The Coin, created cards), deck size,
- * and the cards they played in their last two turns as small lines. Older
- * turns fold into one summary line that opens on a click.
+ * The opponent, in a column on the far left edge that looks exactly like my
+ * deck panel: it starts empty and gains a row for every card they play or
+ * reveal, copies grouped (×2), sorted by mana cost. The panel is only as tall
+ * as its rows, up to the column's height; then the rows shrink to fit, as in
+ * my deck panel. A row that was just added
+ * or gained a copy glows once. The header has their class and two numbers:
+ * cards in hand and cards in deck. Nothing about hidden cards (fair play):
+ * a card played face down is only counted.
  */
 export function OpponentPanel({ tracker }: { tracker: TrackerState }) {
   const copy = t.tracker;
-  const { view, visible } = tracker;
+  const { view, visible, deckSize } = tracker;
   const { opponent } = view;
-  const [open, setOpen] = useState(false);
-
-  const turns = [...new Set(opponent.played.map((p) => p.turn))].sort((a, b) => b - a);
-  const recentTurns = new Set(turns.slice(0, OPEN_TURNS));
-  const newestFirst = [...opponent.played].sort((a, b) => b.turn - a.turn || b.key - a.key);
-  const recent = newestFirst.filter((p) => recentTurns.has(p.turn));
-  const older = newestFirst.filter((p) => !recentTurns.has(p.turn));
-  const olderTurns = turns.slice(OPEN_TURNS);
+  const rows = opponent.rows.length + (opponent.unrevealed ? 1 : 0);
+  const [measureColumn, listStyle] = useFitRows(rows, deckSize, HEADER_PX);
 
   return (
-    <PanelShell
-      panel="opponent"
-      visible={visible}
-      heading={
-        <span className="flex min-w-0 items-baseline gap-1.5">
-          <span className="font-display text-[13px] leading-tight text-ember-light">{copy.opponent}</span>
-          <span className="stat truncate text-[11px] text-ink-muted">{view.status === "over" ? copy.gameOver : copy.turn(view.turn)}</span>
-        </span>
-      }
-      aside={
-        <p className="stat flex shrink-0 items-center gap-2 text-[13px] font-bold text-parchment">
-          <span className="flex items-center gap-0.5" aria-label={copy.hand(opponent.hand.length)}>
-            <Hand aria-hidden className="size-3 text-ember" />
-            {opponent.hand.length}
+    <div ref={measureColumn} className="flex h-full w-full min-w-0 items-start">
+      <PanelShell
+        panel="opponent"
+        fill={false}
+        visible={visible}
+        heading={
+          <span className="min-w-0">
+            <span className="block truncate font-display text-[15px] leading-tight text-title-gold">{copy.opponent}</span>
+            <span className="block truncate text-[10.5px] leading-tight text-ink-muted">{opponent.cls ? classLabel(opponent.cls) : copy.turn(view.turn)}</span>
           </span>
-          <span className="flex items-center gap-0.5" aria-label={copy.deckLeft(opponent.deckCount)}>
-            <Layers aria-hidden className="size-3 text-ember" />
-            {opponent.deckCount}
-          </span>
-        </p>
-      }
-    >
-      {view.status !== "waiting" && (
-        <div className="flex min-h-0 flex-col gap-x-3 gap-y-1.5 @[360px]:flex-row">
-          <ul aria-label={copy.hand(opponent.hand.length)} className="flex shrink-0 flex-wrap content-start gap-x-[9px] gap-y-[9px] pt-1 pr-1.5 pb-1.5 pl-1 @[360px]:w-[218px]">
-            {opponent.hand.map((c) => (
-              <CardBack key={c.slot} card={c} />
-            ))}
-          </ul>
-
-          <div className="flex min-h-0 min-w-0 flex-1 flex-col gap-[2px]">
-            {turns.length === 0 ? (
-              <p className="px-0.5 pt-1 text-[11px] text-ink-muted">{copy.noPlays}</p>
-            ) : (
-              <ol aria-label={copy.played} className={GRID}>
-                {recent.map((p) => (
-                  <PlayedLine key={p.key} row={p} />
-                ))}
-                {older.length > 0 && (
-                  <li className="min-w-0">
-                    <button
-                      type="button"
-                      aria-expanded={open}
-                      onClick={() => setOpen((v) => !v)}
-                      className="flex h-5 w-full min-w-0 items-center gap-1 rounded-[3px] border border-ember/20 px-1 text-[11px] leading-none text-ink-muted outline-none hover:text-parchment focus-visible:ring-2 focus-visible:ring-ring"
-                    >
-                      <ChevronDown aria-hidden className={cn("size-3 shrink-0 text-ember transition-transform duration-150", open && "rotate-180")} />
-                      <span className="stat min-w-0 flex-1 truncate text-left">{copy.olderTurns(olderTurns.at(-1) ?? 0, olderTurns[0] ?? 0, older.length)}</span>
-                    </button>
-                  </li>
-                )}
-              </ol>
-            )}
-            {open && older.length > 0 && (
-              <ol data-lenis-prevent className={cn(GRID, "min-h-0 overflow-y-auto overscroll-contain border-t border-ember/20 pt-[3px] [scrollbar-width:none]")}>
-                {older.map((p) => (
-                  <PlayedLine key={p.key} row={p} />
-                ))}
-              </ol>
-            )}
-          </div>
-        </div>
-      )}
-    </PanelShell>
+        }
+        aside={
+          <p className="stat flex shrink-0 items-center gap-2.5 text-lg leading-none font-bold text-brass-bright">
+            <span className="flex items-center gap-1" aria-label={copy.hand(opponent.handCount)} title={copy.hand(opponent.handCount)}>
+              <Hand aria-hidden className="size-3.5 text-brass" />
+              {opponent.handCount}
+            </span>
+            <span className="flex items-center gap-1" aria-label={copy.deckLeft(opponent.deckCount)} title={copy.deckLeft(opponent.deckCount)}>
+              <Layers aria-hidden className="size-3.5 text-brass" />
+              {opponent.deckCount}
+            </span>
+          </p>
+        }
+      >
+        {view.status !== "waiting" && (
+          <>
+            {rows === 0 && <p className="px-1 text-[11px] leading-snug text-ink-muted">{copy.noPlays}</p>}
+            <ul
+              data-lenis-prevent
+              aria-label={copy.opponentCards}
+              className="flex min-h-0 flex-col overflow-y-auto overscroll-contain [scrollbar-width:none]"
+              style={listStyle}
+            >
+              {opponent.rows.map((r) => (
+                // The key changes with the count, so a new copy plays the glow again.
+                <DeckCardRow
+                  key={`${r.cardId}:${r.count}`}
+                  cardId={r.cardId}
+                  name={r.name}
+                  cost={r.cost}
+                  legendary={r.rarity === "LEGENDARY"}
+                  badge={`×${r.count}`}
+                  badgeLabel={copy.seenCopies(r.count)}
+                  previewSide="right"
+                  fresh
+                />
+              ))}
+              {opponent.unrevealed > 0 && (
+                <li
+                  key={`unrevealed:${opponent.unrevealed}`}
+                  aria-label={copy.unknownCards(opponent.unrevealed)}
+                  className="tracker-row-new relative flex h-(--row-h) shrink-0 items-center gap-[0.35em] rounded-xs border border-dashed border-brass/30 bg-sunken/70 pr-[0.3em] pl-px text-ink-muted"
+                >
+                  <ManaGem cost={null} className="size-[calc(var(--row-h)-4px)] text-[1.05em] opacity-70" />
+                  <span className="min-w-0 flex-1 truncate leading-none">{copy.unknownCard}</span>
+                  <span aria-hidden className="stat flex h-[calc(var(--row-h)-8px)] min-w-[1.5em] items-center justify-center px-[0.25em] text-[1.1em] leading-none font-bold">
+                    ×{opponent.unrevealed}
+                  </span>
+                </li>
+              )}
+            </ul>
+          </>
+        )}
+      </PanelShell>
+    </div>
   );
 }

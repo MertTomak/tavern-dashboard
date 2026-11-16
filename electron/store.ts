@@ -21,8 +21,10 @@ const stateSchema = z.object({
       deckSize: z.enum(DECK_SIZES).default("M"),
       /** "Pick your deck" choices: my class → saved deck id, used when a game has no deck code. */
       pickedDecks: z.record(z.string(), z.number()).default({}),
+      /** Which tracker layout the saved places belong to (see TRACKER_LAYOUT in overlay.ts). */
+      layout: z.number().default(2),
     })
-    .default({ hidden: { deck: false, opponent: false }, deckSize: "M", pickedDecks: {} }),
+    .default({ hidden: { deck: false, opponent: false }, deckSize: "M", pickedDecks: {}, layout: 2 }),
   openWithHearthstone: z.boolean().default(true),
 });
 export type AppState = z.infer<typeof stateSchema>;

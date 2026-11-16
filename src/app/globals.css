@@ -63,9 +63,6 @@
   --color-parchment: #f3e6cc;
   --color-ink-muted: #bfae90;
   --color-brass: #e0a84a;
-  /* Ember: the opponent's accent in the deck tracker. */
-  --color-ember: #e8683f;
-  --color-ember-light: #ffb59a;
   --color-brass-light: #fbe3a4;
   --color-brass-dim: #d9b877;
   --color-title-gold: #f6d896;
@@ -400,6 +397,26 @@ html {
   ::view-transition-group(*) {
     animation-duration: 0s !important;
     animation-delay: 0s !important;
+  }
+}
+
+/* Deck tracker: a row that was just added (or gained a copy) glows in brass once. */
+@keyframes tracker-row-new {
+  0% {
+    box-shadow: 0 0 0 1px var(--color-brass-light), 0 0 14px 2px var(--glow);
+    filter: brightness(1.5);
+  }
+  100% {
+    box-shadow: 0 0 0 1px transparent, 0 0 0 0 transparent;
+    filter: brightness(1);
+  }
+}
+.tracker-row-new {
+  animation: tracker-row-new 1.8s ease-out 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tracker-row-new {
+    animation: none;
   }
 }
 

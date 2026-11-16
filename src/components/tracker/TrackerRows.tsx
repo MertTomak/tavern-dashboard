@@ -28,18 +28,22 @@ type RowProps = {
   badgeLabel?: string;
   dimmed?: boolean;
   legendary?: boolean;
+  /** Brass glow once, for a row that was just added or gained a copy. */
+  fresh?: boolean;
+  /** Which side the full card opens on (toward the board). */
+  previewSide?: "left" | "right";
 };
 
 /**
- * One row of my deck: mana gem, the card's tile art fading in from the right,
- * name and copies left. Its height is `--row-h` and its text follows the list's
+ * One card row, the same in both panels: mana gem, the card's tile art fading in from the right,
+ * name and a count. Its height is `--row-h` and its text follows the list's
  * font size, both set by the list so the rows fill the panel. Hover shows the
- * full card in the clear space left of the panel.
+ * full card in the clear space beside the panel.
  */
-export function DeckCardRow({ cardId, name, cost, badge, badgeLabel, dimmed, legendary }: RowProps) {
+export function DeckCardRow({ cardId, name, cost, badge, badgeLabel, dimmed, legendary, fresh, previewSide = "left" }: RowProps) {
   const { width, height } = ART_KINDS.tile;
   return (
-    <CardPreview cardId={cardId} name={name}>
+    <CardPreview cardId={cardId} name={name} side={previewSide}>
       <li
         tabIndex={0}
         aria-label={badgeLabel ? `${name}, ${badgeLabel}` : name}
@@ -47,6 +51,7 @@ export function DeckCardRow({ cardId, name, cost, badge, badgeLabel, dimmed, leg
           "relative flex h-(--row-h) shrink-0 items-center gap-[0.35em] overflow-hidden rounded-xs border border-brass/25 bg-oak-deep pr-[0.3em] pl-px outline-none transition-opacity duration-200 focus-visible:ring-2 focus-visible:ring-ring",
           dimmed && "opacity-35",
           legendary && "border-brass/55",
+          fresh && "tracker-row-new",
         )}
       >
         <ArtImage

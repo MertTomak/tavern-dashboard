@@ -1,27 +1,14 @@
 "use client";
 
-import { useCallback, useState } from "react";
 import { Layers } from "lucide-react";
 import { formatPercent } from "@/lib/format";
-import { DECK_SIZES, ROW_GAP, fitRowHeight } from "@/lib/tracker/layout";
+import { DECK_SIZES } from "@/lib/tracker/layout";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { DeckPicker } from "./DeckPicker";
 import { PanelShell } from "./PanelShell";
 import { DeckCardRow } from "./TrackerRows";
-import type { TrackerState } from "./use-tracker";
-
-/** The list's inner height, measured so the rows can share it. */
-function useHeight(): [(node: HTMLElement | null) => void | (() => void), number] {
-  const [height, setHeight] = useState(0);
-  const ref = useCallback((node: HTMLElement | null) => {
-    if (!node) return;
-    const observer = new ResizeObserver(([entry]) => setHeight(Math.floor(entry.contentRect.height)));
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, []);
-  return [ref, height];
-}
+import { useFitRows, type TrackerState } from "./use-tracker";
 
 /**
  * My deck, on the right edge: every card of the list by mana cost with the
@@ -36,13 +23,12 @@ export function DeckPanel({ tracker }: { tracker: TrackerState }) {
   const { me, deck } = view;
   const listed = deck.source !== "seen";
   const copiesLeft = [...new Set(me.rows.map((r) => r.left ?? 0).filter((n) => n > 0))].sort((a, b) => a - b);
-  const [listRef, listHeight] = useHeight();
-  const rowHeight = fitRowHeight(listHeight, me.rows.length, deckSize);
-  const fontSize = Math.min(17, Math.max(11, Math.round(rowHeight * 0.4)));
+  const [measureList, listStyle] = useFitRows(me.rows.length, deckSize);
 
   return (
     <PanelShell
       panel="deck"
+      fill
       visible={visible}
       heading={
         <span className="min-w-0">
@@ -100,11 +86,11 @@ export function DeckPanel({ tracker }: { tracker: TrackerState }) {
           {deck.source !== "code" && me.cls && view.status === "playing" && <DeckPicker cls={me.cls} source={deck.source} />}
 
           <ul
-            ref={listRef}
+            ref={measureList}
             data-lenis-prevent
             aria-label={copy.myDeck}
             className="flex min-h-0 flex-1 flex-col overflow-y-auto overscroll-contain [scrollbar-width:none]"
-            style={{ "--row-h": `${rowHeight}px`, fontSize, gap: ROW_GAP } as React.CSSProperties}
+            style={listStyle}
           >
             {me.rows.map((r) =>
               listed ? (

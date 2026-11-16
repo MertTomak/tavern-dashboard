@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { TRACKER } from "@/components/motion/timing";
 import { trackerBridge, type PointerPhase, type TrackerSettings } from "@/lib/tracker/bridge";
-import type { DeckSize } from "@/lib/tracker/layout";
+import { ROW_GAP, fitRowHeight, type DeckSize } from "@/lib/tracker/layout";
 import { EMPTY_VIEW, type TrackerView } from "@/lib/tracker/view";
 
 export type TrackerState = { view: TrackerView; visible: boolean; deckSize: DeckSize; setDeckSize: (size: DeckSize) => void };
@@ -66,4 +66,23 @@ export function pointerDrag(kind: "drag" | "resize") {
       send("end", e.screenX, e.screenY);
     },
   };
+}
+
+/**
+ * Card rows that share their list's height: measures the list and returns the
+ * ref for it plus the style that sets the row height (`--row-h`), the text size
+ * that goes with it and the gap, as [ref, list style]. With `reserve`, the ref goes
+ * on a taller box (the whole panel area) and that many pixels of it are not for rows. Both panels use it, so their rows match.
+ */
+export function useFitRows(rows: number, size: DeckSize, reserve = 0): [measure: (node: HTMLElement | null) => void | (() => void), style: React.CSSProperties] {
+  const [height, setHeight] = useState(0);
+  const measure = useCallback((node: HTMLElement | null) => {
+    if (!node) return;
+    const observer = new ResizeObserver(([entry]) => setHeight(Math.floor(entry.contentRect.height)));
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, []);
+  const rowHeight = fitRowHeight(height - reserve, rows, size);
+  const fontSize = Math.min(17, Math.max(11, Math.round(rowHeight * 0.4)));
+  return [measure, { "--row-h": `${rowHeight}px`, fontSize, gap: ROW_GAP } as React.CSSProperties];
 }

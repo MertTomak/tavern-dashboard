@@ -1,7 +1,7 @@
 "use client";
 
 import { Check, TriangleAlert } from "lucide-react";
-import { OPPONENT_STRIP_HEIGHT, TITLE_BAR, defaultPlace, gamePicture, gameZones, intersects, type Rect } from "@/lib/tracker/layout";
+import { TITLE_BAR, defaultPlace, gamePicture, gameZones, intersects, type Rect } from "@/lib/tracker/layout";
 import type { TrackerView } from "@/lib/tracker/view";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
@@ -35,9 +35,8 @@ export function TrackerStage({ demo, screen, windowed }: { demo: TrackerView; sc
   const picture = gamePicture(area, titleBar);
   const zones = gameZones(picture);
   const deck = defaultPlace("deck", area, titleBar);
-  const opponent = defaultPlace("opponent", area, titleBar);
-  const strip = { ...opponent, height: OPPONENT_STRIP_HEIGHT };
-  const clear = !intersects(strip, zones.history) && !intersects(strip, zones.opponentHand) && !intersects(strip, zones.opponentName);
+  const opponent = defaultPlace("opponent", area, titleBar, deck.width);
+  const clear = !intersects(opponent, zones.opponentName) && !intersects(opponent, zones.myName);
 
   return (
     <div data-tracker-stage className="min-h-dvh bg-background p-4 text-parchment">
@@ -57,10 +56,10 @@ export function TrackerStage({ demo, screen, windowed }: { demo: TrackerView; sc
         <div aria-hidden style={box(area)} className="absolute bg-oak-panel outline outline-parchment/20" />
         {windowed && <div aria-hidden style={box({ ...area, height: TITLE_BAR })} className="absolute bg-parchment/10" />}
         <Zone rect={zones.board} label={copy.board} className="place-items-end pb-10" />
-        <Zone rect={zones.history} label={copy.history} className="border-loss/50 [writing-mode:vertical-rl]" />
-        <Zone rect={zones.opponentHand} label={copy.opponentHand} className="border-loss/50" />
+        <Zone rect={zones.history} label={copy.history} className="[writing-mode:vertical-rl]" />
         <Zone rect={zones.opponentName} label={copy.opponentName} className="border-loss/50" />
-        <div className="absolute flex items-start" style={box(opponent)}>
+        <Zone rect={zones.myName} label={copy.myName} className="border-loss/50" />
+        <div className="absolute flex" style={box(opponent)}>
           <OpponentPanel tracker={tracker} />
         </div>
         <div className="absolute flex" style={box(deck)}>

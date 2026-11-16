@@ -22,15 +22,9 @@ export type TrackedEntity = {
   createdInSetup: boolean;
   cardType: string | null;
   isCoin: boolean;
-  /** Hand order from ZONE_POSITION. */
-  handPos: number;
-  /** Own turn (1, 2 …) the card last entered the hand; 0 = opening hand / mulligan. */
-  handTurn: number | null;
   /** Been in a zone both players see (play, graveyard, removed): its face is public from then on. */
   wasPublic: boolean;
 };
-
-export type PlayedCard = { entityId: number; turn: number };
 
 type Player = { entityId: number; playerId: number; name: string | null };
 
@@ -40,8 +34,8 @@ const PUBLIC_ZONES = new Set(["PLAY", "GRAVEYARD", "REMOVEDFROMGAME"]);
 export class TrackerGame {
   readonly entities = new Map<number, TrackedEntity>();
   readonly players = new Map<number, Player>();
-  /** Opponent's played cards in order (hero powers left out). */
-  readonly opponentPlayed: PlayedCard[] = [];
+  /** Entity ids of the cards the opponent played, in order (hero powers left out). */
+  readonly opponentPlayed: number[] = [];
   friendlyPlayerId: number | null = null;
   gameTurn = 0;
   setupOver = false;
@@ -113,7 +107,7 @@ export class TrackerGame {
   private entity(id: number): TrackedEntity {
     let e = this.entities.get(id);
     if (!e) {
-      e = { id, controller: null, cardId: "", firstCardId: "", zone: null, firstZone: null, createdInSetup: false, cardType: null, isCoin: false, handPos: 0, handTurn: null, wasPublic: false };
+      e = { id, controller: null, cardId: "", firstCardId: "", zone: null, firstZone: null, createdInSetup: false, cardType: null, isCoin: false, wasPublic: false };
       this.entities.set(id, e);
     }
     return e;
@@ -154,9 +148,6 @@ export class TrackerGame {
       case "COIN_CARD":
         e.isCoin = value === "1";
         break;
-      case "ZONE_POSITION":
-        e.handPos = Number(value) || 0;
-        break;
       case "ZONE":
         this.moveZone(e, value);
         break;
@@ -167,7 +158,6 @@ export class TrackerGame {
     const from = e.zone;
     e.zone = to;
     if (from === null) e.firstZone = to;
-    if (to === "HAND" && from !== "HAND") e.handTurn = this.mainStarted ? this.turn : 0;
     if (PUBLIC_ZONES.has(to)) e.wasPublic = true;
     // Shuffled back into a deck: no longer known to us (the game hides it again).
     if (to === "DECK" && from !== null && e.controller !== this.friendlyPlayerId) e.wasPublic = false;
@@ -177,7 +167,7 @@ export class TrackerGame {
     const e = this.entity(id);
     if (e.cardType === "HERO_POWER") return;
     if (this.friendlyPlayerId !== null && e.controller !== null && e.controller !== this.friendlyPlayerId) {
-      this.opponentPlayed.push({ entityId: id, turn: this.turn });
+      this.opponentPlayed.push(id);
     }
   }
 

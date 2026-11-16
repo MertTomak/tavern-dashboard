@@ -8,9 +8,9 @@ import { OpponentPanel } from "./OpponentPanel";
 import { useTracker } from "./use-tracker";
 
 /**
- * One tracker panel filling its own overlay window. The deck window is wider
- * than its panel: the clear space on the left is where a hovered card opens.
- * The opponent window is taller than its panel, so older turns have room to open.
+ * One tracker panel filling its own overlay window. Each window is wider than
+ * its panel: the clear space on the board side (left of my deck, right of the
+ * opponent column) is where a hovered card opens.
  */
 export function TrackerPanel({ panel, demo }: { panel: PanelId; demo: TrackerView | null }) {
   const tracker = useTracker(demo);
@@ -19,7 +19,7 @@ export function TrackerPanel({ panel, demo }: { panel: PanelId; demo: TrackerVie
       <DeckPanel tracker={tracker} />
     </div>
   ) : (
-    <div data-tracker-overlay className="flex h-dvh items-start">
+    <div data-tracker-overlay className="flex h-dvh justify-start" style={{ paddingRight: PREVIEW_GUTTER }}>
       <OpponentPanel tracker={tracker} />
     </div>
   );
