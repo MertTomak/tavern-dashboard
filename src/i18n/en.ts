@@ -559,6 +559,17 @@ export const en = {
         `${name} and all its versions will be deleted. ${n === 1 ? "Its 1 game stays" : `Its ${n} games stay`} in your records without a deck.`,
       deleted: "Deck deleted.",
     },
+    compare: {
+      title: "Versions",
+      hint: "What changed between lists and how each one did. A new list is saved as a new version when you queue with it.",
+      out: "Out",
+      in: "In",
+      nothing: "Nothing",
+      addedLabel: (n: number) => `${n} added`,
+      removedLabel: (n: number) => `${n} removed`,
+      overlap: "The likely ranges still overlap, so the difference may be chance. More games will tell.",
+      clear: "The likely ranges no longer overlap: the difference is unlikely to be chance.",
+    },
     cardStats: {
       title: "Card performance",
       hint: (games: number, min: number) =>

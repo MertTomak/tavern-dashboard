@@ -17,9 +17,11 @@ import { classLabel } from "@/lib/cards/class-colors";
 import { manaCurve } from "@/lib/cards/deck-code";
 import { deckCardGames, getDeck } from "@/lib/db/queries/decks";
 import { CardStatsTable } from "@/components/decks/CardStatsTable";
+import { VersionCompare, type VersionStep } from "@/components/decks/VersionCompare";
+import { versionDiff } from "@/lib/stats/versions";
 import { buildCardStats, CARD_LOW_SAMPLE_N } from "@/lib/stats/cards";
 import { getClassArtChoices } from "@/lib/db/queries/preferences";
-import { formatDate, formatPercent, formatShortDateTime } from "@/lib/format";
+import { formatPercent, formatShortDateTime } from "@/lib/format";
 import { winRate } from "@/lib/stats/winrate";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
@@ -45,6 +47,20 @@ async function DeckDetail({ params }: { params: PageProps<"/decks/[id]">["params
   const cardGames = deckCardGames(deck.id);
   const stats = buildCardStats(cardGames, cards.map((c) => c.dbfId));
   const statRows = cards.map((c, i) => ({ card: c.card, count: c.count, stat: stats[i] }));
+
+  // Each version against the one before it, newest change first.
+  const versionTiles = tileCardsByDbf(deck.versionList.flatMap((v) => v.cards.map((c) => c.dbfId)));
+  const steps: VersionStep[] = deck.versionList.slice(0, -1).map((to, i) => {
+    const from = deck.versionList[i + 1];
+    return {
+      from: { versionNo: from.versionNo, createdAt: from.createdAt, wr: winRate(from.results) },
+      to: { versionNo: to.versionNo, createdAt: to.createdAt, wr: winRate(to.results), current: i === 0 },
+      changes: versionDiff(from.cards, to.cards).flatMap((c) => {
+        const card = versionTiles.get(c.dbfId);
+        return card ? [{ ...c, card }] : [];
+      }),
+    };
+  });
 
   return (
     <div className="grid gap-6">
@@ -125,26 +141,14 @@ async function DeckDetail({ params }: { params: PageProps<"/decks/[id]">["params
             )}
           </FramePanel>
 
-          {deck.versionList.length > 1 && (
-            <FramePanel title={copy.versions}>
-              <ul className="divide-y divide-brass/10">
-                {deck.versionList.map((v, i) => {
-                  const vr = winRate(v.results);
-                  return (
-                    <li key={v.id} className="stat flex items-center justify-between gap-3 py-2">
-                      <span className="text-parchment">
-                        {copy.version(v.versionNo)} · {formatDate(v.createdAt)}
-                        {i === 0 && <span className="ml-2 rounded-xs border border-brass/40 px-1.5 text-xs text-brass-light">{copy.current}</span>}
-                      </span>
-                      <span className="text-ink-muted">{vr.n ? `${formatPercent(vr.rate)} · ${t.decks.record(vr.wins, vr.losses)}` : t.decks.noGames}</span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </FramePanel>
-          )}
         </div>
       </div>
+
+      {steps.length > 0 && (
+        <FramePanel title={t.decks.compare.title} hint={t.decks.compare.hint}>
+          <VersionCompare steps={steps} />
+        </FramePanel>
+      )}
 
       <FramePanel title={t.decks.cardStats.title} hint={cardGames.length ? t.decks.cardStats.hint(cardGames.length, CARD_LOW_SAMPLE_N) : undefined} className="[--frame-solid:#1a130e]">
         {cardGames.length ? (

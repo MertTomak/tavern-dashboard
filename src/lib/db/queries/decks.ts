@@ -230,7 +230,7 @@ export function countGamesWithoutDeck(): number {
 
 export type DeckDetail = DeckSummary & {
   deckstring: string;
-  versionList: { id: number; versionNo: number; createdAt: string; deckstring: string; results: ("WIN" | "LOSS" | "TIE")[] }[];
+  versionList: { id: number; versionNo: number; createdAt: string; deckstring: string; results: ("WIN" | "LOSS" | "TIE")[]; cards: { dbfId: number; count: number }[] }[];
   recent: { id: string; playedAt: string; result: "WIN" | "LOSS" | "TIE"; opponentClass: string; manual: boolean }[];
 };
 
@@ -243,6 +243,9 @@ export function getDeck(id: number): DeckDetail | null {
     .where(eq(deckVersions.deckId, id))
     .orderBy(desc(deckVersions.versionNo))
     .all();
+  const versionCards = versionRows.length
+    ? db.select().from(deckCards).where(inArray(deckCards.deckVersionId, versionRows.map((v) => v.id))).all()
+    : [];
   const byVersion = db
     .select({ versionId: games.deckVersionId, result: games.result })
     .from(games)
@@ -258,7 +261,11 @@ export function getDeck(id: number): DeckDetail | null {
   return {
     ...summary,
     deckstring: versionRows[0]?.deckstring ?? "",
-    versionList: versionRows.map((v) => ({ ...v, results: byVersion.filter((g) => g.versionId === v.id).map((g) => g.result) })),
+    versionList: versionRows.map((v) => ({
+      ...v,
+      results: byVersion.filter((g) => g.versionId === v.id).map((g) => g.result),
+      cards: versionCards.filter((c) => c.deckVersionId === v.id).map((c) => ({ dbfId: c.dbfId, count: c.count })),
+    })),
     recent,
   };
 }
