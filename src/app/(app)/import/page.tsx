@@ -5,6 +5,8 @@ import { PowerLogDrop } from "@/components/import/PowerLogDrop";
 import { ImportHistory, type BatchRow } from "@/components/import/ImportHistory";
 import { Skeleton } from "@/components/ui/skeleton";
 import { listImportBatches } from "@/lib/db/queries/import";
+import { FramePanel } from "@/components/tavern/FramePanel";
+import { IS_DEMO } from "@/lib/demo/mode";
 import { t } from "@/i18n";
 
 async function History() {
@@ -19,7 +21,13 @@ export default function ImportPage() {
     <div className="mx-auto max-w-[1180px] px-4 pt-8 md:px-8">
       <PageHeader title={t.pages.import.title} description={t.pages.import.description} />
       <div className="grid grid-cols-1 gap-6">
-        <PowerLogDrop />
+        {IS_DEMO ? (
+          <FramePanel title={t.demo.importTitle}>
+            <p className="max-w-[68ch] text-sm text-ink-muted">{t.demo.importBody}</p>
+          </FramePanel>
+        ) : (
+          <PowerLogDrop />
+        )}
         <Suspense fallback={<Skeleton className="h-40 w-full rounded-lg bg-card" />}>
           <History />
         </Suspense>

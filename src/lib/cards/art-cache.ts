@@ -35,14 +35,23 @@ export async function getArt(kind: ArtKind, cardId: string): Promise<CachedArt |
   } catch {
     return null; // offline: try again next time
   }
-  fs.mkdirSync(path.dirname(file), { recursive: true });
   if (res.status === 404) {
-    fs.writeFileSync(missingMarker(kind, cardId), "");
+    remember(missingMarker(kind, cardId), "");
     return null;
   }
   const type = res.headers.get("content-type") ?? "";
   if (!res.ok || !type.startsWith("image/")) return null;
   const body = Buffer.from(await res.arrayBuffer());
-  fs.writeFileSync(file, body);
+  remember(file, body);
   return { body, contentType };
+}
+
+/** Caching is best effort: a read-only disk (a hosted demo) still serves the image. */
+function remember(file: string, body: Buffer | string) {
+  try {
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, body);
+  } catch {
+    // Not cached; it is downloaded again next time.
+  }
 }

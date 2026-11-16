@@ -64,6 +64,12 @@ export const formatDuration = (sec: number): string => {
   return m ? `${m}m ${s}s` : `${s}s`;
 };
 
+/** A position in a game: 125 -> "2:05" */
+export const formatClock = (sec: number): string => {
+  const whole = Math.max(0, Math.floor(sec));
+  return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, "0")}`;
+};
+
 /** Difference of two ratios in percentage points: 0.041 -> "+4.1 pts", -0.02 -> "−2.0 pts" */
 export const formatPointsDelta = (delta: number): string => {
   const pts = Math.abs(delta * 100).toFixed(1);

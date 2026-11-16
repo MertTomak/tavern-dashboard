@@ -5,12 +5,15 @@ import { FilterBar } from "@/components/layout/FilterBar";
 import { PageNavigator } from "@/components/layout/PageNavigator";
 import { LiveUpdates } from "@/components/layout/LiveUpdates";
 import { QuickAddMount } from "@/components/quick-add/QuickAddMount";
+import { DemoBanner } from "@/components/demo/DemoBanner";
+import { IS_DEMO } from "@/lib/demo/mode";
 import { t } from "@/i18n";
 
 export default function AppShellLayout({ children }: LayoutProps<"/">) {
   return (
     <div className="flex min-h-screen flex-col text-parchment">
       <AppChrome>
+        {IS_DEMO && <DemoBanner />}
         {/* The menus read the path, which is runtime data on pages with an id (/games/[id]). */}
         <Suspense fallback={<div className="h-14 border-b border-brass/20 bg-oak-deep" />}>
           <GameMenuBar />
@@ -30,10 +33,13 @@ export default function AppShellLayout({ children }: LayoutProps<"/">) {
       <Suspense fallback={null}>
         <MobileCoinBar />
       </Suspense>
-      <LiveUpdates />
-      <Suspense fallback={null}>
-        <QuickAddMount />
-      </Suspense>
+      {/* The demo is read-only: no live updates and no Quick add. */}
+      {!IS_DEMO && <LiveUpdates />}
+      {!IS_DEMO && (
+        <Suspense fallback={null}>
+          <QuickAddMount />
+        </Suspense>
+      )}
     </div>
   );
 }

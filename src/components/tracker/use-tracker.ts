@@ -10,15 +10,18 @@ export type TrackerState = { view: TrackerView; visible: boolean; deckSize: Deck
 
 /**
  * The live view and settings a tracker panel shows. In the Mac app they come
- * from the app; in a browser `demo` is a made-up game and settings stay local.
+ * from the app; in a browser `demo` is a made-up game (or a replay, which
+ * passes a new view as it plays) and settings stay local.
  */
 export function useTracker(demo: TrackerView | null): TrackerState {
-  const [view, setView] = useState<TrackerView>(demo ?? EMPTY_VIEW);
+  const [live, setView] = useState<TrackerView>(EMPTY_VIEW);
+  const view = demo ?? live;
+  const isDemo = demo !== null;
   const [settings, setSettings] = useState<TrackerSettings>({ deckSize: "M" });
   const [lingering, setLingering] = useState(false);
 
   useEffect(() => {
-    if (demo) return;
+    if (isDemo) return;
     const bridge = trackerBridge();
     if (!bridge) return;
     const offView = bridge.onView(setView);
@@ -27,7 +30,7 @@ export function useTracker(demo: TrackerView | null): TrackerState {
       offView();
       offSettings();
     };
-  }, [demo]);
+  }, [isDemo]);
 
   // After the game ends the final state stays readable for a few seconds, then fades.
   useEffect(() => {

@@ -20,6 +20,7 @@ import { getClassArtChoices, getEffectsLevel } from "@/lib/db/queries/preference
 import { loadClasses } from "@/lib/cards/classes";
 import { classArtOptions, effectiveClassArt, tileCardsByDbf } from "@/lib/cards/catalog";
 import { classLabel } from "@/lib/cards/class-colors";
+import { IS_DEMO } from "@/lib/demo/mode";
 import { t } from "@/i18n";
 
 async function Sections() {
@@ -49,15 +50,23 @@ async function Sections() {
   }));
   return (
     <>
-      <StaggerItem>
-        <DesktopAppCard />
-      </StaggerItem>
-      <StaggerItem>
-        <WatcherCard initial={currentWatcherStatus()} />
-      </StaggerItem>
-      <StaggerItem>
-        <LogConfigCard initial={logConfigStatus()} />
-      </StaggerItem>
+      {IS_DEMO ? (
+        <StaggerItem>
+          <p className="rounded-lg border border-brass/25 bg-oak-deep/60 px-4 py-3 text-sm text-ink-muted">{t.demo.settingsNote}</p>
+        </StaggerItem>
+      ) : (
+        <>
+          <StaggerItem>
+            <DesktopAppCard />
+          </StaggerItem>
+          <StaggerItem>
+            <WatcherCard initial={currentWatcherStatus()} />
+          </StaggerItem>
+          <StaggerItem>
+            <LogConfigCard initial={logConfigStatus()} />
+          </StaggerItem>
+        </>
+      )}
       <StaggerItem>
         <ArchetypesCard items={items} classes={rows.map((r) => ({ cls: r.cls, label: r.label }))} />
       </StaggerItem>
@@ -67,9 +76,11 @@ async function Sections() {
       <StaggerItem>
         <EffectsCard level={getEffectsLevel()} />
       </StaggerItem>
-      <StaggerItem>
-        <DemoDataCard games={demo.games} decks={demo.decks} />
-      </StaggerItem>
+      {!IS_DEMO && (
+        <StaggerItem>
+          <DemoDataCard games={demo.games} decks={demo.decks} />
+        </StaggerItem>
+      )}
     </>
   );
 }

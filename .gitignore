@@ -48,3 +48,6 @@ next-env.d.ts
 # mac app build output
 /dist-electron/
 /dist-app/
+
+# demo mode card data (downloaded at build time, never committed)
+/.demo-data/
