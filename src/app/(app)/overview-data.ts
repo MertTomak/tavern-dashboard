@@ -1,5 +1,6 @@
 import { getInsightGames, getOverviewGames } from "@/lib/db/queries/overview";
 import { buildInsights } from "@/lib/stats/insights";
+import { legendEstimate } from "@/lib/stats/legend";
 import { getLatestDeckCardIds } from "@/lib/db/queries/decks";
 import { getClassArtChoices } from "@/lib/db/queries/preferences";
 import { buildOverviewSnapshot } from "@/lib/stats/overview";
@@ -50,6 +51,9 @@ export function loadOverview(filters: Filters, now: Date): OverviewData | null {
   const firstX = rollingFull[0]?.index ?? 0;
   const rankX = new Map(s.rank.map((p, i) => [p.gameId, i]));
   const lastRank = s.rank.at(-1)?.rank ?? null;
+  // Legend estimate from the ranked win rate in these filters; quiet on a thin record.
+  const ranked = winRate(games.filter((g) => g.mode === "RANKED").map((g) => g.result));
+  const est = lastRank === null || ranked.lowSample ? null : legendEstimate(lastRank, ranked.rate);
   const deckCards = getLatestDeckCardIds();
   const from = rangeStart(filters.range, now, TIME_ZONE);
   const ins = buildInsights(getInsightGames({ from, mode: filters.mode, format: filters.format }), { now, timeZone: TIME_ZONE, classLabel });
@@ -76,6 +80,7 @@ export function loadOverview(filters: Filters, now: Date): OverviewData | null {
             index: Math.min(lastRank, LEGEND_INDEX),
             progress: Math.min(lastRank, LEGEND_INDEX) / LEGEND_INDEX,
             legend: lastRank >= LEGEND_INDEX,
+            estimate: est && { games: est.games, rate: ranked.rate, n: ranked.n },
           },
     recent: s.recent.slice(0, 10).map((g) => ({
       id: g.id,

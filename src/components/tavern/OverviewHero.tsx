@@ -1,7 +1,8 @@
 "use client";
 
 import { motion, useTransform } from "motion/react";
-import { Crown } from "lucide-react";
+import { Crown, Info } from "lucide-react";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { StatNumber } from "@/components/motion/StatNumber";
 import { formatNumber, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -80,7 +81,31 @@ function LadderBar({ rank }: { rank: RankState }) {
         ))}
         <span className="w-7 text-right">{t.ranks.legend}</span>
       </div>
+      {rank.estimate && <LegendEstimateLine estimate={rank.estimate} />}
     </div>
+  );
+}
+
+/** "≈ 85 games to Legend": the assumptions behind it sit in a tooltip on the info button. */
+function LegendEstimateLine({ estimate }: { estimate: NonNullable<RankState["estimate"]> }) {
+  const copy = t.concepts.legendEstimate;
+  return (
+    <p className="stat mt-1.5 flex items-center gap-1.5 border-t border-brass/15 pt-1.5 text-sm text-parchment">
+      <span>
+        <span className="font-bold text-brass-light">{copy.games(formatNumber(estimate.games))}</span>
+        <span className="text-ink-muted"> · {copy.basis(formatPercent(estimate.rate), formatNumber(estimate.n))}</span>
+      </span>
+      <Tooltip>
+        <TooltipTrigger
+          render={<button type="button" aria-label={copy.how} className="rounded-full p-0.5 text-brass-dim outline-none hover:text-brass-light focus-visible:ring-2 focus-visible:ring-ring" />}
+        >
+          <Info className="size-3.5" aria-hidden />
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-[320px] text-left leading-snug">
+          {copy.assumptions}
+        </TooltipContent>
+      </Tooltip>
+    </p>
   );
 }
 

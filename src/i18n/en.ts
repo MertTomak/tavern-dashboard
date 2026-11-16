@@ -354,6 +354,13 @@ export const en = {
     rank: "Ranked",
     toLegend: (league: string) => `${league} → Legend`,
     atLegend: "Legend reached",
+    legendEstimate: {
+      games: (n: string) => `≈ ${n} games to Legend`,
+      basis: (rate: string, n: string) => `at ${rate} (${n} ranked games)`,
+      how: "How this is estimated",
+      assumptions:
+        "Assumes your ranked win rate stays the same, 3 stars per rank, +1 star for a win and −1 for a loss, and one bonus star for 3+ wins in a row until Diamond 5. Stars you already have in your current rank are not counted. Hidden at a 50% win rate or lower, where you barely move.",
+    },
     lastGames: "Last games",
     you: "You",
     hand: "Your hand",

@@ -30,7 +30,10 @@ export type ClassStanding = {
 
 export type DeckStanding = ClassStanding & { name: string; cardName: string | null };
 
-export type RankState = { label: string; index: number; progress: number; legend: boolean };
+/** Games left to Legend at the ranked win rate (null: hidden, see legendEstimate); `rate` and `n` are what it rests on. */
+export type LegendEstimateData = { games: number; rate: number; n: number };
+
+export type RankState = { label: string; index: number; progress: number; legend: boolean; estimate: LegendEstimateData | null };
 
 /** Insights panel: up to five sentences, or one line on why there are none yet. */
 export type InsightsData = { items: { id: string; severity: "info" | "good" | "warn"; text: string }[]; note: string | null };
