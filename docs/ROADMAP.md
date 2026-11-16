@@ -57,7 +57,7 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 - [x] Ayarlar › Effects: Full / Light / Off (`preferences.effects`, `PUT /api/preferences/effects`)
 - [x] 1440 / 800 / 390 px Chrome kontrolü ve bölüm bölüm kare ölçümü, `ui.md` güncellendi, `docs/demos/design-v4.gif`
 
-**Durum (2026-11-14):** Faz 0–0.5d, Faz 1, Faz 3–4 ve Faz 8 bitti; izleyici v2 (iki panel), otomatik desteli Decks sayfası, Matchups ve Sessions sayfaları eklendi (`docs/tasks/tracker-v2-and-pages.md`). Bekleyen: izleyici v2'nin canlı maç denemesi. Sıradaki: Faz 2'nin kalanı.
+**Durum (2026-11-17):** Faz 0–0.5d, Faz 1, Faz 3–4 ve Faz 8 bitti; izleyici v3 (deste tespiti düzeltmesi, "Pick your deck", sade rakip sütunu), otomatik desteli Decks sayfası, Matchups ve Sessions sayfaları eklendi (`docs/tasks/tracker-v2-and-pages.md`, `docs/tasks/tracker-v3.md`). Bekleyen: izleyici v3'ün canlı maç denemesi. Sıradaki: Faz 2'nin kalanı.
 
 ## Faz 3 — Power.log yükleme
 
@@ -136,7 +136,9 @@ Brief: `docs/tasks/app-and-tracker.md` (adım adım notlarla).
 - [x] Paketleme ve kurulum: `npm run app:build` → `/Applications/Tavern Dashboard.app` (imzasız, ad-hoc codesign)
 - [x] Canlı deneme (2026-11-14): overlay maç başında açıldı, anında güncellendi, maç sonunda söndü; Decks.log biçimi doğrulandı (deste otomatik kaydedildi)
 - [x] İzleyici v2 (`docs/tasks/tracker-v2-and-pages.md`): iki ayrı panel (kendi destem sağda tam yükseklik, S/M/L satır boyu; rakip sol üstte kompakt köz rengi şerit, son 2 tur açık), her biri ayrı taşınır/boyutlanır/gizlenir; Decks sayfası otomatik kaydedilen destelerle
-- [ ] İzleyici v2 canlı deneme: iki panelin gerçek oyun görüntüsündeki yeri (pencereli ve tam ekran), sürükleme/boyutlama/gizleme, menü çubuğundaki panel seçenekleri
+- [x] İzleyici v2 canlı deneme (2026-11-14): deste listesi gelmedi ("Cards seen so far"), rakip paneli karışık bulundu → izleyici v3
+- [x] İzleyici v3 (`docs/tasks/tracker-v3.md`): deste tespiti sağlamlaştırıldı (Decks.log her zaman önce ve sırayla okunur, geç gelen deste süren maça uygulanır, `electron/app.log`), kod yoksa "Pick your deck" (sınıf başına hatırlanır); rakip paneli deste paneliyle aynı görünümde, oynanan/açılan kartların gruplu listesi, sol kenarda sütun
+- [ ] İzleyici v3 canlı deneme: deste listesinin Hearthstone'dan gelmesi (gelmezse `app.log`), rakip sütununun gerçek oyun görüntüsündeki yeri (geçmiş sütununa değiyor mu), sürükleme/boyutlama/gizleme
 
 ## Sonra / planlanmıyor
 
@@ -211,3 +213,7 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-14 — Decks.log'dan gelen deste: aynı liste (deckstring) varsa o sürüm kullanılır; aynı ad + sınıfta farklı liste yeni sürümdür; adı da değişmişse yeni deste sayılır (Hearthstone'un Deck ID'si şimdilik saklanmıyor, şema değişikliği gerektirir).
 - 2026-11-14 — Seans sınırı: bir maçın bitişi ile sonrakinin başlangıcı arasında 30 dakikadan uzun boşluk (süre bilinmiyorsa başlangıçtan sayılır). Matchups ve Sessions Battlegrounds maçlarını saymaz (rakip sınıf yok). Matchups'ta destesiz maçlar "Warlock, no deck" satırında toplanır.
 - 2026-11-14 — `TAVERN_DATA_DIR` verilince Electron'un kendi klasörü (pencere yerleri, tek-örnek kilidi) de oraya taşınır; kurulu uygulama açıkken geçici klasörlerle deneme yapılabilir.
+- 2026-11-16 — Canlı maçta (14 Kasım 20:25) deste listesi gelmedi. Decks.log doğruydu ("Finding Game With Deck: Zoolock" + geçerli kod, maç başlamadan 26 sn önce) ve maç sonunda deste bu koddan kaydedildi; izleyici ise maçı destesiz başlattı. Aynı dosyalar çevrimdışı verilince deste ilk satırdan geliyor; hatalı okuma sırası testte yeniden üretilemedi. Önlemler: iki logun okunması sıraya kondu (önce Decks.log), geç gelen deste süren maça uygulanıyor, uygulama `electron/app.log` tutuyor. Tekrarlarsa önce o dosyaya bakılacak.
+- 2026-11-16 — Kod bulunamazsa deste sırası: kullanıcının o sınıf için son seçtiği deste ("Pick your deck") → görülen kartlara uyan kayıtlı deste → görülen kartlar. Hearthstone'dan gelen deste hiçbir zaman değiştirilmez. Seçim sınıf başına uygulamanın kendi ayarında tutulur (`tracker.pickedDecks`).
+- 2026-11-16 — Rakip paneli v3: kart arkaları, tur balonları ve tur tur düzen kaldırıldı (14 Kasım'daki "rakibin eli: tur, Coin, üretilmiş işareti" kararının yerine geçer). Panel artık yalnızca rakibin oynadığı veya yüzü açılan kartları deste listesi gibi gösterir (gruplu, mana sırasıyla), el ve deste sayılarıyla. Yüzü kapalı oynanan kart (sır) açılana kadar tek bir "Unrevealed card ×n" satırında sayılır. Üretilmiş kartlar (jeton vb.) rakip onları oynadıysa listede görünür. Köz rengi vurgu kaldırıldı: iki panel aynı görünümde.
+- 2026-11-16 — Rakip sütunu varsayılan olarak deste paneliyle aynı genişlikte ve en sol kenarda (brief). 16:10 ekranda oyunun yan boşluğu panelden dar olduğu için, Hearthstone düzenine dair tahminimize göre sütun geçmiş sütununa değebilir; kullanıcı daraltıp taşıyabilir, yer hatırlanır. Panel içeriği kadar yüksektir (boşken küçük), sütun yüksekliğine ulaşınca satırlar küçülür. Eski geniş kutunun kayıtlı yeri ve "gizli" ayarı bir kereliğine sıfırlanır (`tracker.layout` = 3).
