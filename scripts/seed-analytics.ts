@@ -91,7 +91,7 @@ async function main() {
   const pairsOut = new Set(warlockV1.filter(([, n]) => n === 2).slice(0, 3).map(([id]) => id));
   const swapIn = pool("WARLOCK", true).filter((c) => !warlockV1.some(([id]) => id === c.dbfId) && c.rarity !== "LEGENDARY" && (c.cost ?? 0) <= 5).slice(0, 3);
   const warlockV2 = [...warlockV1.filter(([id]) => !pairsOut.has(id)), ...swapIn.map((c): [number, number] => [c.dbfId, 2])].sort((a, b) => a[0] - b[0]);
-  const [zooV1, zooV2] = saveDeck("Zoo Warlock", "WARLOCK", [warlockV1, warlockV2], [0.49, 0.58]);
+  const [zooV1, zooV2] = saveDeck("Zoo Warlock", "WARLOCK", [warlockV1, warlockV2], [0.45, 0.66]);
   const [pally] = saveDeck("Aggro Paladin", "PALADIN", [buildList("PALADIN")], [0.53]);
 
   // Opponent archetypes: two per common class, six signature cards each.
@@ -115,17 +115,17 @@ async function main() {
       const signature = classCards.slice(i * 6, i * 6 + 6);
       db.insert(s.archetypes).values({ name, playerClass: cls, signatureCards: signature, minMatches: 2 }).run();
       // Win-chance shift against this archetype: Enrage Warrior and Aggro Hunter are hard, Control Priest easy.
-      const edge = name === "Enrage Warrior" ? -0.14 : name === "Aggro Hunter" ? -0.08 : name === "Control Priest" ? 0.12 : (rand() - 0.5) * 0.08;
+      const edge = name === "Enrage Warrior" ? -0.35 : name === "Aggro Hunter" ? -0.1 : name === "Control Priest" ? 0.35 : (rand() - 0.5) * 0.08;
       arches.push({ cls, signature, filler: classCards.slice(12, 40), edge });
     });
   }
 
-  // Sessions over the last 60 days; the newest one ends with four losses (tilt).
+  // Sessions over the last 90 days; the newest one ends with four losses (tilt).
   const now = Date.now();
   const sessions: number[][] = [];
-  for (let d = 60; d >= 1; d -= rand() < 0.75 ? 1 : 2) {
+  for (let d = 90; d >= 1; d--) {
     const start = now - d * 86_400_000 + (17 + rand() * 5) * 3_600_000;
-    const n = 2 + Math.floor(rand() * 7);
+    const n = 3 + Math.floor(rand() * 8);
     sessions.push(Array.from({ length: n }, (_, i) => start + i * 11 * 60_000));
   }
   const lastStart = now - 70 * 60_000;
@@ -137,7 +137,7 @@ async function main() {
     const tilt = si === sessions.length - 1;
     for (const [gi, at] of times.entries()) {
       const days = (now - at) / 86_400_000;
-      const deck = days > 20 ? pick([zooV1, zooV1, pally]) : pick([zooV2, zooV2, pally]);
+      const deck = days > 30 ? pick([zooV1, zooV1, pally]) : pick([zooV2, zooV2, pally]);
       const arch = rand() < 0.75 ? pick(arches) : null;
       const opponentClass = arch?.cls ?? pick(classes);
       const wentFirst = rand() < 0.5;
@@ -175,7 +175,7 @@ async function main() {
       });
 
       const handPower = drawn.reduce((sum, d) => sum + (deck.power.get(d.id) ?? 0), 0) / 3;
-      let p = deck.base + (arch?.edge ?? 0) + (wentFirst ? 0.04 : -0.04) + handPower;
+      let p = deck.base + (arch?.edge ?? 0) + (wentFirst ? 0.06 : -0.06) + handPower;
       if (tilt) p = gi < 3 ? 0.6 : 0.03;
       const result = rand() < 0.01 ? "TIE" : rand() < Math.min(0.9, Math.max(0.05, p)) ? "WIN" : "LOSS";
       const rankBefore = rank;

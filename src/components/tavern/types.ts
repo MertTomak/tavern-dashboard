@@ -32,7 +32,11 @@ export type DeckStanding = ClassStanding & { name: string; cardName: string | nu
 
 export type RankState = { label: string; index: number; progress: number; legend: boolean };
 
+/** Insights panel: up to five sentences, or one line on why there are none yet. */
+export type InsightsData = { items: { id: string; severity: "info" | "good" | "warn"; text: string }[]; note: string | null };
+
 export type OverviewData = {
+  insights: InsightsData;
   rangeLabel: string;
   featured: { id: string; name: string; set: string } | null;
   winRate: number;

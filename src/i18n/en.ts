@@ -600,6 +600,21 @@ export const en = {
       failed: "Could not read the deck. Please try again.",
     },
   },
+  insights: {
+    title: "What your games say",
+    toughest: (name: string, rate: string, n: number, rest: string) => `Against ${name} you win ${rate} (n=${n}), your toughest matchup; ${rest} against everyone else.`,
+    easiest: (name: string, rate: string, n: number, rest: string) => `Against ${name} you win ${rate} (n=${n}), your best matchup; ${rest} against everyone else.`,
+    coin: (first: string, coin: string, nFirst: number, nCoin: number) => `You win ${first} going first vs ${coin} on the coin (n=${nFirst} / n=${nCoin}).`,
+    time: (part: string, rate: string, rest: string, n: number, nRest: number) => `You win ${rate} in the ${part} vs ${rest} at other times (n=${n} / n=${nRest}).`,
+    dayParts: { morning: "morning", afternoon: "afternoon", evening: "evening", night: "small hours" },
+    trendUp: (rate: string, n: number, before: string, nBefore: number) => `Last 7 days: ${rate} (n=${n}), up from ${before} before that (n=${nBefore}).`,
+    trendDown: (rate: string, n: number, before: string, nBefore: number) => `Last 7 days: ${rate} (n=${n}), down from ${before} before that (n=${nBefore}).`,
+    version: (deck: string, newer: number, rate: string, older: number, olderRate: string, n: number, nOlder: number) =>
+      `${deck} v${newer} wins ${rate} vs ${olderRate} for v${older} (n=${n} / n=${nOlder}).`,
+    needMore: (needed: number) => `Insights appear once your games can be compared fairly (20 on each side). About ${needed} more game${needed === 1 ? "" : "s"} to go.`,
+    noPattern: (games: string) => `No clear patterns in these ${games} games yet: every difference so far could be chance.`,
+    severity: { warn: "Watch out", good: "Going well", info: "Worth knowing" },
+  },
   archetypes: {
     title: "Opponent archetypes",
     description:

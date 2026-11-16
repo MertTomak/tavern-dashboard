@@ -7,6 +7,7 @@ import { formatNumber, formatPercent } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
 import { ArtCrop } from "./ArtCrop";
+import { InsightsPanel } from "./InsightsPanel";
 import type { OverviewData, RankState } from "./types";
 import { useChapter } from "./journey/reveal";
 import { HeroCard } from "./card3d/HeroCard";
@@ -133,6 +134,7 @@ export function OverviewHero({ data }: { data: OverviewData }) {
       )}
 
       <div className="pointer-events-none mx-auto flex max-w-[1180px] flex-col justify-end gap-5 px-4 pt-4 pb-12 md:min-h-[min(72vh,600px)] md:px-8 md:pt-14 [&>*]:pointer-events-auto journey:h-full journey:min-h-0 journey:pb-24">
+        <InsightsPanel data={data.insights} />
         {f && (
           <p className="stat max-w-[60ch] self-start text-sm tracking-[0.14em] text-brass-dim uppercase [text-shadow:0_1px_8px_#000]">
             {t.concepts.featured} · {f.name} · {t.concepts.featuredFrom(f.set)}

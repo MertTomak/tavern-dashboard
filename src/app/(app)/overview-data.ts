@@ -1,4 +1,5 @@
-import { getOverviewGames } from "@/lib/db/queries/overview";
+import { getInsightGames, getOverviewGames } from "@/lib/db/queries/overview";
+import { buildInsights } from "@/lib/stats/insights";
 import { getLatestDeckCardIds } from "@/lib/db/queries/decks";
 import { getClassArtChoices } from "@/lib/db/queries/preferences";
 import { buildOverviewSnapshot } from "@/lib/stats/overview";
@@ -50,8 +51,14 @@ export function loadOverview(filters: Filters, now: Date): OverviewData | null {
   const rankX = new Map(s.rank.map((p, i) => [p.gameId, i]));
   const lastRank = s.rank.at(-1)?.rank ?? null;
   const deckCards = getLatestDeckCardIds();
+  const from = rangeStart(filters.range, now, TIME_ZONE);
+  const ins = buildInsights(getInsightGames({ from, mode: filters.mode, format: filters.format }), { now, timeZone: TIME_ZONE, classLabel });
 
   return {
+    insights: {
+      items: ins.insights.map((i) => ({ id: i.id, severity: i.severity, text: i.text })),
+      note: ins.status === "needMore" ? t.insights.needMore(ins.needed) : ins.status === "noPattern" ? t.insights.noPattern(formatNumber(ins.games)) : null,
+    },
     rangeLabel: t.filters.ranges[filters.range],
     featured: pick ? { id: pick.id, name: pick.name, set: (set && t.sets[set]) ?? set ?? "" } : null,
     winRate: s.overall.rate,
