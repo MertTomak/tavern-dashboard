@@ -101,15 +101,17 @@ Bu dosya sırayla takip edilir; biten maddeler `[x]` ile işaretlenir. Her faz s
 
 ## Faz 5 — Fark yaratan analizler (HSTopDecks'ten daha iyi olduğumuz yer)
 
-- [ ] **Rakip arketip tespiti:** rakibin açılan kartlarından arketip bul. Arketip editörü (Ayarlar): ad, sınıf, imza kartları. Deste kodu yapıştırarak arketip oluşturma (ör. HSTopDecks'ten kopyalanan kod). Eşleşme matrisi sınıf ↔ arketip arasında geçiş yapabilsin
-- [ ] **Kişisel kart istatistikleri** (`/decks/[id]`): her kart için mulligan'da tutulunca WR, çekilince WR, oynanınca WR, ortalama oynanma turu. Az veri uyarısıyla
-- [ ] **Deste sürümleri:** sürümler arası kart farkı (+/−) ve WR karşılaştırması ("v3 → v4: %48 → %56")
-- [ ] **Maç dökümü** (`/games/[id]`): tur tur kim ne oynadı. Basit hâli Faz 1'de yapıldı; burada kart istatistikleri ve arketip bilgisiyle zenginleşir
-- [ ] **İçgörüler paneli:** Genel Bakış'ın üstünde 3-5 otomatik İngilizce içgörü
-- [ ] **Seans ve tilt analizi:** seans içi maç sırasına göre WR, art arda kayıp uyarısı (`/sessions` sayfası, seans listesi ve maç sırasına göre WR grafiği 2026-11-14'te yapıldı; tilt uyarısı kaldı)
-- [ ] **Legend tahmini:** mevcut WR ve rank'la tahmini kalan maç sayısı
+- [x] **Rakip arketip tespiti:** rakibin açılan kartlarından arketip bul. Arketip editörü (Ayarlar): ad, sınıf, imza kartları. Deste kodu yapıştırarak arketip oluşturma (ör. HSTopDecks'ten kopyalanan kod). Eşleşme matrisi sınıf ↔ arketip arasında geçiş yapabilsin
+- [x] **Kişisel kart istatistikleri** (`/decks/[id]`): her kart için mulligan'da tutulunca WR, çekilince WR, oynanınca WR, ortalama oynanma turu. Az veri uyarısıyla
+- [x] **Deste sürümleri:** sürümler arası kart farkı (+/−) ve WR karşılaştırması ("v3 → v4: %48 → %56")
+- [ ] **Maç dökümü** (`/games/[id]`): tur tur kim ne oynadı. Basit hâli Faz 1'de yapıldı; burada kart istatistikleri ve arketip bilgisiyle zenginleşir (2026-11-17: arketip "Opponent deck" olarak eklendi; kart istatistikleri maç sayfasında henüz yok)
+- [x] **İçgörüler paneli:** Genel Bakış'ın üstünde 3-5 otomatik İngilizce içgörü
+- [x] **Seans ve tilt analizi:** seans içi maç sırasına göre WR, art arda kayıp uyarısı (`/sessions` sayfası; tilt uyarısı 2026-11-17)
+- [x] **Legend tahmini:** mevcut WR ve rank'la tahmini kalan maç sayısı
 
 **Kabul:** Gerçek loglarla en az bir destenin kart istatistikleri ve rakip arketip matrisi dolu. İçgörüler yanlış veya abartılı bir şey söylemiyor (az veride susuyor).
+
+Durum (2026-11-17, `docs/tasks/phase-5.md`): hepsi geçici veritabanında üretilmiş 560 maçla denendi ve Chrome'da doğrulandı (`docs/demos/phase-5.gif`). Gerçek veriyle kabul, kullanıcı yeterince maç oynayıp arketip tanımlayınca kontrol edilecek.
 
 ## Faz 6 — Arena
 
@@ -221,3 +223,4 @@ Varsayım yapılan ürün kararlarını buraya tarihle bir satır olarak ekle.
 - 2026-11-17 — İçgörüler Genel Bakış'ın hero bölümünün metin sütununun en üstünde (yolculuk tam ekran sahne olduğu için ayrı bant yerine). Genel Bakış filtrelerini kullanır. Tilt içgörü olarak verilmez (seans grubu hiçbir zaman 20 maça ulaşmaz); Sessions sayfasında uyarı olarak durur. "Daha kaç maç" = ilk karşılaştırma için gereken 2 × 20 kararlı maç eksiği.
 - 2026-11-17 — Tilt uyarısı genel WR en az 10 kararlı maça dayanmıyorsa (az veri) susar. "Genel ortalama" = filtredeki tüm maçların WR'si. Son seans tilt ise ve 60 dakikadan yeni bittiyse sayfanın üstünde ayrıca bir uyarı bandı çıkar.
 - 2026-11-17 — Legend tahmini: brief'e uyularak WR ≤ %50'de tamamen gizli (stats.md'deki "Progress is slow" cümlesi yerine). 10'dan az kararlı ranked maçta da gizli. Model: rank başına 3 yıldız, galibiyet +1 / mağlubiyet −1, Elmas 5'e kadar seri bonusu (olasılık p³, maçlar bağımsız sayılır), mevcut rank içindeki yıldızlar bilinmediği için rank tabanından sayılır.
+- 2026-11-17 — Arketip imza kartları kart adıyla eşleşir: aynı kartın farklı baskıları (Classic, Core, Legacy …) farklı dbfId taşıyor, rakip hangisini oynarsa oynasın sayılır. Kart aramasında her ad bir kez çıkar (en yeni baskı).

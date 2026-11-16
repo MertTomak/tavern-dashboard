@@ -190,12 +190,16 @@ export function playableClasses(): string[] {
 export function filterCards(cards: Iterable<Card>, query: string, cls: string, limit = 12): Card[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
-  const hits: Card[] = [];
+  // Reprints share a name; one row per name (the newest print), since archetypes match by name.
+  const byName = new Map<string, Card>();
   for (const c of cards) {
     if (c.type === "HERO" && c.set === "HERO_SKINS") continue;
     if (c.cardClass !== cls && c.cardClass !== "NEUTRAL") continue;
-    if (c.name.toLowerCase().includes(q)) hits.push(c);
+    if (!c.name.toLowerCase().includes(q)) continue;
+    const seen = byName.get(c.name);
+    if (!seen || c.dbfId > seen.dbfId) byName.set(c.name, c);
   }
+  const hits = [...byName.values()];
   const starts = (c: Card) => (c.name.toLowerCase().startsWith(q) ? 0 : 1);
   return hits.sort((a, b) => starts(a) - starts(b) || (a.cost ?? 0) - (b.cost ?? 0) || a.name.localeCompare(b.name)).slice(0, limit);
 }

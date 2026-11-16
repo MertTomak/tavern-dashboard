@@ -14,18 +14,31 @@ import { useFitRows, type TrackerState } from "./use-tracker";
 const HEADER_PX = 64;
 
 const rulesSchema = z.object({
-  archetypes: z.array(z.object({ id: z.number(), name: z.string(), playerClass: z.string(), signatureCards: z.array(z.number()), minMatches: z.number() })),
+  archetypes: z.array(
+    z.object({ id: z.number(), name: z.string(), playerClass: z.string(), signatureCards: z.array(z.number()), signatureNames: z.array(z.string()), minMatches: z.number() }),
+  ),
 });
 
+type TrackerRule = ArchetypeRule & { names: Map<number, string> };
+
 /** The user's archetype rules for one class, fetched when the opponent's class becomes known. */
-function useArchetypeRules(cls: string | null): ArchetypeRule[] {
-  const [rules, setRules] = useState<ArchetypeRule[]>([]);
+function useArchetypeRules(cls: string | null): TrackerRule[] {
+  const [rules, setRules] = useState<TrackerRule[]>([]);
   useEffect(() => {
     if (!cls) return;
     let alive = true;
     fetch("/api/tracker/archetypes")
       .then((res) => res.json())
-      .then((data: unknown) => alive && setRules(rulesSchema.parse(data).archetypes.filter((r) => r.playerClass === cls)))
+      .then(
+        (data: unknown) =>
+          alive &&
+          setRules(
+            rulesSchema
+              .parse(data)
+              .archetypes.filter((r) => r.playerClass === cls)
+              .map((r) => ({ ...r, names: new Map(r.signatureCards.map((id, i) => [id, r.signatureNames[i] ?? String(id)])) })),
+          ),
+      )
       .catch(() => alive && setRules([]));
     return () => {
       alive = false;
@@ -54,7 +67,12 @@ export function OpponentPanel({ tracker }: { tracker: TrackerState }) {
   const rules = useArchetypeRules(opponent.cls);
   // Only the rows on screen count (cards the player has seen too): fair play.
   const archetype = useMemo(
-    () => (opponent.cls && rules.length ? classifyArchetype(opponent.cls, opponent.rows.map((r) => r.dbfId), rules) : null),
+    // Matched by card name, so any print of a signature card counts.
+    () => {
+      if (!opponent.cls || !rules.length) return null;
+      const names = new Map(rules.flatMap((r) => [...r.names]));
+      return classifyArchetype(opponent.cls, opponent.rows.map((r) => r.name), rules, (id) => names.get(id) ?? id);
+    },
     [opponent.cls, opponent.rows, rules],
   );
 

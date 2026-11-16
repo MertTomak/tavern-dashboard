@@ -10,7 +10,9 @@ const TONE = { warn: "text-loss", good: "text-win", info: "text-brass-light" } a
  * Insights at the top of the Overview: up to five sentences that read the
  * numbers (each compares groups of 20+ games whose ranges do not overlap), or
  * one quiet line on why there are none yet. Severity is an icon plus a hidden
- * label, never colour alone. On short screens only the first three show.
+ * label, never colour alone. The hero has little room on short screens: under
+ * 900 px tall only the first insight shows (without the heading, in place of
+ * the "Featured today" line), under 1040 px the first three.
  */
 export function InsightsPanel({ data }: { data: InsightsData }) {
   if (!data.items.length) {
@@ -23,13 +25,13 @@ export function InsightsPanel({ data }: { data: InsightsData }) {
     );
   }
   return (
-    <section aria-label={t.insights.title} className="brass-frame relative w-full max-w-[760px] self-start rounded-md px-4 py-3 backdrop-blur-md [--frame-fill:#140e0ad9] md:max-w-[min(760px,52vw)]">
-      <h2 className="stat text-xs tracking-[0.12em] text-brass-dim uppercase">{t.insights.title}</h2>
-      <ul className="mt-1.5 grid gap-1.5">
+    <section aria-label={t.insights.title} className="brass-frame relative w-full max-w-[760px] self-start rounded-md px-4 py-3 backdrop-blur-md [--frame-fill:#140e0ad9] md:max-w-[min(760px,52vw)] [@media(max-height:900px)]:py-2">
+      <h2 className="stat text-xs tracking-[0.12em] text-brass-dim uppercase [@media(max-height:900px)]:sr-only">{t.insights.title}</h2>
+      <ul className="mt-1.5 grid gap-1.5 [@media(max-height:900px)]:mt-0">
         {data.items.map((i) => {
           const Icon = ICON[i.severity];
           return (
-            <li key={i.id} className="flex items-start gap-2 text-sm leading-snug text-parchment [@media(max-height:860px)]:nth-[n+4]:hidden">
+            <li key={i.id} className="flex items-start gap-2 text-sm leading-snug text-parchment [@media(max-height:1040px)]:nth-[n+4]:hidden [@media(max-height:900px)]:nth-[n+2]:hidden">
               <Icon className={cn("mt-0.5 size-4 shrink-0", TONE[i.severity])} aria-hidden />
               <span>
                 <span className="sr-only">{t.insights.severity[i.severity]}: </span>

@@ -1,7 +1,11 @@
 import { and, asc, eq, inArray, isNotNull, sql } from "drizzle-orm";
 import { db } from "../client";
 import { archetypes, decks, gameCardEvents, games } from "../schema";
-import { classifyArchetype, type ArchetypeRule } from "@/lib/stats/archetypes";
+import { cardByDbf } from "@/lib/cards/catalog";
+import { classifyArchetype, type ArchetypeRule, type CardKey } from "@/lib/stats/archetypes";
+
+/** Reprints of a card share its name: match by name (unknown cards by id). */
+const cardKey = (dbfId: number): CardKey => cardByDbf(dbfId)?.name ?? dbfId;
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type Db = typeof db | Tx;
@@ -60,7 +64,7 @@ export function reclassifyOpponents(tx: Db = db, gameIds?: readonly string[]): n
   const seen = opponentCards(tx, gameIds);
   let changed = 0;
   for (const g of rows) {
-    const next = classifyArchetype(g.cls, seen.get(g.id) ?? [], rules)?.id ?? null;
+    const next = classifyArchetype(g.cls, [...(seen.get(g.id) ?? [])].map(cardKey), rules, cardKey)?.id ?? null;
     if (next === g.current) continue;
     tx.update(games).set({ opponentArchetypeId: next }).where(eq(games.id, g.id)).run();
     changed++;

@@ -37,6 +37,16 @@ describe("classifyArchetype", () => {
   });
 });
 
+describe("reprints", () => {
+  it("counts two prints of one card as the same card when keyed by name", () => {
+    const names: Record<number, string> = { 10: "Equality", 11: "Equality", 12: "Consecration" };
+    const key = (id: number) => names[id] ?? id;
+    const rules = [rule(1, "PALADIN", [10, 12])];
+    expect(classifyArchetype("PALADIN", [11, 12].map(key), rules, key)?.id).toBe(1);
+    expect(classifyArchetype("PALADIN", [11, 12], rules)).toBeNull();
+  });
+});
+
 describe("archetypeKey", () => {
   it("keys unknown opponents by class", () => {
     expect(archetypeKey(null, "MAGE")).toBe("unknown:MAGE");

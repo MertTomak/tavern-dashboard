@@ -12,20 +12,25 @@ export type ArchetypeRule = {
   minMatches: number;
 };
 
+/** A card's identity for matching: its name, so reprints (Classic, Core, Legacy …) of one card count as the same card. */
+export type CardKey = number | string;
+
 export type ArchetypeMatch = { id: number; name: string; matches: number };
 
 /**
- * The opponent's archetype from the cards they played or revealed (dbfIds;
- * copies count once). Only archetypes of their class compete. The most matched
+ * The opponent's archetype from the cards they played or revealed (copies
+ * count once). Only archetypes of their class compete. The most matched
  * signature cards wins; a tie goes to the archetype with the larger share of
  * its signature matched, then the older rule. Null = "Unknown {Class}".
+ * `key` maps a dbfId to the card's identity (see CardKey); `cards` are given
+ * as keys already. Without it, dbfIds are compared as they are.
  */
-export function classifyArchetype(opponentClass: string, cards: Iterable<number>, rules: readonly ArchetypeRule[]): ArchetypeMatch | null {
+export function classifyArchetype(opponentClass: string, cards: Iterable<CardKey>, rules: readonly ArchetypeRule[], key: (dbfId: number) => CardKey = (id) => id): ArchetypeMatch | null {
   const seen = new Set(cards);
   let best: (ArchetypeMatch & { share: number }) | null = null;
   for (const r of rules) {
     if (r.playerClass !== opponentClass) continue;
-    const signature = new Set(r.signatureCards);
+    const signature = new Set(r.signatureCards.map(key));
     if (!signature.size) continue;
     let matches = 0;
     for (const id of signature) if (seen.has(id)) matches++;
