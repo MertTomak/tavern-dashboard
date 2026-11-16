@@ -19,8 +19,10 @@ const stateSchema = z.object({
       opponent: place.optional(),
       hidden: z.object({ deck: z.boolean().default(false), opponent: z.boolean().default(false) }).default({ deck: false, opponent: false }),
       deckSize: z.enum(DECK_SIZES).default("M"),
+      /** "Pick your deck" choices: my class → saved deck id, used when a game has no deck code. */
+      pickedDecks: z.record(z.string(), z.number()).default({}),
     })
-    .default({ hidden: { deck: false, opponent: false }, deckSize: "M" }),
+    .default({ hidden: { deck: false, opponent: false }, deckSize: "M", pickedDecks: {} }),
   openWithHearthstone: z.boolean().default(true),
 });
 export type AppState = z.infer<typeof stateSchema>;

@@ -18,5 +18,6 @@ const bridge: TrackerBridge = {
   resize: (phase: PointerPhase, x: number, y: number) => ipcRenderer.send(TRACKER_CHANNELS.resize, phase, x, y),
   hidePanel: () => ipcRenderer.send(TRACKER_CHANNELS.hide),
   setDeckSize: (size: DeckSize) => ipcRenderer.send(TRACKER_CHANNELS.deckSize, size),
+  pickDeck: (deckId: number) => ipcRenderer.send(TRACKER_CHANNELS.pickDeck, deckId),
 };
 contextBridge.exposeInMainWorld("tavernTracker", bridge);

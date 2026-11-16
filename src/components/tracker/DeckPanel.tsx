@@ -6,6 +6,7 @@ import { formatPercent } from "@/lib/format";
 import { DECK_SIZES, ROW_GAP, fitRowHeight } from "@/lib/tracker/layout";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
+import { DeckPicker } from "./DeckPicker";
 import { PanelShell } from "./PanelShell";
 import { DeckCardRow } from "./TrackerRows";
 import type { TrackerState } from "./use-tracker";
@@ -96,7 +97,7 @@ export function DeckPanel({ tracker }: { tracker: TrackerState }) {
               })}
             </p>
           )}
-          {!listed && <p className="rounded-xs border border-brass/20 bg-sunken/80 px-2 py-1 text-[11px] leading-snug text-ink-muted">{copy.seenOnly}</p>}
+          {deck.source !== "code" && me.cls && view.status === "playing" && <DeckPicker cls={me.cls} source={deck.source} />}
 
           <ul
             ref={listRef}

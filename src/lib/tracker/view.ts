@@ -13,8 +13,8 @@ import type { TrackedEntity, TrackerGame } from "./game";
  */
 
 export type DeckListCard = { dbfId: number; count: number };
-/** The deck the tracker counts down: from Decks.log ("code") or matched against a saved deck ("match"). */
-export type TrackerDeck = { name: string | null; source: "code" | "match"; cards: DeckListCard[] };
+/** The deck the tracker counts down: from Decks.log ("code"), picked by the user ("picked") or matched against a saved deck ("match"). */
+export type TrackerDeck = { name: string | null; source: "code" | "picked" | "match"; cards: DeckListCard[] };
 
 export type DeckRow = {
   cardId: string;
@@ -36,7 +36,8 @@ export type TrackerView = {
   status: "waiting" | "playing" | "over";
   turn: number;
   deck: { name: string | null; source: TrackerDeck["source"] | "seen" };
-  me: { deckCount: number; rows: DeckRow[] };
+  /** `cls` is my hero's class (null until the heroes are known). */
+  me: { cls: string | null; deckCount: number; rows: DeckRow[] };
   opponent: { deckCount: number; hand: HandCard[]; played: PlayedRow[] };
 };
 
@@ -44,12 +45,19 @@ export const EMPTY_VIEW: TrackerView = {
   status: "waiting",
   turn: 0,
   deck: { name: null, source: "seen" },
-  me: { deckCount: 0, rows: [] },
+  me: { cls: null, deckCount: 0, rows: [] },
   opponent: { deckCount: 0, hand: [], played: [] },
 };
 
 /** Started in the player's deck or opening hand (not created during the game; The Coin never did). */
 const fromDeck = (e: TrackedEntity) => e.createdInSetup && !e.isCoin && (e.firstZone === "DECK" || e.firstZone === "HAND");
+
+/** Class of a player's hero (the first hero entity they control; hero cards played later do not change it). */
+export function heroClass(game: TrackerGame, playerId: number | null, cards: CardIndex): string | null {
+  if (playerId === null) return null;
+  const hero = [...game.entities.values()].filter((e) => e.cardType === "HERO" && e.controller === playerId && e.cardId).sort((a, b) => a.id - b.id)[0];
+  return (hero && cards.byId(hero.cardId)?.cardClass) ?? null;
+}
 
 const byCost = (a: DeckRow, b: DeckRow) => (a.cost ?? 99) - (b.cost ?? 99) || a.name.localeCompare(b.name);
 
@@ -102,7 +110,7 @@ export function buildTrackerView(game: TrackerGame | null, deck: TrackerDeck | n
     status: game.complete ? "over" : "playing",
     turn: game.mainStarted ? game.turn : 0,
     deck: { name: deck?.name ?? null, source: deck?.source ?? "seen" },
-    me: { deckCount, rows: rows.sort(byCost) },
+    me: { cls: heroClass(game, me, cards), deckCount, rows: rows.sort(byCost) },
     opponent: { deckCount: theirs.filter((e) => e.zone === "DECK").length, hand, played },
   };
 }

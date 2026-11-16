@@ -17,7 +17,7 @@ import type { GameRecord } from "@/lib/parser/record";
 import { openDashboard } from "./dashboard-window";
 import { startServer, type DashboardServer } from "./server";
 import { listenToServer } from "./live-events";
-import { setupOverlay, teardownOverlay, toggleOverlay, trackerMenu, updateOverlay } from "./overlay";
+import { pickedDecks, setupOverlay, teardownOverlay, toggleOverlay, trackerMenu, updateOverlay } from "./overlay";
 import { openedAtLogin, registerSettingsIpc } from "./settings";
 import { TrackerSession } from "./tracker";
 import { flushState, readState } from "./store";
@@ -26,6 +26,7 @@ import { createTray, rebuildTrayMenu, refreshTray } from "./tray";
 let server: DashboardServer | null = null;
 let watcher: LogWatcher | null = null;
 let lock: WatcherLock | null = null;
+let tracker: TrackerSession | null = null;
 
 /** Status lines go to the console and to app.log in the app's own folder (kept small), so a problem in a live game can be traced afterwards. */
 const LOG_MAX_BYTES = 512_000;
@@ -64,7 +65,8 @@ async function startWatcher(url: string) {
   lock = await waitForWatcherLock("Tavern Dashboard app", (holder) =>
     say(`… Another log watcher is running (${holder.owner}, pid ${holder.pid}). Waiting until it stops.`),
   );
-  const tracker = new TrackerSession(url, updateOverlay, say);
+  const session = new TrackerSession(url, updateOverlay, say, pickedDecks);
+  tracker = session;
   watcher = new LogWatcher({
     owner: "Mac app",
     logRoot: LOG_ROOT,
@@ -75,11 +77,11 @@ async function startWatcher(url: string) {
       onHearthstoneStarted,
       onSessionFile: (file) => {
         say(`… Tracker: new log file ${path.basename(path.dirname(file))}`);
-        tracker.reset();
+        session.reset();
       },
-      onDeckQueued: (deck) => tracker.deckQueued(deck),
-      onPowerLine: (line, live) => tracker.line(line, live),
-      onLive: () => tracker.catchUp(),
+      onDeckQueued: (deck) => session.deckQueued(deck),
+      onPowerLine: (line, live) => session.line(line, live),
+      onLive: () => session.catchUp(),
     },
   });
   await watcher.start();
@@ -100,7 +102,7 @@ if (!app.requestSingleInstanceLock()) {
     registerSettingsIpc();
     if (!openedAtLogin()) showDashboard();
     createTray(trayActions);
-    setupOverlay(url, () => rebuildTrayMenu(trayActions));
+    setupOverlay(url, () => rebuildTrayMenu(trayActions), (deckId) => void tracker?.pick(deckId));
     void refreshTray(url, trayActions);
     listenToServer(url, (event) => {
       if (event.type === "games:changed") void refreshTray(url, trayActions);

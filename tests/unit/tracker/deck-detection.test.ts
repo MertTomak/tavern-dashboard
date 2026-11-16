@@ -75,3 +75,53 @@ describe("deck detection", () => {
     expect(tracker.view.deck).toEqual({ name: "Test Deck", source: "code" });
   });
 });
+
+describe("pick your deck", () => {
+  let api: http.Server;
+  let apiUrl = "";
+  const SAVED = { decks: [{ id: 7, name: "Zoolock", playerClass: "WARLOCK", cards: [{ dbfId: 1, count: 2 }] }, { id: 8, name: "Other", playerClass: "MAGE", cards: [{ dbfId: 2, count: 2 }] }] };
+
+  beforeAll(async () => {
+    api = http.createServer((req, res) => {
+      res.setHeader("Content-Type", "application/json");
+      res.end(req.url?.startsWith("/api/tracker/decks") ? JSON.stringify(SAVED) : '{"deck":null}');
+    });
+    await new Promise<void>((r) => api.listen(0, "127.0.0.1", r));
+    const addr = api.address();
+    apiUrl = `http://127.0.0.1:${typeof addr === "object" && addr ? addr.port : 0}`;
+  });
+  afterAll(() => api.close());
+
+  const play = (tracker: TrackerSession) => {
+    for (const line of gameStart().split("\n")) tracker.line(line, false);
+  };
+  const settle = () => new Promise((r) => setTimeout(r, 150));
+
+  it("counts down the picked deck and remembers it for the class", async () => {
+    const remembered = new Map<string, number>();
+    const picks = { get: (cls: string) => remembered.get(cls), set: (cls: string, id: number) => void remembered.set(cls, id) };
+    const tracker = new TrackerSession(apiUrl, () => undefined, () => undefined, picks);
+    play(tracker);
+    const cls = tracker.view.me.cls;
+    expect(cls).toBeTruthy();
+    await tracker.pick(7);
+    expect(tracker.view.deck).toEqual({ name: "Zoolock", source: "picked" });
+    expect(remembered.get(cls ?? "")).toBe(7);
+
+    // Next game of that class without a deck code: the remembered deck is used on its own.
+    SAVED.decks[0].playerClass = cls ?? "";
+    const next = new TrackerSession(apiUrl, () => undefined, () => undefined, picks);
+    play(next);
+    next.catchUp();
+    await settle();
+    expect(next.view.deck).toEqual({ name: "Zoolock", source: "picked" });
+  });
+
+  it("never replaces a deck that came from Hearthstone", async () => {
+    const tracker = new TrackerSession(apiUrl, () => undefined);
+    tracker.deckQueued({ at: 0, name: "Test Deck", code: CODE });
+    play(tracker);
+    await tracker.pick(7);
+    expect(tracker.view.deck).toEqual({ name: "Test Deck", source: "code" });
+  });
+});

@@ -3,7 +3,7 @@ import { loadAllCards, type CardIndex } from "@/lib/cards/all-cards";
 import { MIN_CARDS } from "@/lib/import/deck-match";
 import { deckFromCode } from "@/lib/tracker/deck";
 import { TrackerLog } from "@/lib/tracker/game";
-import { buildTrackerView, type TrackerDeck, type TrackerView } from "@/lib/tracker/view";
+import { buildTrackerView, heroClass, type TrackerDeck, type TrackerView } from "@/lib/tracker/view";
 import type { QueuedGameDeck } from "@/lib/watcher/log-watcher";
 
 /**
@@ -14,6 +14,18 @@ import type { QueuedGameDeck } from "@/lib/watcher/log-watcher";
 const UPDATE_MS = 50;
 const deckMatchSchema = z.object({ deck: z.object({ name: z.string(), cards: z.array(z.object({ dbfId: z.number(), count: z.number() })) }).nullable() });
 
+const savedDecksSchema = z.object({
+  decks: z.array(z.object({ id: z.number(), name: z.string(), playerClass: z.string(), cards: z.array(z.object({ dbfId: z.number(), count: z.number() })) })),
+});
+
+/** Where "Pick your deck" choices are remembered: my class → saved deck id. */
+export type PickedDecks = { get: (cls: string) => number | undefined; set: (cls: string, deckId: number) => void };
+
+function memoryPicks(): PickedDecks {
+  const map = new Map<string, number>();
+  return { get: (cls) => map.get(cls), set: (cls, id) => void map.set(cls, id) };
+}
+
 export class TrackerSession {
   private log = new TrackerLog();
   private cards: CardIndex = loadAllCards();
@@ -22,13 +34,42 @@ export class TrackerSession {
   private timer: NodeJS.Timeout | null = null;
   private live = false;
   private matchKey = "";
+  /** The remembered pick was already tried for this game. */
+  private pickTried = false;
 
   constructor(
     private readonly appUrl: string,
     private readonly onView: (view: TrackerView) => void,
     /** Short status lines for the app's log. */
     private readonly say: (msg: string) => void = () => undefined,
+    private readonly picks: PickedDecks = memoryPicks(),
   ) {}
+
+  /**
+   * "Pick your deck": the user chose one of their saved decks in the panel.
+   * It is counted down now and remembered for this class, for games where
+   * Hearthstone again writes no deck code.
+   */
+  async pick(deckId: number): Promise<void> {
+    const game = this.log.game;
+    if (!game || this.deck?.source === "code") return;
+    const deck = await this.savedDeck(deckId);
+    if (!deck || this.log.game !== game) return;
+    this.deck = { name: deck.name, source: "picked", cards: deck.cards };
+    const cls = heroClass(game, game.friendlyPlayerId, this.cards);
+    if (cls) this.picks.set(cls, deckId);
+    this.say(`… Tracker: deck "${deck.name}" picked by hand`);
+    this.schedule();
+  }
+
+  private async savedDeck(deckId: number) {
+    try {
+      const res = await fetch(`${this.appUrl}/api/tracker/decks`);
+      return savedDecksSchema.parse(await res.json()).decks.find((d) => d.id === deckId) ?? null;
+    } catch {
+      return null;
+    }
+  }
 
   /** A new Hearthstone session: start clean (card data may have been refreshed meanwhile). */
   reset(): void {
@@ -83,6 +124,7 @@ export class TrackerSession {
     this.deck = queued ? deckFromCode(queued.code, queued.name) : null;
     this.say(`▶ Tracker: game started, ${this.deck ? `deck "${this.deck.name ?? "?"}" from Decks.log` : queued ? "deck code could not be read" : "no deck queued"}`);
     this.matchKey = "";
+    this.pickTried = false;
   }
 
   private schedule() {
@@ -91,16 +133,30 @@ export class TrackerSession {
       this.timer = null;
       const view = this.view;
       this.onView(view);
-      if (!this.deck && view.status === "playing") void this.matchDeck();
+      if (!this.deck && view.status === "playing") void this.fallbackDeck();
     }, UPDATE_MS);
   }
 
-  /** No code from Decks.log: count down the saved deck that fits the cards seen so far, if one does. */
-  private async matchDeck() {
+  /**
+   * No code from Decks.log: use the deck the user picked last time for this
+   * class; else the saved deck that fits the cards seen so far, if one does.
+   */
+  private async fallbackDeck() {
     const game = this.log.game;
     if (!game || game.friendlyPlayerId === null) return;
-    const hero = [...game.entities.values()].filter((e) => e.cardType === "HERO" && e.controller === game.friendlyPlayerId && e.cardId).sort((a, b) => a.id - b.id)[0];
-    const cls = hero ? this.cards.byId(hero.cardId)?.cardClass : undefined;
+    const cls = heroClass(game, game.friendlyPlayerId, this.cards);
+    if (cls && !this.pickTried) {
+      this.pickTried = true;
+      const remembered = this.picks.get(cls);
+      const deck = remembered === undefined ? null : await this.savedDeck(remembered);
+      if (deck && deck.playerClass === cls && this.log.game === game && !this.deck) {
+        this.deck = { name: deck.name, source: "picked", cards: deck.cards };
+        this.say(`… Tracker: no deck code; using "${deck.name}", picked last time`);
+        this.schedule();
+        return;
+      }
+    }
+    if (this.deck) return;
     const seen = this.view.me.rows.flatMap((r) => this.cards.byId(r.cardId)?.dbfId ?? []);
     if (!cls || seen.length < MIN_CARDS) return;
     const key = `${cls}:${seen.join(",")}`;

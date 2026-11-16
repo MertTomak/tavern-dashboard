@@ -21,6 +21,8 @@ export type TrackerBridge = {
   /** Hides this panel until it is switched back on from the menu bar. */
   hidePanel: () => void;
   setDeckSize: (size: DeckSize) => void;
+  /** "Pick your deck": count down this saved deck now, and next time no deck code is found for this class. */
+  pickDeck: (deckId: number) => void;
 };
 
 /** Clear space left of the deck panel, inside its window, where the hovered card's full image appears. */
@@ -35,6 +37,7 @@ export const TRACKER_CHANNELS = {
   resize: "tracker:resize",
   hide: "tracker:hide",
   deckSize: "tracker:deck-size",
+  pickDeck: "tracker:pick-deck",
 } as const;
 
 export function trackerBridge(): TrackerBridge | null {

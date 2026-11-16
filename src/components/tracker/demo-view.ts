@@ -43,7 +43,7 @@ export const DEMO_VIEW: TrackerView = {
   status: "playing",
   turn: 5,
   deck: { name: "Ritual Warlock", source: "code" },
-  me: { deckCount: DECK_COUNT, rows },
+  me: { cls: "WARLOCK", deckCount: DECK_COUNT, rows },
   opponent: {
     deckCount: 21,
     hand: [

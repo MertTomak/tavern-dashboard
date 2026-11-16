@@ -34,6 +34,7 @@ let dragging = false;
 /** The game window (or screen) the panels were last placed on. */
 let lastArea: { area: Rect; titleBar: number } | null = null;
 let onSettingsChanged: () => void = () => undefined;
+let onPickDeck: (deckId: number) => void = () => undefined;
 
 /** Bounds of Hearthstone's window, if it is on screen. Read with CoreGraphics, which needs no extra permission. */
 function hearthstoneBounds(): Promise<Rectangle | null> {
@@ -205,8 +206,15 @@ export function trackerMenu(): MenuItemConstructorOptions[] {
   ];
 }
 
-export function setupOverlay(url: string, onChange: () => void): void {
+/** The tracker's remembered "Pick your deck" choices (my class → saved deck id). */
+export const pickedDecks = {
+  get: (cls: string): number | undefined => readState().tracker.pickedDecks[cls],
+  set: (cls: string, deckId: number): void => updateState({ tracker: { ...readState().tracker, pickedDecks: { ...readState().tracker.pickedDecks, [cls]: deckId } } }),
+};
+
+export function setupOverlay(url: string, onChange: () => void, pickDeck: (deckId: number) => void): void {
   onSettingsChanged = onChange;
+  onPickDeck = pickDeck;
   for (const panel of PANEL_IDS) windows.set(panel, create(panel, url));
   globalShortcut.register(SHORTCUT, toggleOverlay);
 
@@ -227,6 +235,11 @@ export function setupOverlay(url: string, onChange: () => void): void {
   ipcMain.on(TRACKER_CHANNELS.deckSize, (_e, size: unknown) => {
     const parsed = z.enum(DECK_SIZES).safeParse(size);
     if (parsed.success) setTracker({ deckSize: parsed.data satisfies DeckSize });
+  });
+
+  ipcMain.on(TRACKER_CHANNELS.pickDeck, (_e, deckId: unknown) => {
+    const parsed = z.number().int().positive().safeParse(deckId);
+    if (parsed.success) onPickDeck(parsed.data);
   });
 
   // Dragging and resizing are done here from the pointer's screen position (the windows have no frame).
