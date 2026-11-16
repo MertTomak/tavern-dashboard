@@ -3,6 +3,7 @@ import { db } from "../client";
 import { deckCards, decks, deckVersions, gameCardEvents, games } from "../schema";
 import { bestDeckMatch, MIN_CARDS, type DeckCandidate } from "@/lib/import/deck-match";
 import type { ParsedDeck } from "@/lib/cards/deck-code";
+import type { CardGame } from "@/lib/stats/cards";
 
 type Tx = Parameters<Parameters<typeof db.transaction>[0]>[0];
 type Db = typeof db | Tx;
@@ -288,4 +289,30 @@ export function trackerDeckMatch(playerClass: string, seen: readonly number[]): 
   const name = db.select({ name: decks.name }).from(decks).where(eq(decks.id, best.deckId)).get()?.name ?? null;
   const cards = db.select({ dbfId: deckCards.dbfId, count: deckCards.count }).from(deckCards).where(eq(deckCards.deckVersionId, best.versionId)).all();
   return name ? { name, cards } : null;
+}
+
+/**
+ * A deck's games that have my own card history (read from a log), with those
+ * events, for card statistics. With `versionId`, only that version's games.
+ */
+export function deckCardGames(deckId: number, versionId?: number): (CardGame & { versionId: number | null })[] {
+  const rows = db
+    .select({ id: games.id, result: games.result, versionId: games.deckVersionId })
+    .from(games)
+    .where(and(eq(games.deckId, deckId), versionId === undefined ? undefined : eq(games.deckVersionId, versionId)))
+    .all();
+  if (!rows.length) return [];
+  const events = new Map<string, CardGame["events"][number][]>();
+  for (const e of db
+    .select({ gameId: gameCardEvents.gameId, dbfId: gameCardEvents.dbfId, event: gameCardEvents.event, turn: gameCardEvents.turn })
+    .from(gameCardEvents)
+    .innerJoin(games, eq(games.id, gameCardEvents.gameId))
+    .where(and(eq(games.deckId, deckId), eq(gameCardEvents.side, "FRIENDLY")))
+    .all()) {
+    events.set(e.gameId, [...(events.get(e.gameId) ?? []), e]);
+  }
+  return rows.flatMap((g) => {
+    const list = events.get(g.id);
+    return list ? [{ result: g.result, versionId: g.versionId, events: list }] : [];
+  });
 }

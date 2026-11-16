@@ -15,7 +15,9 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { tileCardsByDbf } from "@/lib/cards/catalog";
 import { classLabel } from "@/lib/cards/class-colors";
 import { manaCurve } from "@/lib/cards/deck-code";
-import { getDeck } from "@/lib/db/queries/decks";
+import { deckCardGames, getDeck } from "@/lib/db/queries/decks";
+import { CardStatsTable } from "@/components/decks/CardStatsTable";
+import { buildCardStats, CARD_LOW_SAMPLE_N } from "@/lib/stats/cards";
 import { getClassArtChoices } from "@/lib/db/queries/preferences";
 import { formatDate, formatPercent, formatShortDateTime } from "@/lib/format";
 import { winRate } from "@/lib/stats/winrate";
@@ -40,6 +42,9 @@ async function DeckDetail({ params }: { params: PageProps<"/decks/[id]">["params
     })
     .sort((a, b) => (a.card.cost ?? 0) - (b.card.cost ?? 0) || a.card.name.localeCompare(b.card.name));
   const size = deck.cards.reduce((s, c) => s + c.count, 0);
+  const cardGames = deckCardGames(deck.id);
+  const stats = buildCardStats(cardGames, cards.map((c) => c.dbfId));
+  const statRows = cards.map((c, i) => ({ card: c.card, count: c.count, stat: stats[i] }));
 
   return (
     <div className="grid gap-6">
@@ -140,6 +145,17 @@ async function DeckDetail({ params }: { params: PageProps<"/decks/[id]">["params
           )}
         </div>
       </div>
+
+      <FramePanel title={t.decks.cardStats.title} hint={cardGames.length ? t.decks.cardStats.hint(cardGames.length, CARD_LOW_SAMPLE_N) : undefined} className="[--frame-solid:#1a130e]">
+        {cardGames.length ? (
+          <>
+            {cardGames.length < CARD_LOW_SAMPLE_N && <p className="mb-3 text-sm text-ink-muted">{t.decks.cardStats.thin(cardGames.length, CARD_LOW_SAMPLE_N)}</p>}
+            <CardStatsTable rows={statRows} />
+          </>
+        ) : (
+          <p className="text-sm text-ink-muted">{t.decks.cardStats.empty}</p>
+        )}
+      </FramePanel>
     </div>
   );
 }
