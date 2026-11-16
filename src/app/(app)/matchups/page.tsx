@@ -10,40 +10,36 @@ import { FramePanel } from "@/components/tavern/FramePanel";
 import { Skeleton } from "@/components/ui/skeleton";
 import { getStatGames, hasAnyGames } from "@/lib/db/queries/overview";
 import { parseFilters, rangeStart } from "@/lib/filters";
-import { buildMatchups, type MatchupBy } from "@/lib/stats/matchups";
+import { buildMatchups, type MatchupBy, type MatchupOpp } from "@/lib/stats/matchups";
 import { cn } from "@/lib/utils";
 import { TIME_ZONE, t } from "@/i18n";
 
 const copy = t.matchups;
 type Search = Awaited<PageProps<"/matchups">["searchParams"]>;
 
-/** "My decks / My classes" switch; the choice lives in the URL next to the filters. */
-function BySwitch({ by, sp }: { by: MatchupBy; sp: Search }) {
-  const href = (value: MatchupBy) => {
+/** A two-way switch whose choice lives in the URL next to the filters (`param` absent = the first option). */
+function UrlSwitch<T extends string>({ param, value, options, label, sp }: { param: string; value: T; options: [T, string][]; label: string; sp: Search }) {
+  const href = (next: T) => {
     const qs = new URLSearchParams();
-    for (const [k, v] of Object.entries(sp)) if (k !== "by" && typeof v === "string") qs.set(k, v);
-    if (value === "class") qs.set("by", "class");
+    for (const [k, v] of Object.entries(sp)) if (k !== param && typeof v === "string") qs.set(k, v);
+    if (next !== options[0][0]) qs.set(param, next);
     const query = qs.toString();
     return query ? `/matchups?${query}` : "/matchups";
   };
-  const options: [MatchupBy, string][] = [
-    ["deck", copy.byDeck],
-    ["class", copy.byClass],
-  ];
   return (
-    <nav aria-label={copy.by} className="flex overflow-hidden rounded-full border border-brass/35 bg-oak-deep/70 p-0.5">
-      {options.map(([value, label]) => (
+    <nav aria-label={label} className="flex overflow-hidden rounded-full border border-brass/35 bg-oak-deep/70 p-0.5">
+      {options.map(([option, text]) => (
         <Link
-          key={value}
-          href={href(value)}
+          key={option}
+          href={href(option)}
           scroll={false}
-          aria-current={by === value ? "true" : undefined}
+          aria-current={value === option ? "true" : undefined}
           className={cn(
-            "rounded-full px-3.5 py-1.5 text-sm font-medium outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring",
-            by === value ? "bg-brass text-oak-deep" : "text-ink-muted hover:text-parchment",
+            "rounded-full px-3.5 py-1.5 text-sm font-medium whitespace-nowrap outline-none transition-colors duration-150 focus-visible:ring-2 focus-visible:ring-ring",
+            value === option ? "bg-brass text-oak-deep" : "text-ink-muted hover:text-parchment",
           )}
         >
-          {label}
+          {text}
         </Link>
       ))}
     </nav>
@@ -58,8 +54,9 @@ async function Matchups({ searchParams }: { searchParams: PageProps<"/matchups">
   const sp = await searchParams;
   const filters = parseFilters(sp);
   const by: MatchupBy = sp.by === "class" ? "class" : "deck";
+  const opp: MatchupOpp = sp.opp === "archetype" ? "archetype" : "class";
   const games = getStatGames({ from: rangeStart(filters.range, new Date(), TIME_ZONE), mode: filters.mode, format: filters.format });
-  const matrix = buildMatchups(games, by);
+  const matrix = buildMatchups(games, by, opp);
   const range = t.filters.ranges[filters.range];
 
   if (!games.length) {
@@ -76,7 +73,12 @@ async function Matchups({ searchParams }: { searchParams: PageProps<"/matchups">
 
   return (
     <div className="grid grid-cols-1 gap-6">
-      <FramePanel title={copy.heatmap} hint={copy.heatmapHint(range)} action={<BySwitch by={by} sp={sp} />} className="[--frame-solid:#1a130e]">
+      <FramePanel title={copy.heatmap} hint={opp === "archetype" ? copy.heatmapHintArchetype(range) : copy.heatmapHint(range)} action={
+          <div className="flex flex-wrap justify-end gap-2">
+            <UrlSwitch param="by" value={by} label={copy.by} sp={sp} options={[["deck", copy.byDeck], ["class", copy.byClass]]} />
+            <UrlSwitch param="opp" value={opp} label={copy.oppBy} sp={sp} options={[["class", copy.oppClasses], ["archetype", copy.oppArchetypes]]} />
+          </div>
+        } className="[--frame-solid:#1a130e]">
         <MatchupHeatmap matrix={matrix} by={by} />
       </FramePanel>
       <FramePanel title={copy.table} hint={copy.tableHint}>

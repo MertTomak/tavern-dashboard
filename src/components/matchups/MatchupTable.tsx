@@ -1,10 +1,9 @@
 import { ClassPortrait } from "@/components/cards/ClassPortrait";
-import { classLabel } from "@/lib/cards/class-colors";
 import { formatPercent } from "@/lib/format";
 import type { MatchupBy, MatchupMatrix } from "@/lib/stats/matchups";
 import { cn } from "@/lib/utils";
 import { t } from "@/i18n";
-import { rowLabel } from "./MatchupHeatmap";
+import { columnLabel, rowLabel } from "./MatchupHeatmap";
 
 const copy = t.matchups;
 
@@ -39,8 +38,8 @@ export function MatchupTable({ matrix, by }: { matrix: MatchupMatrix; by: Matchu
               </td>
               <td className="px-3 py-2">
                 <span className="flex items-center gap-2 font-sans text-sm">
-                  <ClassPortrait cls={cls} size={22} />
-                  {classLabel(cls)}
+                  <ClassPortrait cls={matrix.columnInfo[cls]?.cls ?? cls} size={22} />
+                  <span className="truncate">{columnLabel(matrix, cls)}</span>
                 </span>
               </td>
               <td className="px-3 py-2 text-right">{wr.n + wr.ties}</td>

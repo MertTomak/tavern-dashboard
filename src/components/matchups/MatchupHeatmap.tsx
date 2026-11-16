@@ -21,6 +21,14 @@ export function rowLabel(row: MatchupRow, by: MatchupBy): string {
   return row.deckName ?? copy.noDeck(classLabel(row.cls));
 }
 
+/** A column's name: the opponent class, the archetype, or "Unknown {Class}" for games no archetype fits. */
+export function columnLabel(matrix: MatchupMatrix, key: string): string {
+  const info = matrix.columnInfo[key];
+  if (!info) return classLabel(key);
+  if (info.archetype) return info.archetype;
+  return info.key === info.cls ? classLabel(info.cls) : t.archetypes.unknown(classLabel(info.cls));
+}
+
 function Cell({ wr, you, opp, strong }: { wr: WinRate | undefined; you: string; opp: string; strong?: boolean }) {
   const games = wr ? wr.n + wr.ties : 0;
   if (!wr || games === 0) {
@@ -55,7 +63,7 @@ export function MatchupHeatmap({ matrix, by }: { matrix: MatchupMatrix; by: Matc
   return (
     <div>
       <div className="-mx-1 overflow-x-auto px-1 pb-2">
-        <table className="w-full table-fixed border-separate border-spacing-1" style={{ minWidth: 170 + (matrix.columns.length + 1) * 62 }}>
+        <table className="w-full table-fixed border-separate border-spacing-1" style={{ minWidth: 170 + (matrix.columns.length + 1) * (Object.values(matrix.columnInfo).some((c) => c.key !== c.cls) ? 78 : 62) }}>
           <colgroup>
             <col className="w-[170px] lg:w-[200px]" />
           </colgroup>
@@ -64,11 +72,11 @@ export function MatchupHeatmap({ matrix, by }: { matrix: MatchupMatrix; by: Matc
               <th scope="col" className="sticky left-0 z-10 bg-(--frame-solid) pr-3 text-left text-xs font-medium tracking-[0.08em] text-ink-muted uppercase">
                 {copy.you[by]}
               </th>
-              {matrix.columns.map((cls) => (
-                <th key={cls} scope="col" className="px-0.5 pb-1 text-center align-bottom">
-                  <span className="flex flex-col items-center gap-1 text-[11px] leading-tight font-medium text-parchment">
-                    <ClassPortrait cls={cls} size={32} />
-                    {classLabel(cls)}
+              {matrix.columns.map((key) => (
+                <th key={key} scope="col" className="px-0.5 pb-1 text-center align-bottom">
+                  <span className={cn("flex flex-col items-center gap-1 text-[11px] leading-tight font-medium", matrix.columnInfo[key]?.archetype === null && key !== matrix.columnInfo[key]?.cls ? "text-ink-muted" : "text-parchment")}>
+                    <ClassPortrait cls={matrix.columnInfo[key]?.cls ?? key} size={32} />
+                    <span className="line-clamp-2 hyphens-auto">{columnLabel(matrix, key)}</span>
                   </span>
                 </th>
               ))}
@@ -98,8 +106,8 @@ export function MatchupHeatmap({ matrix, by }: { matrix: MatchupMatrix; by: Matc
                       </span>
                     </span>
                   </th>
-                  {matrix.columns.map((cls) => (
-                    <Cell key={cls} wr={row.cells[cls]} you={label} opp={classLabel(cls)} />
+                  {matrix.columns.map((key) => (
+                    <Cell key={key} wr={row.cells[key]} you={label} opp={columnLabel(matrix, key)} />
                   ))}
                   <Cell wr={row.total} you={label} opp={copy.all} strong />
                 </tr>
@@ -112,8 +120,8 @@ export function MatchupHeatmap({ matrix, by }: { matrix: MatchupMatrix; by: Matc
                 <th scope="row" className="sticky left-0 z-10 bg-(--frame-solid) pr-3 text-left text-xs font-medium tracking-[0.08em] text-brass-light uppercase">
                   {all}
                 </th>
-                {matrix.columns.map((cls) => (
-                  <Cell key={cls} wr={matrix.totals[cls]} you={all} opp={classLabel(cls)} strong />
+                {matrix.columns.map((key) => (
+                  <Cell key={key} wr={matrix.totals[key]} you={all} opp={columnLabel(matrix, key)} strong />
                 ))}
                 <Cell wr={matrix.overall} you={all} opp={copy.all} strong />
               </tr>

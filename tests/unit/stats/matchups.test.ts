@@ -1,7 +1,15 @@
 import { describe, expect, it } from "vitest";
 import { buildMatchups, type MatchupGame } from "@/lib/stats/matchups";
 
-const g = (deckId: number | null, deckName: string | null, playerClass: string, opponentClass: string, result: MatchupGame["result"]): MatchupGame => ({ deckId, deckName, playerClass, opponentClass, result });
+const g = (deckId: number | null, deckName: string | null, playerClass: string, opponentClass: string, result: MatchupGame["result"], archetype: [number, string] | null = null): MatchupGame => ({
+  deckId,
+  deckName,
+  playerClass,
+  opponentClass,
+  result,
+  opponentArchetypeId: archetype?.[0] ?? null,
+  opponentArchetype: archetype?.[1] ?? null,
+});
 
 const GAMES: MatchupGame[] = [
   g(1, "Yogg Warrior", "WARRIOR", "PALADIN", "WIN"),
@@ -49,5 +57,18 @@ describe("buildMatchups", () => {
     const ten = Array.from({ length: 10 }, (_, i) => g(1, "Deck", "MAGE", "ROGUE", i < 6 ? "WIN" : "LOSS"));
     expect(buildMatchups(ten, "deck").rows[0].cells.ROGUE).toMatchObject({ n: 10, lowSample: false, rate: 0.6 });
     expect(buildMatchups(ten.slice(1), "deck").rows[0].cells.ROGUE.lowSample).toBe(true);
+  });
+
+  it("splits columns by opponent archetype, unknown ones per class", () => {
+    const aggro: [number, string] = [7, "Aggro Paladin"];
+    const games = [g(1, "Zoo", "WARLOCK", "PALADIN", "WIN", aggro), g(1, "Zoo", "WARLOCK", "PALADIN", "LOSS", aggro), g(1, "Zoo", "WARLOCK", "PALADIN", "WIN"), g(1, "Zoo", "WARLOCK", "MAGE", "LOSS")];
+    const m = buildMatchups(games, "deck", "archetype");
+    expect(m.columns).toEqual(["7", "unknown:MAGE", "unknown:PALADIN"]);
+    expect(m.columnInfo["7"]).toEqual({ key: "7", cls: "PALADIN", archetype: "Aggro Paladin" });
+    expect(m.columnInfo["unknown:PALADIN"]).toEqual({ key: "unknown:PALADIN", cls: "PALADIN", archetype: null });
+    expect(m.rows[0].cells["7"]).toMatchObject({ wins: 1, losses: 1 });
+    expect(m.totals["unknown:PALADIN"]).toMatchObject({ wins: 1, losses: 0 });
+    // Class columns are unchanged by archetypes.
+    expect(buildMatchups(games, "deck").columns).toEqual(["PALADIN", "MAGE"]);
   });
 });

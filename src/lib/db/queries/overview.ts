@@ -1,6 +1,6 @@
 import { and, asc, eq, gte, notInArray, type SQL } from "drizzle-orm";
 import { db } from "../client";
-import { decks, games } from "../schema";
+import { archetypes, decks, games } from "../schema";
 import type { OverviewGame } from "@/lib/stats/overview";
 import type { Filters } from "@/lib/filters";
 
@@ -37,6 +37,8 @@ export type StatGame = {
   result: OverviewGame["result"];
   playerClass: string;
   opponentClass: string;
+  opponentArchetypeId: number | null;
+  opponentArchetype: string | null;
   deckId: number | null;
   deckName: string | null;
   durationSec: number | null;
@@ -55,12 +57,15 @@ export function getStatGames(q: OverviewQuery = { from: null }): StatGame[] {
       result: games.result,
       playerClass: games.playerClass,
       opponentClass: games.opponentClass,
+      opponentArchetypeId: games.opponentArchetypeId,
+      opponentArchetype: archetypes.name,
       deckId: games.deckId,
       deckName: decks.name,
       durationSec: games.durationSec,
     })
     .from(games)
     .leftJoin(decks, eq(games.deckId, decks.id))
+    .leftJoin(archetypes, eq(games.opponentArchetypeId, archetypes.id))
     .where(and(...where))
     .orderBy(asc(games.playedAt))
     .all();
