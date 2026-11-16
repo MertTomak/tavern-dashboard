@@ -145,7 +145,10 @@ function Row({ game: g, fresh, editing, onEdit, onDelete }: { game: ListGame; fr
 
       <span role="cell" className="hidden min-w-0 items-center gap-2 md:flex">
         <ClassPortrait cls={g.opponentClass} size={28} />
-        <span className="truncate text-parchment">{opp}</span>
+        <span className="min-w-0">
+          <span className="block truncate text-parchment">{opp}</span>
+          {g.opponentArchetype && <span className="block truncate text-xs text-brass-dim">{g.opponentArchetype}</span>}
+        </span>
       </span>
 
       <span role="cell" className="col-start-2 truncate text-xs text-ink-muted md:col-start-auto md:text-sm">

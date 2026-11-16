@@ -185,3 +185,22 @@ export function cardByDbf(dbfId: number): Card | undefined {
 export function playableClasses(): string[] {
   return catalog()?.classes ?? [];
 }
+
+/** Pure: collectible cards of a class (and neutral ones) whose name contains the query, names that start with it first. */
+export function filterCards(cards: Iterable<Card>, query: string, cls: string, limit = 12): Card[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return [];
+  const hits: Card[] = [];
+  for (const c of cards) {
+    if (c.type === "HERO" && c.set === "HERO_SKINS") continue;
+    if (c.cardClass !== cls && c.cardClass !== "NEUTRAL") continue;
+    if (c.name.toLowerCase().includes(q)) hits.push(c);
+  }
+  const starts = (c: Card) => (c.name.toLowerCase().startsWith(q) ? 0 : 1);
+  return hits.sort((a, b) => starts(a) - starts(b) || (a.cost ?? 0) - (b.cost ?? 0) || a.name.localeCompare(b.name)).slice(0, limit);
+}
+
+export function searchCards(query: string, cls: string, limit = 12): Card[] {
+  const c = catalog();
+  return c ? filterCards(c.byDbf.values(), query, cls, limit) : [];
+}

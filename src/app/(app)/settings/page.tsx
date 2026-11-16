@@ -8,6 +8,8 @@ import { EffectsCard } from "@/components/settings/EffectsCard";
 import { DesktopAppCard } from "@/components/settings/DesktopAppCard";
 import { LogConfigCard } from "@/components/settings/LogConfigCard";
 import { WatcherCard } from "@/components/settings/WatcherCard";
+import { ArchetypesCard, type ArchetypeItem } from "@/components/settings/ArchetypesCard";
+import { listArchetypes } from "@/lib/db/queries/archetypes";
 import { logConfigStatus } from "@/lib/logs/log-config-file";
 import { currentWatcherStatus } from "@/lib/watcher/status";
 import { FramePanel } from "@/components/tavern/FramePanel";
@@ -16,7 +18,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { getDemoCounts } from "@/lib/db/queries/demo";
 import { getClassArtChoices, getEffectsLevel } from "@/lib/db/queries/preferences";
 import { loadClasses } from "@/lib/cards/classes";
-import { classArtOptions, effectiveClassArt } from "@/lib/cards/catalog";
+import { classArtOptions, effectiveClassArt, tileCardsByDbf } from "@/lib/cards/catalog";
 import { classLabel } from "@/lib/cards/class-colors";
 import { t } from "@/i18n";
 
@@ -29,6 +31,22 @@ async function Sections() {
     const current = effectiveClassArt(cls, choices) ?? "";
     return { cls, label: classLabel(cls), current, chosen: choices[cls] === current, options: classArtOptions(cls) };
   });
+  const archetypes = listArchetypes();
+  const tiles = tileCardsByDbf(archetypes.flatMap((a) => a.signatureCards));
+  const items: ArchetypeItem[] = archetypes.map((a) => ({
+    id: a.id,
+    name: a.name,
+    playerClass: a.playerClass,
+    classLabel: classLabel(a.playerClass),
+    minMatches: a.minMatches,
+    games: a.games,
+    cards: a.signatureCards
+      .flatMap((dbfId) => {
+        const card = tiles.get(dbfId);
+        return card ? [{ dbfId, card }] : [];
+      })
+      .sort((x, y) => (x.card.cost ?? 0) - (y.card.cost ?? 0) || x.card.name.localeCompare(y.card.name)),
+  }));
   return (
     <>
       <StaggerItem>
@@ -39,6 +57,9 @@ async function Sections() {
       </StaggerItem>
       <StaggerItem>
         <LogConfigCard initial={logConfigStatus()} />
+      </StaggerItem>
+      <StaggerItem>
+        <ArchetypesCard items={items} classes={rows.map((r) => ({ cls: r.cls, label: r.label }))} />
       </StaggerItem>
       <StaggerItem>
         <ClassArtCard rows={rows} />

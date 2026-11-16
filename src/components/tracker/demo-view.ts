@@ -57,6 +57,6 @@ export const DEMO_VIEW: TrackerView = {
       ["MEND_043", 1],
       ["EDR_470", 2],
       ["EDR_102", 1],
-    ].map(([cardId, count], i) => ({ cardId: String(cardId), name: String(cardId), cost: null, rarity: "COMMON", count: Number(count), keys: [i] })),
+    ].map(([cardId, count], i) => ({ cardId: String(cardId), dbfId: 0, name: String(cardId), cost: null, rarity: "COMMON", count: Number(count), keys: [i] })),
   },
 };

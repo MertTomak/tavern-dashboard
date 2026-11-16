@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 import { and, asc, desc, eq, gte, isNull, sql, type SQL } from "drizzle-orm";
 import { db } from "../client";
-import { decks, deckVersions, gameCardEvents, games } from "../schema";
+import { archetypes, decks, deckVersions, gameCardEvents, games } from "../schema";
 import type { Filters } from "@/lib/filters";
 import type { GameListParams } from "@/lib/games-list";
 import type { GameCreateInput } from "@/lib/validation/games";
@@ -15,6 +15,8 @@ export type GameRow = {
   result: (typeof games.$inferSelect)["result"];
   playerClass: string;
   opponentClass: string;
+  /** The opponent's archetype once their cards gave it away; null = unknown. */
+  opponentArchetype: string | null;
   deckId: number | null;
   deckName: string | null;
   wentFirst: boolean | null;
@@ -34,6 +36,7 @@ const rowColumns = {
   result: games.result,
   playerClass: games.playerClass,
   opponentClass: games.opponentClass,
+  opponentArchetype: archetypes.name,
   deckId: games.deckId,
   deckName: decks.name,
   wentFirst: games.wentFirst,
@@ -73,7 +76,7 @@ export function listGames(q: GameListQuery): { rows: GameRow[]; total: number; p
   const rows = db
     .select(rowColumns)
     .from(games)
-    .leftJoin(decks, eq(games.deckId, decks.id))
+    .leftJoin(decks, eq(games.deckId, decks.id)).leftJoin(archetypes, eq(games.opponentArchetypeId, archetypes.id))
     .where(where)
     .orderBy(sql`${column} is null`, order(column), desc(games.playedAt), asc(games.id))
     .limit(PAGE_SIZE)
@@ -96,7 +99,7 @@ export function opponentClassesFaced(): string[] {
 export type GameCardEventRow = { side: "FRIENDLY" | "OPPOSING"; dbfId: number; event: (typeof gameCardEvents.$inferSelect)["event"]; turn: number | null };
 
 export function getGame(id: string): (GameRow & { events: GameCardEventRow[] }) | null {
-  const row = db.select(rowColumns).from(games).leftJoin(decks, eq(games.deckId, decks.id)).where(eq(games.id, id)).get();
+  const row = db.select(rowColumns).from(games).leftJoin(decks, eq(games.deckId, decks.id)).leftJoin(archetypes, eq(games.opponentArchetypeId, archetypes.id)).where(eq(games.id, id)).get();
   if (!row) return null;
   const events = db
     .select({ side: gameCardEvents.side, dbfId: gameCardEvents.dbfId, event: gameCardEvents.event, turn: gameCardEvents.turn })

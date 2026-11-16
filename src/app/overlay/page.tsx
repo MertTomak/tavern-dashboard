@@ -37,7 +37,7 @@ function demoView(withDeck: boolean): TrackerView {
     ...DEMO_VIEW,
     deck: withDeck ? DEMO_VIEW.deck : { name: null, source: "seen" },
     me: { ...DEMO_VIEW.me, rows: withDeck ? rows : rows.filter((r) => r.seen > 0).map((r) => ({ ...r, total: null, left: null, drawChance: null })) },
-    opponent: { ...DEMO_VIEW.opponent, rows: DEMO_VIEW.opponent.rows.map(named).sort((a, b) => (a.cost ?? 0) - (b.cost ?? 0) || a.name.localeCompare(b.name)) },
+    opponent: { ...DEMO_VIEW.opponent, rows: DEMO_VIEW.opponent.rows.map((r) => ({ ...named(r), dbfId: cards.byId(r.cardId)?.dbfId ?? 0 })).sort((a, b) => (a.cost ?? 0) - (b.cost ?? 0) || a.name.localeCompare(b.name)) },
   };
 }
 

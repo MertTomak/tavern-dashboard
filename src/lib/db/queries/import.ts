@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { desc, eq, inArray, ne, sql } from "drizzle-orm";
 import { db } from "../client";
 import { gameCardEvents, games, importBatches, watcherState } from "../schema";
+import { reclassifyOpponents } from "./archetypes";
 import { deckCandidates, type DeckRef } from "./decks";
 import { SEED_BATCH_NAME } from "./demo";
 import { bestDeckMatch } from "@/lib/import/deck-match";
@@ -75,6 +76,8 @@ export function saveParsedGames(
       saved.push({ id, result: r.result, playerClass: r.playerClass, opponentClass: r.opponentClass, playedAt: r.startedAt });
     }
 
+    // The opponent's archetype, from the cards they showed.
+    reclassifyOpponents(tx, saved.map((g) => g.id));
     if (batchId !== null) tx.update(importBatches).set({ imported: saved.length, skipped }).where(eq(importBatches.id, batchId)).run();
     return { imported: saved.length, skipped, batchId, saved };
   });

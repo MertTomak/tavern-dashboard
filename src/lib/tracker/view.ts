@@ -30,7 +30,7 @@ export type DeckRow = {
   drawChance: number | null;
 };
 /** One card the opponent has played or revealed, with how many copies were seen. `keys` are the log entities behind it. */
-export type OpponentRow = { cardId: string; name: string; cost: number | null; rarity: string | null; count: number; keys: number[] };
+export type OpponentRow = { cardId: string; dbfId: number; name: string; cost: number | null; rarity: string | null; count: number; keys: number[] };
 
 export type TrackerView = {
   status: "waiting" | "playing" | "over";
@@ -106,7 +106,7 @@ export function buildTrackerView(game: TrackerGame | null, deck: TrackerDeck | n
   for (const e of shown) {
     const c = cards.byId(e.cardId);
     if (!c) continue;
-    const row = groups.get(c.id) ?? { cardId: c.id, name: c.name, cost: c.cost ?? null, rarity: c.rarity ?? null, count: 0, keys: [] };
+    const row = groups.get(c.id) ?? { cardId: c.id, dbfId: c.dbfId, name: c.name, cost: c.cost ?? null, rarity: c.rarity ?? null, count: 0, keys: [] };
     row.count++;
     row.keys.push(e.id);
     groups.set(c.id, row);

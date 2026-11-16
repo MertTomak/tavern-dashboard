@@ -1,7 +1,10 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { Hand, Layers } from "lucide-react";
+import { z } from "zod";
 import { classLabel } from "@/lib/cards/class-colors";
+import { classifyArchetype, type ArchetypeRule } from "@/lib/stats/archetypes";
 import { t } from "@/i18n";
 import { PanelShell } from "./PanelShell";
 import { DeckCardRow, ManaGem } from "./TrackerRows";
@@ -9,6 +12,27 @@ import { useFitRows, type TrackerState } from "./use-tracker";
 
 /** Height of the panel's header and padding: the part of the column that is not rows. */
 const HEADER_PX = 64;
+
+const rulesSchema = z.object({
+  archetypes: z.array(z.object({ id: z.number(), name: z.string(), playerClass: z.string(), signatureCards: z.array(z.number()), minMatches: z.number() })),
+});
+
+/** The user's archetype rules for one class, fetched when the opponent's class becomes known. */
+function useArchetypeRules(cls: string | null): ArchetypeRule[] {
+  const [rules, setRules] = useState<ArchetypeRule[]>([]);
+  useEffect(() => {
+    if (!cls) return;
+    let alive = true;
+    fetch("/api/tracker/archetypes")
+      .then((res) => res.json())
+      .then((data: unknown) => alive && setRules(rulesSchema.parse(data).archetypes.filter((r) => r.playerClass === cls)))
+      .catch(() => alive && setRules([]));
+    return () => {
+      alive = false;
+    };
+  }, [cls]);
+  return rules;
+}
 
 /**
  * The opponent, in a column on the far left edge that looks exactly like my
@@ -18,7 +42,8 @@ const HEADER_PX = 64;
  * my deck panel. A row that was just added
  * or gained a copy glows once. The header has their class and two numbers:
  * cards in hand and cards in deck. Nothing about hidden cards (fair play):
- * a card played face down is only counted.
+ * a card played face down is only counted. Once the cards they have shown
+ * fit one of my archetypes, its name replaces the class under "Opponent".
  */
 export function OpponentPanel({ tracker }: { tracker: TrackerState }) {
   const copy = t.tracker;
@@ -26,6 +51,12 @@ export function OpponentPanel({ tracker }: { tracker: TrackerState }) {
   const { opponent } = view;
   const rows = opponent.rows.length + (opponent.unrevealed ? 1 : 0);
   const [measureColumn, listStyle] = useFitRows(rows, deckSize, HEADER_PX);
+  const rules = useArchetypeRules(opponent.cls);
+  // Only the rows on screen count (cards the player has seen too): fair play.
+  const archetype = useMemo(
+    () => (opponent.cls && rules.length ? classifyArchetype(opponent.cls, opponent.rows.map((r) => r.dbfId), rules) : null),
+    [opponent.cls, opponent.rows, rules],
+  );
 
   return (
     <div ref={measureColumn} className="flex h-full w-full min-w-0 items-start">
@@ -36,7 +67,13 @@ export function OpponentPanel({ tracker }: { tracker: TrackerState }) {
         heading={
           <span className="min-w-0">
             <span className="block truncate font-display text-[15px] leading-tight text-title-gold">{copy.opponent}</span>
-            <span className="block truncate text-[10.5px] leading-tight text-ink-muted">{opponent.cls ? classLabel(opponent.cls) : copy.turn(view.turn)}</span>
+            {archetype ? (
+              <span className="block truncate text-[10.5px] leading-tight text-brass-light" title={copy.archetypeLabel(archetype.name)}>
+                {archetype.name}
+              </span>
+            ) : (
+              <span className="block truncate text-[10.5px] leading-tight text-ink-muted">{opponent.cls ? classLabel(opponent.cls) : copy.turn(view.turn)}</span>
+            )}
           </span>
         }
         aside={
