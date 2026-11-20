@@ -3,9 +3,16 @@ import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { encode } from "deckstrings";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { LogWatcher } from "@/lib/watcher/log-watcher";
 import { TrackerSession } from "../../../electron/tracker";
+
+// Card data lives in the user's data folder, which a fresh checkout (CI) does not have:
+// the recorded game only needs to know that its hero is a Warlock.
+vi.mock("@/lib/cards/all-cards", async (importOriginal) => {
+  const original = await importOriginal<typeof import("@/lib/cards/all-cards")>();
+  return { ...original, loadAllCards: () => original.indexCards([{ id: "HERO_07", dbfId: 1, name: "Test hero", cardClass: "WARLOCK", type: "HERO" }]) };
+});
 
 /**
  * The deck of a game comes from Decks.log, which Hearthstone writes before the
