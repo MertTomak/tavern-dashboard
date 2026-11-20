@@ -51,3 +51,6 @@ next-env.d.ts
 
 # demo mode card data (downloaded at build time, never committed)
 /.demo-data/
+
+# Recordings of the real app show Blizzard card art and real game data: local only, never committed.
+/docs/demos/*.gif
