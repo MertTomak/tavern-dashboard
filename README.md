@@ -4,7 +4,7 @@
 
 A local-first Hearthstone stats app for the Mac. It records your games from Hearthstone's own log files, turns them into statistics and plain-English insights, and shows an in-game deck tracker next to the board. Everything stays on your computer: no accounts, no cloud, no ads.
 
-> **Try the demo:** _link coming soon_ (a read-only copy on generated data; no Mac or Hearthstone needed).
+> **[Try the demo](https://tavern-dashboard.vercel.app)** (a read-only copy on generated data; no Mac or Hearthstone needed).
 
 | | |
 | - | - |
