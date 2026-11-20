@@ -6,7 +6,12 @@ A local-first Hearthstone stats app for the Mac. It records your games from Hear
 
 > **Try the demo:** _link coming soon_ (a read-only copy on generated data; no Mac or Hearthstone needed).
 
-<!-- Screenshot or GIF goes here. -->
+| | |
+| - | - |
+| ![Games list](docs/screenshots/games.png) | ![Matchups heat map](docs/screenshots/matchups.png) |
+| ![Sessions and tilt warning](docs/screenshots/sessions.png) | ![Settings and opponent archetypes](docs/screenshots/settings.png) |
+
+_Screenshots are from demo mode on generated data, with card art hidden. The live demo shows the full art._
 
 ## Why
 
